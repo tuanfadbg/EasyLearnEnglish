@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Choice Game</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .question-card {
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .answer-button {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .result {
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="question-card">
+            <h2 id="word">Word</h2>
+            <div id="answers">
+                <!-- Answers will be inserted here dynamically -->
+            </div>
+            <button id="nextButton" class="btn btn-primary">Next Question</button>
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+
+    <!-- Bootstrap and jQuery -->
+    <script src="resources/jquery-3.5.1.slim.min.js"></script>
+    <script src="resources/popper.min.js"></script>
+    <script src="resources/bootstrap.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

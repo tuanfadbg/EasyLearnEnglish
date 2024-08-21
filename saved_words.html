@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="utils.js"></script>
+    <title>Saved Words</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Saved Words</h1>
+        <!-- CLEAR ALL DATA -->
+        <button id="clearAllButton" class="btn btn-danger mb-4">Clear All Words</button>
+    
+        <button id="loadall" class="btn btn-primary mb-4">All</button>
+        <button id="random10" class="btn btn-primary mb-4">Load Random 10 word</button>
+        <button id="sortByTimeButton" class="btn btn-info mb-4">Sort by Time</button>
+        <button id="game" class="btn btn-info mb-4"><a href="game.html">Game</a></button>
+    
+        <table class="table table-striped" id="wordsTable">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">Word</th>
+                    <th scope="col">Meaning</th>
+                    <th scope="col">Note</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be inserted here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="saved_words.js"></script>
+    
+</body>
+</html>
