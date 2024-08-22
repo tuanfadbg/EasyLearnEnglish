@@ -21,3 +21,41 @@
     font-size: 1.2em;
     margin-top: 20px;
 }
+
+/* Dark Mode */
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+body.dark-mode .game-container {
+    background-color: #121212;
+}
+body.dark-mode .modal-content,
+body.dark-mode h2 {
+    background-color:transparent;
+    color: #ffffff;
+}
+body.dark-mode .question-card {
+    background-color: #262626;
+    color: #ffffff;
+}
+
+body.dark-mode input,
+body.dark-mode textarea {
+    border: 1px solid #ced4da;
+    background-color: #121212;
+    color: #ffffff;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+/* body.dark-mode .modal-content {
+    background-color: #121212;
+    color: #ffffff;
+} */

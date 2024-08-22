@@ -113,9 +113,10 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("checkAnswer " + selectedIndex)
         if (selectedIndex === currentWord.correctAnswerIndex) {
             resultElement.textContent = 'Correct!';
+            resultElement.innerHTML = 'Correct!<br/>' + currentWord.note;
             resultElement.classList.add('text-success');
         } else {
-            resultElement.textContent = 'Incorrect. The correct answer is: ' + currentWord.meaning;
+            resultElement.innerHTML = 'Incorrect. The correct answer is: ' + currentWord.meaning + "<br/>" + currentWord.note;
             resultElement.classList.add('text-danger');
         }
         resultElement.classList.remove('text-success', 'text-danger');
@@ -144,7 +145,15 @@ document.addEventListener('DOMContentLoaded', function () {
     nextButton.addEventListener('click', function () {
         currentWordIndex = (currentWordIndex + 1) % words.length;
         loadQuestion();
+    });
 
+    document.addEventListener('keydown', function(event) {
+        if (!nextButton.disabled) {
+            if (event.key === 'Enter') {
+                currentWordIndex = (currentWordIndex + 1) % words.length;
+                loadQuestion();
+            }
+        }
     });
 
     allButton.addEventListener('click', function () {

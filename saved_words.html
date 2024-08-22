@@ -8,6 +8,7 @@
     <title>Saved Words</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="resources/saved_words.css" rel="stylesheet">
 </head>
 
 <body>
@@ -21,7 +22,8 @@
         <button id="sortByTimeButton" class="btn btn-info mb-4">Sort by Time</button>
         <button id="game" class="btn btn-info mb-4"><a href="game.html" target="_blank"
                 style="color: white;">Game</a></button>
-
+        <button id="nightMode" class="btn btn-info mb-4">Toggle Night Mode</button>
+                
         <table class="table table-striped" id="wordsTable">
             <thead class="thead-dark">
                 <tr>
@@ -51,9 +53,9 @@
                 <div class="modal-body">
                     <div class="container">
                         <label for="word">Word:</label>
-                        <br/>
+                    
                         <input type="text" id="word" placeholder="Enter word">
-                        <br/>
+                        
                         <label for="meaning">Meaning:</label>
                         <br/>
                         <input type="text" id="meaning" placeholder="Enter meaning">

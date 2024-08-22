@@ -65,3 +65,27 @@ function seedData() {
         location.reload(); // Reload to show the new data
     });
 }
+
+function toggleNightMode() {
+    document.body.classList.toggle('dark-mode');
+    
+    // Save preference to localStorage
+    if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('theme', 'dark');
+    } else {
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// Check for saved preference on page load
+window.onload = function() {
+    const nightMode = document.getElementById('nightMode');
+    
+    nightMode.addEventListener('click', function () {
+        toggleNightMode();
+    });
+
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+}
