@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearAllButton = document.getElementById('clearAllButton');
     const title = document.getElementById('title');
     const sortByTimeButton = document.getElementById('sortByTimeButton');
-
+    const editAndSaveWord = document.getElementById('editAndSaveWord');
 
     const loadRandomButton = document.getElementById('random10');
     const allButton = document.getElementById('loadall');
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.storage.local.get({ words: [] }, function (result) {
             let words = result.words;
             title.innerHTML = "Saved Words(" + words.length + ")";
-        
+
             fillInTable(words)
         });
     }
@@ -34,10 +34,11 @@ document.addEventListener('DOMContentLoaded', function () {
             fillInTable(randomWords)
         });
     }
-
+    var wordInTable;
     function fillInTable(words) {
-        words.sort(function (a, b) {
-            return isAscending 
+        wordInTable = words;
+        wordInTable.sort(function (a, b) {
+            return isAscending
                 ? new Date(a.timestamp) - new Date(b.timestamp)
                 : new Date(b.timestamp) - new Date(a.timestamp);
         });
@@ -50,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
             emptyRow.appendChild(emptyCell);
             tableBody.appendChild(emptyRow);
         } else {
-            words.forEach(function (wordData) {
+            wordInTable.forEach(function (wordData) {
                 const row = document.createElement('tr');
 
                 const timestampCell = document.createElement('td');
@@ -71,12 +72,87 @@ document.addEventListener('DOMContentLoaded', function () {
                 noteCell.textContent = wordData.note;
                 row.appendChild(noteCell);
 
+                // Create edit and delete icons
+                const editIcon = document.createElement('span');
+                editIcon.innerHTML = '✏️'; // Edit icon (pencil)
+                editIcon.style.cursor = 'pointer';
+                editIcon.style.marginLeft = '10px';
+                editIcon.addEventListener('click', function () {
+                    // Implement edit functionality here
+                    // Populate a form with current word details for editing
+                    showDialogEditAndFillData(wordData);
 
+                });
+
+                const deleteIcon = document.createElement('span');
+                deleteIcon.innerHTML = '🗑️'; // Delete icon (trash can)
+                deleteIcon.style.cursor = 'pointer';
+                deleteIcon.style.marginLeft = '10px';
+                deleteIcon.addEventListener('click', function () {
+                    deleteWord(wordData);
+                });
+
+                // Append edit and delete icons to the row
+                row.appendChild(editIcon);
+                row.appendChild(deleteIcon);
 
                 tableBody.appendChild(row);
             });
         }
+    }
 
+    const wordInput = document.getElementById('word');
+    const meaningInput = document.getElementById('meaning');
+    const noteInput = document.getElementById('note');
+
+    function showDialogEditAndFillData(wordData) {
+        $('#confirmDialog').modal('show');
+        wordInput.value = wordData.word;
+        meaningInput.value = wordData.meaning;
+        noteInput.value = wordData.note;
+    }
+
+    editAndSaveWord.addEventListener('click', function () {
+        chrome.storage.local.get({ words: [] }, function (result) {
+            result.words.forEach(word => {
+                if (word.word == wordInput.value) {
+                    console.log(word);
+                    word.meaning = meaningInput.value;
+                    word.note = noteInput.value;
+                }
+            });
+            updateWordInStorage(result.words);
+
+            wordInTable.forEach(word => {
+                if (word.word == wordInput.value) {
+                    word.meaning = meaningInput.value;
+                    word.note = noteInput.value;
+                }
+            });
+            fillInTable(wordInTable);
+        });
+    });
+
+
+    function deleteWord(wordData) {
+        if (confirm('Are you sure you want to delete this word?')) {
+            // Remove the word from the words array and update storage
+            // console.log(wordData);
+            chrome.storage.local.get({ words: [] }, function (result) {
+                let words = result.words.filter(word => word.word != wordData.word);
+                wordInTable = wordInTable.filter(word => word.word != wordData.word);
+                fillInTable(wordInTable);
+                // console.log(words);
+                updateWordInStorage(words);
+            });
+        }
+    }
+
+    function updateWordInStorage(words) {
+        chrome.storage.local.set({ words: words }, function () {
+            // Reload the table to reflect the changes
+
+        });
     }
 
     sortByTimeButton.addEventListener('click', function () {
