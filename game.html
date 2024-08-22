@@ -6,34 +6,24 @@
     <title>Multiple Choice Game</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f8f9fa;
-        }
-        .question-card {
-            width: 80%;
-            max-width: 600px;
-            padding: 20px;
-            background: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .answer-button {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        .result {
-            font-size: 1.2em;
-            margin-top: 20px;
-        }
-    </style>
+    <link href="resources/game.css" rel="stylesheet">
 </head>
 <body>
     <div class="game-container">
+        <div id="buttonGroup" class="mb-3">
+            <button id="game" class="btn btn-info"><a href="saved_words.html" target="_blank" style="color: white;">Back</a></button>
+            <button id="allButton" class="btn btn-info">All Words</button>
+            <button id="allRandomButton" class="btn btn-primary">Random All Words</button>
+            <button id="newestButton20" class="btn btn-secondary">Newest 20 Words</button>
+            <button id="randomNewestButton20" class="btn btn-primary">Random Newest 20 Words</button>
+            <button id="random20Button" class="btn btn-info">Random  20 Words</button>
+        </div>
+        
+        <div id="scoreBoard">
+            <p id="totalQuestions">Total Questions: 0</p>
+            <p id="correctAnswers">Correct Answers: 0</p>
+            <p id="wrongAnswers">Wrong Answers: 0</p>
+        </div>
         <div class="question-card">
             <h2 id="word">Word</h2>
             <div id="answers">
@@ -49,5 +39,6 @@
     <script src="resources/popper.min.js"></script>
     <script src="resources/bootstrap.min.js"></script>
     <script src="game.js"></script>
+    <script src="utils.js"></script>
 </body>
 </html>

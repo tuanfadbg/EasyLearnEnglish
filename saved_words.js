@@ -1,19 +1,20 @@
 document.addEventListener('DOMContentLoaded', function () {
     const tableBody = document.querySelector('#wordsTable tbody');
     const clearAllButton = document.getElementById('clearAllButton');
+    const title = document.getElementById('title');
     const sortByTimeButton = document.getElementById('sortByTimeButton');
 
 
     const loadRandomButton = document.getElementById('random10');
     const allButton = document.getElementById('loadall');
 
-    let isAscending = true; // Default sorting direction
+    let isAscending = false; // Default sorting direction
 
     // Function to load and display words
     function loadWords() {
         chrome.storage.local.get({ words: [] }, function (result) {
             let words = result.words;
-            // Sort words by timestamp (newest first)
+            title.innerHTML = "Saved Words(" + words.length + ")";
         
             fillInTable(words)
         });
@@ -58,14 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const wordCell = document.createElement('td');
                 wordCell.textContent = wordData.word;
-                // Add copy icon
-                const copyIcon = document.createElement('span');
-                copyIcon.innerHTML = '📋'; // You can replace this with a better icon if you like
-                copyIcon.style.cursor = 'pointer';
-                copyIcon.style.marginLeft = '10px';
-                copyIcon.addEventListener('click', function () {
-                    copyToClipboard(wordData.word);
-                });
+                const copyIcon = createCopyIcon(wordData.word);
                 wordCell.appendChild(copyIcon);
                 row.appendChild(wordCell);
 

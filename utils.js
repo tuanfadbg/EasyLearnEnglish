@@ -18,6 +18,17 @@ function formatDate(timestamp) {
     return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
+function createCopyIcon(text) {
+    let copyIcon = document.createElement('span');
+    copyIcon.innerHTML = '📋'; // You can replace this with a better icon if you like
+    copyIcon.style.cursor = 'pointer';
+    copyIcon.style.marginLeft = '10px';
+    copyIcon.addEventListener('click', function () {
+        copyToClipboard(text);
+    });
+    return copyIcon;
+}
+
 
 function seedData() {
     let sampleWords = [
@@ -33,14 +44,14 @@ function seedData() {
     let sampleWordsWithPrefix = []
     for (var i = 0; i < 10; i++) {
         sampleWords.forEach(word => {
-            let randomOffset = Math.floor(Math.random() * 1000000000); // Random offset in milliseconds
-            
+            let randomOffset = Math.floor(i * 1000000000); // Random offset in milliseconds
+
             let wordCopied = {};
             wordCopied.timestamp = new Date(now.getTime() - randomOffset).toISOString();
             wordCopied.word = word.word + " " + i;
             wordCopied.meaning = word.meaning;
             wordCopied.note = word.note;
-            sampleWordsWithPrefix.push(wordCopied);    
+            sampleWordsWithPrefix.push(wordCopied);
         });
     }
 

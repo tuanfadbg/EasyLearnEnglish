@@ -1,0 +1,23 @@
+.game-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f8f9fa;
+}
+.question-card {
+    width: 80%;
+    max-width: 600px;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.answer-button {
+    width: 100%;
+    margin-bottom: 10px;
+}
+.result {
+    font-size: 1.2em;
+    margin-top: 20px;
+}
