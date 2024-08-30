@@ -4,97 +4,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Save Word</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             padding: 10px;
-            background-color: #f8f9fa;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* min-height: 100vh; */
+            margin: 0;
         }
 
         .container {
-            min-width: 300px;
-            max-width: 500px;
-            margin: auto;
+            width: 250px;
             background-color: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h3 {
-            text-align: center;
-            color: #007bff;
-            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
         }
 
         label {
-            font-weight: bold;
-            margin-top: 10px;
+            font-weight: 500;
+            margin-top: 8px;
+            display: block;
+            color: #34495e;
         }
 
-        input[type="text"] {
+        input[type="text"], textarea {
             width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border: 1px solid #ced4da;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #bdc3c7;
             border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
         }
 
         #save {
-            background-color: #007bff;
+            background-color: #3498db;
             color: white;
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin-top: 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
         }
 
         #save:hover {
-            background-color: #0056b3;
+            background-color: #2980b9;
         }
 
         ul {
             list-style-type: none;
             padding: 0;
+            margin-top: 20px;
         }
 
         ul li {
-            background-color: #e9ecef;
-            margin: 5px 0;
-            padding: 10px;
+            background-color: #ecf0f1;
+            margin: 10px 0;
+            padding: 12px;
             border-radius: 4px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        ul li:hover {
+            background-color: #e0e6e8;
         }
 
         ul li button {
             background: none;
             border: none;
-            color: #dc3545;
+            color: #e74c3c;
             cursor: pointer;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        ul li button:hover {
+            color: #c0392b;
         }
 
         #viewSavedWords {
             display: block;
             text-align: center;
             margin-top: 20px;
-            color: #007bff;
+            color: #3498db;
             text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
         }
 
         #viewSavedWords:hover {
-            text-decoration: underline;
+            color: #2980b9;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h3>Save Word</h3>
         <label for="word">Word:</label>
         <input type="text" id="word" placeholder="Enter word">
 
@@ -102,9 +126,7 @@
         <input type="text" id="meaning" placeholder="Enter meaning">
 
         <label for="note">Note:</label>
-        <br/>
-        <textarea id="note" placeholder="Enter note" rows="3" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box;"></textarea>
-    
+        <textarea id="note" placeholder="Enter note" rows="3"></textarea>
 
         <button id="save">Save</button>
 
