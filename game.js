@@ -24,14 +24,66 @@ document.addEventListener('DOMContentLoaded', function () {
             "meaning": "A sweet fruit from palm trees",
             "note": "Often eaten dried",
             "timestamp": "2024-08-18T06:51:41.179Z",
-            "word": "Date 0",
+            "word": "Date",
             "shuffledMeanings": [
                 "A small red fruit",
-                "A small red fruit",
                 "A sweet fruit from palm trees",
+                "A tropical yellow fruit",
                 "A dark purple fruit"
             ],
+            "correctAnswerIndex": 1
+        },
+        {
+            "meaning": "A large, orange-colored fruit",
+            "note": "Often used in pies",
+            "timestamp": "2024-08-19T10:30:00.000Z",
+            "word": "Pumpkin",
+            "shuffledMeanings": [
+                "A large, orange-colored fruit",
+                "A small, round green vegetable",
+                "A red, heart-shaped fruit",
+                "A purple berry"
+            ],
+            "correctAnswerIndex": 0
+        },
+        {
+            "meaning": "A green fruit with a fuzzy brown exterior",
+            "note": "Native to New Zealand",
+            "timestamp": "2024-08-20T14:15:00.000Z",
+            "word": "Kiwi",
+            "shuffledMeanings": [
+                "A citrus fruit with yellow skin",
+                "A green fruit with a fuzzy brown exterior",
+                "A tropical fruit with spiky skin",
+                "A small, round red fruit"
+            ],
+            "correctAnswerIndex": 1
+        },
+        {
+            "meaning": "A tropical fruit with yellow flesh and spiky skin",
+            "note": "Contains an enzyme that can tenderize meat",
+            "timestamp": "2024-08-21T09:45:00.000Z",
+            "word": "Pineapple",
+            "shuffledMeanings": [
+                "A small, tart berry",
+                "A large, green melon",
+                "A tropical fruit with yellow flesh and spiky skin",
+                "A purple fruit with smooth skin"
+            ],
             "correctAnswerIndex": 2
+        },
+        {
+            "meaning": "A small, sweet berry",
+            "note": "Often used in jams and pies",
+            "timestamp": "2024-08-22T16:20:00.000Z",
+            "word": "Strawberry",
+            "shuffledMeanings": [
+                "A large, yellow tropical fruit",
+                "A small, sweet berry",
+                "A green, sour fruit",
+                "A brown nut with a hard shell"
+            ],
+            "correctAnswerIndex": 1
         }
     ];
 
@@ -108,6 +160,9 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 wrongAnswers++; // Increment wrong answers
             }
+
+            // Update stats for the current word
+            updateStats(currentWord.word, selectedIndex === currentWord.correctAnswerIndex);
         }
 
         console.log("checkAnswer " + selectedIndex)
@@ -124,6 +179,84 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Display updated counts
         updateScore();
+    }
+
+    function updateStats(word, isCorrect) {
+        // Define the structure for gameStats and wordStats
+        // gameStats structure:
+        // {
+        //     totalGames: number,       // Total number of games played
+        //     totalQuestions: number,   // Total number of questions answered across all games
+        //     totalCorrect: number,     // Total number of correct answers across all games
+        //     recentAccuracy: array,    // Array of recent game accuracies
+        //     lastUpdated: string       // Timestamp of last update
+        // }
+
+        // wordStats structure:
+        // {
+        //     [word]: {
+        //         correct: number,      // Number of times this word was answered correctly
+        //         total: number,        // Total number of times this word was presented
+        //         attempts: array       // Array of recent attempts for this word
+        //     }
+        // }
+
+        chrome.storage.local.get(['gameStats', 'wordStats'], function(result) {
+            let gameStats = result.gameStats || { 
+                totalGames: 0, 
+                totalQuestions: 0, 
+                totalCorrect: 0, 
+                recentAccuracy: [],
+                lastUpdated: null
+            };
+            let wordStats = result.wordStats || {};
+
+            const now = new Date();
+            const timestamp = now.toISOString();
+
+            // Update game stats
+            gameStats.totalQuestions++;
+            if (isCorrect) {
+                gameStats.totalCorrect++;
+            }
+            gameStats.lastUpdated = timestamp;
+
+            // Update word stats
+            if (!wordStats[word]) {
+                wordStats[word] = { correct: 0, total: 0, attempts: [] };
+            }
+            wordStats[word].total++;
+            if (isCorrect) {
+                wordStats[word].correct++;
+            }
+            wordStats[word].attempts.push({
+                timestamp: timestamp,
+                isCorrect: isCorrect
+            });
+
+            // Limit attempts array to last 50 entries
+            if (wordStats[word].attempts.length > 50) {
+                wordStats[word].attempts = wordStats[word].attempts.slice(-50);
+            }
+
+            // Calculate and update recent accuracy
+            const currentGameAccuracy = (correctAnswers / totalQuestions) * 100;
+            if (!gameStats.recentAccuracy) {
+                gameStats.recentAccuracy = [];
+            }
+            if (gameStats.recentAccuracy.length >= 10) {
+                gameStats.recentAccuracy.shift(); // Remove the oldest entry if we have 10 already
+            }
+            gameStats.recentAccuracy.push({
+                accuracy: currentGameAccuracy,
+                timestamp: timestamp
+            });
+
+            // Save updated stats
+            chrome.storage.local.set({ gameStats: gameStats, wordStats: wordStats }, function() {
+                console.log('Stats updated for word:', word);
+            });
+        });
     }
 
     function updateScore() {
@@ -147,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
         loadQuestion();
     });
 
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if (!nextButton.disabled) {
             if (event.key === 'Enter') {
                 currentWordIndex = (currentWordIndex + 1) % words.length;
@@ -239,4 +372,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // prepareData();
+
+    // At the end of each game:
+    function finishGame() {
+        chrome.storage.local.get(['gameStats'], function (result) {
+            let gameStats = result.gameStats || { totalGames: 0, totalQuestions: 0, totalCorrect: 0, recentAccuracy: [] };
+            gameStats.totalGames++;
+            const accuracy = (correctAnswers / totalQuestions) * 100;
+            gameStats.recentAccuracy.push(accuracy);
+            if (gameStats.recentAccuracy.length > 10) gameStats.recentAccuracy.shift(); // Keep only last 10 games
+
+            chrome.storage.local.set({ gameStats: gameStats });
+        });
+    }
 });
+
+

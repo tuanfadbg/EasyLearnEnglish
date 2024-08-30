@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Statistics</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .sortable {
+            cursor: pointer;
+        }
+        .sort-icon::after {
+            content: '\25B2\25BC';
+            font-size: 0.8em;
+            margin-left: 5px;
+            opacity: 0.3;
+        }
+        .sort-asc .sort-icon::after {
+            content: '\25B2';
+            opacity: 1;
+        }
+        .sort-desc .sort-icon::after {
+            content: '\25BC';
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+
+        <h1 class="text-center mb-4">Game Statistics</h1>
+        
+        <div class="row mb-3 mt-3">
+            <div class="col-md-6 text-left">
+                <button id="closeButton" class="btn btn-secondary">Close</button>
+            </div>
+            <div class="col-md-6 text-right">
+                <button id="resetStats" class="btn btn-danger">Reset Statistics</button>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Overall Statistics</h3>
+                <ul id="overallStats" class="list-group">
+                    <li class="list-group-item">Total Games Played: <span id="totalGames">0</span></li>
+                    <li class="list-group-item">Total Questions Answered: <span id="totalQuestions">0</span></li>
+                    <li class="list-group-item">Total Correct Answers: <span id="totalCorrect">0</span></li>
+                    <li class="list-group-item">Overall Accuracy: <span id="overallAccuracy">0%</span></li>
+                    <li class="list-group-item">Last Updated: <span id="lastUpdated">Never</span></li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h3>Recent Performance</h3>
+                <div class="chart-container">
+                    <canvas id="accuracyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h3>Word Performance</h3>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Word</th>
+                            <th class="sortable" data-sort="correctAttempts">Correct Attempts <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="totalAttempts">Total Attempts <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="accuracy">Accuracy <span class="sort-icon"></span></th>
+                            <th>Last Attempt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="wordPerformance">
+                        <!-- Word performance data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap and jQuery -->
+    <script src="resources/jquery-3.5.1.slim.min.js"></script>
+    <script src="resources/popper.min.js"></script>
+    <script src="resources/bootstrap.min.js"></script>
+    <!-- Chart.js -->
+    <script src="resources/chart.js"></script>
+    <script src="statistics.js"></script>
+</body>
+</html>

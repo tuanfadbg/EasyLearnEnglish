@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Backup</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="utils.js"></script>
+    <link href="resources/saved_words.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Database Backup</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Export Database</h2>
+                <button id="exportButton" class="btn btn-primary">Export</button>
+                <a id="downloadLink" style="display: none;"></a>
+            </div>
+            <div class="col-md-6">
+                <h2>Import Database</h2>
+                <input type="file" id="importFile" accept=".json" class="form-control-file mb-2">
+                <button id="importButton" class="btn btn-secondary">Import</button>
+            </div>
+        </div>
+        
+        <!-- Night Mode Button -->
+        <button id="nightMode" class="btn btn-info mt-4">Toggle Night Mode</button>
+    </div>
+
+    <!-- Bootstrap and jQuery -->
+    <script src="resources/jquery-3.5.1.slim.min.js"></script>
+    <script src="resources/popper.min.js"></script>
+    <script src="resources/bootstrap.min.js"></script>
+    
+    <script src="backup.js"></script>
+</body>
+</html>
