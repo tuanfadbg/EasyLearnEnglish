@@ -89,21 +89,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let currentWordIndex = 0;
 
-    // Add click event to the word element to open Google Translate
     wordElement.addEventListener('click', () => {
-        const translateUrl = `https://translate.google.com/?sl=en&tl=vi&text=${encodeURIComponent(currentWord.word)}&op=translate`;
-
-        // Check for existing Google Translate tab
-        chrome.tabs.query({}, (tabs) => {
-            const existingTab = tabs.find(tab => tab.url && tab.url.startsWith("https://translate.google.com/"));
-            if (existingTab) {
-                // If the tab exists, update its URL and focus on it
-                chrome.tabs.update(existingTab.id, { url: translateUrl, active: true });
-            } else {
-                // If not, create a new tab
-                chrome.tabs.create({ url: translateUrl });
-            }
-        });
+        openGoogleTranslate(currentWord.word);
     });
 
     function getRandomMeanings(currentWordIndex) {
@@ -422,21 +409,8 @@ document.addEventListener('DOMContentLoaded', function () {
     saveNoteButton.addEventListener('click', () => {
         const noteInput = document.getElementById('noteInput');
         const newNote = noteInput.value;
-
-        // Get all words before update
-        chrome.storage.local.get(['words'], function(result) {
-            const words = result.words || [];
-            // Update the current word's note
-            currentWord.note = newNote;
-
-            // Find the word in the words array and update its note
-            const updatedWords = words.map(word => word.word === currentWord.word ? { ...word, note: newNote } : word);
-
-            // Save the updated words array to storage
-            chrome.storage.local.set({ words: updatedWords }, function() {
-                console.log('Note saved:', newNote);
-            });
-        });
+        currentWord.note = newNote;
+        updateWord(currentWord);
     });
 });
 

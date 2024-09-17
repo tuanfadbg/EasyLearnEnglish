@@ -63,7 +63,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const copyIcon = createCopyIcon(wordData.word);
                 wordCell.appendChild(copyIcon);
                 row.appendChild(wordCell);
-
+                
+                wordCell.addEventListener('click', function () {
+                    openGoogleTranslate(wordData.word);
+                });
+                
                 const meaningCell = document.createElement('td');
                 meaningCell.textContent = wordData.meaning;
                 row.appendChild(meaningCell);
