@@ -89,6 +89,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let currentWordIndex = 0;
 
+    // Add click event to the word element to open Google Translate
+    wordElement.addEventListener('click', () => {
+        const translateUrl = `https://translate.google.com/?sl=en&tl=vi&text=${encodeURIComponent(currentWord.word)}&op=translate`;
+
+        // Check for existing Google Translate tab
+        chrome.tabs.query({}, (tabs) => {
+            const existingTab = tabs.find(tab => tab.url && tab.url.startsWith("https://translate.google.com/"));
+            if (existingTab) {
+                // If the tab exists, update its URL and focus on it
+                chrome.tabs.update(existingTab.id, { url: translateUrl, active: true });
+            } else {
+                // If not, create a new tab
+                chrome.tabs.create({ url: translateUrl });
+            }
+        });
+    });
 
     function getRandomMeanings(currentWordIndex) {
         const meanings = [];
@@ -127,8 +143,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const copyIcon = createCopyIcon(currentWord.word);
         wordElement.appendChild(copyIcon);
 
-        // Get the array of meanings
+        // Hide the note container when loading a new question
+        const noteContainer = document.getElementById('noteContainer');
+        noteContainer.style.display = 'none'; // Hide the note text area
 
+        // Get the array of meanings
         answersContainer.innerHTML = '';
         currentWord.shuffledMeanings.forEach((meaning, index) => {
             const button = document.createElement('button');
@@ -176,6 +195,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         resultElement.classList.remove('text-success', 'text-danger');
         nextButton.disabled = false; // Enable the Next button
+
+        // Populate the note input with the current note
+        const noteInput = document.getElementById('noteInput');
+        noteInput.value = currentWord.note; // Set the current note in the input box
+
+        // Show the note container
+        const noteContainer = document.getElementById('noteContainer');
+        noteContainer.style.display = 'block'; // Show the note text area
 
         // Display updated counts
         updateScore();
@@ -282,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('keydown', function (event) {
         if (!nextButton.disabled) {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && event.metaKey) {
                 currentWordIndex = (currentWordIndex + 1) % words.length;
                 loadQuestion();
             }
@@ -324,6 +351,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 
+    //isRandom = true;
+    // count = -1;
+    // newWord = false;
+    
     function prepareData() {
         resetScore();
         chrome.storage.local.get({ words: [] }, function (result) {
@@ -385,6 +416,28 @@ document.addEventListener('DOMContentLoaded', function () {
             chrome.storage.local.set({ gameStats: gameStats });
         });
     }
+
+    // Add click event for the Save Note button
+    const saveNoteButton = document.getElementById('saveNoteButton');
+    saveNoteButton.addEventListener('click', () => {
+        const noteInput = document.getElementById('noteInput');
+        const newNote = noteInput.value;
+
+        // Get all words before update
+        chrome.storage.local.get(['words'], function(result) {
+            const words = result.words || [];
+            // Update the current word's note
+            currentWord.note = newNote;
+
+            // Find the word in the words array and update its note
+            const updatedWords = words.map(word => word.word === currentWord.word ? { ...word, note: newNote } : word);
+
+            // Save the updated words array to storage
+            chrome.storage.local.set({ words: updatedWords }, function() {
+                console.log('Note saved:', newNote);
+            });
+        });
+    });
 });
 
 

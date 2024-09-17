@@ -16,7 +16,7 @@
             <button id="allRandomButton" class="btn btn-danger">Random All Words</button>
             <button id="newestButton20" class="btn btn-warning">Newest 20 Words</button>
             <button id="randomNewestButton20" class="btn btn-info">Random Newest 20 Words</button>
-            <button id="random20Button" class="btn btn-secondary">Random  20 Words</button>
+            <button id="random20Button" class="btn btn-secondary">Random 20 Words</button>
             <button id="nightMode" class="btn btn-dark">Toggle Night Mode</button>
             <!-- New button for statistics page -->
             <button id="statisticsButton" class="btn btn-light"><a href="statistics.html" target="_blank" style="color: black;">Statistics</a></button>
@@ -33,6 +33,12 @@
             </div>
             <button id="nextButton" class="btn btn-primary">Next Question</button>
             <div id="result" class="result"></div>
+            <!-- Text area for editing the note, initially hidden -->
+            <div class="form-group mt-3" id="noteContainer" style="display: none;">
+                <label for="noteInput">Edit Note:</label>
+                <textarea id="noteInput" class="form-control" rows="5" placeholder="Enter note here"></textarea>
+                <button id="saveNoteButton" class="btn btn-success mt-2">Save Note</button> <!-- Save button -->
+            </div>
         </div>
     </div>
 
