@@ -10,3 +10,24 @@ function updateWord(wordToUpdate) {
             });
         });
     }
+
+    function deleteWord(wordData, callback) {
+        if (confirm('Are you sure you want to delete this word?')) {
+            // Remove the word from the words array and update storage
+            // console.log(wordData);
+            chrome.storage.local.get({ words: [] }, function (result) {
+                let words = result.words.filter(word => word.word != wordData.word);
+            
+                // console.log(words);
+                updateWordInStorage(words);
+                if (callback) callback();
+            });
+        }
+    }
+
+    function updateWordInStorage(words) {
+        chrome.storage.local.set({ words: words }, function () {
+            // Reload the table to reflect the changes
+
+        });
+    }

@@ -27,7 +27,11 @@
             <p id="wrongAnswers">Wrong Answers: 0</p>
         </div>
         <div class="question-card">
-            <h2 id="word">Word</h2>
+            <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 20px;">
+                <h2 id="wordQuestion" class="mb-0">Word</h2> <!-- Added mb-0 to remove bottom margin -->
+                <!-- New Edit button aligned to the right -->
+                <button id="editButton" class="btn btn-secondary">✏️</button>
+            </div>
             <div id="answers">
                 <!-- Answers will be inserted here dynamically -->
             </div>
@@ -38,6 +42,8 @@
                 <label for="noteInput">Edit Note:</label>
                 <textarea id="noteInput" class="form-control" rows="5" placeholder="Enter note here"></textarea>
                 <button id="saveNoteButton" class="btn btn-success mt-2">Save Note</button> <!-- Save button -->
+                <!-- New notification message for save success -->
+                <div id="saveNoteMessage" class="mt-2" style="display: none; color: green;">Note saved successfully!</div>
             </div>
         </div>
     </div>
@@ -48,6 +54,7 @@
     <script src="resources/bootstrap.min.js"></script>
     <script src="game.js"></script>
     <script src="utils.js"></script>
+    <script src="modal_edit_text.js"></script>
     <script src="db.js"></script>
 </body>
 </html>

@@ -30,7 +30,7 @@ body.dark-mode {
 body.dark-mode .game-container {
     background-color: #121212;
 }
-body.dark-mode .modal-content,
+body.dark-mode,
 body.dark-mode h2 {
     background-color:transparent;
     color: #ffffff;
@@ -53,6 +53,11 @@ input {
     margin-top: 5px;
     border: 1px solid #ced4da;
     border-radius: 4px;
+}
+
+.modal-content {
+    background-color: #121212;
+    color: #ffffff;
 }
 
 /* body.dark-mode .modal-content {

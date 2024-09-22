@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const wordElement = document.getElementById('word');
+    const wordElement = document.getElementById('wordQuestion');
     const answersContainer = document.getElementById('answers');
     const nextButton = document.getElementById('nextButton');
     const resultElement = document.getElementById('result');
@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var currentWord;
 
     function loadQuestion() {
+        document.querySelector('.question-card').style.display = 'block';
         nextButton.disabled = true; // Disable the Next button until a question is answered
         currentWord = words[currentWordIndex];
         console.log(currentWord);
@@ -411,7 +412,40 @@ document.addEventListener('DOMContentLoaded', function () {
         const newNote = noteInput.value;
         currentWord.note = newNote;
         updateWord(currentWord);
+
+        // Show success message
+        const saveNoteMessage = document.getElementById('saveNoteMessage');
+        saveNoteMessage.style.display = 'block'; // Show the message
+        setTimeout(() => {
+            saveNoteMessage.style.display = 'none'; // Hide after 3 seconds
+        }, 3000);
     });
+
+    // Add click event for the Edit button
+    const editButton = document.getElementById('editButton');
+    editButton.addEventListener('click', () => {
+        console.log(currentWord);
+        showDialogEditAndFillData(currentWord);
+    
+    });
+
+    const editAndSaveWord = document.getElementById('editAndSaveWord');
+    editAndSaveWord.addEventListener('click', function () {
+        chrome.storage.local.get({ words: [] }, function (result) {
+            result.words.forEach(word => {
+                if (word.word == wordInput.value) {
+                    console.log(word);
+                    word.meaning = meaningInput.value;
+                    word.note = noteInput.value;
+                }
+            });
+            updateWordInStorage(result.words);
+            
+        });
+    });
+
+document.querySelector('.question-card').style.display = 'none';
+
 });
 
 
