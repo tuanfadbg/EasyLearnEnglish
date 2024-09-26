@@ -175,10 +175,10 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("checkAnswer " + selectedIndex)
         if (selectedIndex === currentWord.correctAnswerIndex) {
             resultElement.textContent = 'Correct!';
-            resultElement.innerHTML = 'Correct!<br/>' + currentWord.note;
+            resultElement.innerHTML = 'Correct!<br/>';
             resultElement.classList.add('text-success');
         } else {
-            resultElement.innerHTML = 'Incorrect. The correct answer is: ' + currentWord.meaning + "<br/>" + currentWord.note;
+            resultElement.innerHTML = 'Incorrect. The correct answer is: ' + currentWord.meaning;
             resultElement.classList.add('text-danger');
         }
         resultElement.classList.remove('text-success', 'text-danger');

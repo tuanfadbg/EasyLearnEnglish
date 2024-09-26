@@ -1,0 +1,22 @@
+/* Dark Mode */
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+body.dark-mode td,
+body.dark-mode .modal-content {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+body.dark-mode input,
+body.dark-mode textarea {
+    border: 1px solid #ced4da;
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.list-group-item {
+    background-color: #495057; /* Darker list item background */
+    color: white; /* Light text */
+}
