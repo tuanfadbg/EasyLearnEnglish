@@ -5,16 +5,11 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.storage.local.get(['gameStats', 'wordStats'], function(result) {
         const gameStats = result.gameStats || { totalGames: 0, totalQuestions: 0, totalCorrect: 0, recentAccuracy: [], lastUpdated: null };
         const wordStats = result.wordStats || {};
+        console.log(wordStats)
+        console.log(gameStats)
 
         // Update overall statistics
-        document.getElementById('totalGames').textContent = gameStats.totalGames;
-        document.getElementById('totalQuestions').textContent = gameStats.totalQuestions;
-        document.getElementById('totalCorrect').textContent = gameStats.totalCorrect;
-        const overallAccuracy = gameStats.totalQuestions > 0 
-            ? ((gameStats.totalCorrect / gameStats.totalQuestions) * 100).toFixed(2) 
-            : 0;
-        document.getElementById('overallAccuracy').textContent = overallAccuracy + '%';
-        document.getElementById('lastUpdated').textContent = gameStats.lastUpdated ? new Date(gameStats.lastUpdated).toLocaleString() : 'Never';
+        updateOverallStats(gameStats, wordStats); // Call to update overall stats
 
         // Create accuracy chart
         createAccuracyChart(gameStats.recentAccuracy);
@@ -75,6 +70,8 @@ function populateWordPerformanceTable(wordStats) {
         row.insertCell(2).textContent = stats.total;
         const accuracy = stats.total > 0 ? ((stats.correct / stats.total) * 100).toFixed(2) : 0;
         row.insertCell(3).textContent = accuracy + '%';
+        
+        // Get last attempt date
         const lastAttempt = stats.attempts && stats.attempts.length > 0 ? new Date(stats.attempts[stats.attempts.length - 1].timestamp).toLocaleString() : 'Never';
         row.insertCell(4).textContent = lastAttempt;
 
@@ -82,6 +79,7 @@ function populateWordPerformanceTable(wordStats) {
         row.dataset.correctAttempts = stats.correct;
         row.dataset.totalAttempts = stats.total;
         row.dataset.accuracy = accuracy;
+        row.dataset.lastAttempt = stats.attempts && stats.attempts.length > 0 ? new Date(stats.attempts[stats.attempts.length - 1].timestamp).getTime() : 0; // Store timestamp for sorting
     }
 }
 
@@ -113,6 +111,9 @@ function sortWordPerformanceTable(sortBy) {
         } else if (sortBy === 'accuracy') {
             aValue = a[1].total > 0 ? (a[1].correct / a[1].total) : 0;
             bValue = b[1].total > 0 ? (b[1].correct / b[1].total) : 0;
+        } else if (sortBy === 'lastAttempt') { // New sorting condition
+            aValue = a[1].attempts && a[1].attempts.length > 0 ? new Date(a[1].attempts[a[1].attempts.length - 1].timestamp).getTime() : 0;
+            bValue = b[1].attempts && b[1].attempts.length > 0 ? new Date(b[1].attempts[b[1].attempts.length - 1].timestamp).getTime() : 0;
         }
 
         return currentOrder === 'asc' ? aValue - bValue : bValue - aValue;
@@ -146,10 +147,11 @@ function resetStatistics() {
     }
 }
 
-function updateOverallStats(gameStats) {
+function updateOverallStats(gameStats, wordStats) {
     document.getElementById('totalGames').textContent = gameStats.totalGames || 0;
     document.getElementById('totalQuestions').textContent = gameStats.totalQuestions || 0;
     document.getElementById('totalCorrect').textContent = gameStats.totalCorrect || 0;
     const accuracy = gameStats.totalQuestions ? ((gameStats.totalCorrect / gameStats.totalQuestions) * 100).toFixed(2) : 0;
     document.getElementById('overallAccuracy').textContent = accuracy + '%';
+    document.getElementById('lastUpdated').textContent = gameStats.lastUpdated ? new Date(gameStats.lastUpdated).toLocaleString() : 'Never'; // Update last updated time
 }

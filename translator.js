@@ -7,37 +7,44 @@ const defaultTranslations = [
 
 var currentTranslate;
 
-// Function to create the list of translations
+// Function to fill each item in the translation list
+function fillEachItemInList(item, listElement) {
+    const listItem = document.createElement('li');
+    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+    listItem.textContent = `${new Date().toLocaleString()} - ${item.title_en} - ${item.title_vi}`;
+
+    // Create a delete button
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'btn btn-danger btn-sm';
+    deleteButton.textContent = 'Delete';
+    deleteButton.onclick = function (event) {
+        event.stopPropagation(); // Prevent the event from bubbling up to the list item
+        currentTranslate = item;
+        if (confirm('Are you sure you want to delete this translation?')) {
+            deleteTranslation(item.key, function (updatedTranslations) {
+                currentTranslate = undefined;
+                createTranslationList(updatedTranslations); // Refresh the list
+            });
+        }
+    };
+
+    // Add click event to open modal
+    listItem.addEventListener('click', function () {
+        currentTranslate = item;
+        fillDataToModal(item);
+    });
+
+    listItem.appendChild(deleteButton); // Append delete button to list item
+    listElement.appendChild(listItem); // Append list item to the list
+}
+
+// Update createTranslationList to use fillEachItemInList
 function createTranslationList(translateFromStorage) {
     translateFromStorage = translateFromStorage || [];
     const listElement = document.getElementById('translationList');
     listElement.innerHTML = ''; // Clear existing list
     translateFromStorage.forEach(item => {
-        const listItem = document.createElement('li');
-        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-        listItem.textContent = `${new Date().toLocaleString()} - ${item.title_en} - ${item.title_vi}`;
-        // Create a delete button
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'btn btn-danger btn-sm';
-        deleteButton.textContent = 'Delete';
-        deleteButton.onclick = function(event) {
-            event.stopPropagation(); // Prevent the event from bubbling up to the list item
-            currentTranslate = item;
-            if (confirm('Are you sure you want to delete this translation?')) {
-                deleteTranslation(item.key, function (updatedTranslations) {
-                    currentTranslate = undefined;
-                    createTranslationList(updatedTranslations); // Refresh the list
-                });
-            }
-        };
-        // Add click event to open modal
-        listItem.addEventListener('click', function () {
-            currentTranslate = item;
-            fillDataToModal(item);
-        });
-
-        listItem.appendChild(deleteButton); // Append delete button to list item
-        listElement.appendChild(listItem); // Append list item to the list
+        fillEachItemInList(item, listElement); // Use the new function
     });
 }
 
@@ -95,12 +102,12 @@ function save(isAutoSave) {
         translate: vietnameseText
     };
 
-    updateTranslation(updatedTranslation, function(translations) {
+    updateTranslation(updatedTranslation, function (translations) {
         createTranslationList(translations); // Refresh the list
         if (isAutoSave == false) {
             closeModalFunction(); // Close the modal
         }
-            
+
     });
 }
 
@@ -122,7 +129,7 @@ document.getElementById('discardButton').onclick = function () {
 };
 
 // Add a button to create a new translation
-document.getElementById('newTranslationButton').onclick = function() {
+document.getElementById('newTranslationButton').onclick = function () {
     // Create a new translation item with all fields empty and key as datetime
     currentTranslate = {
         key: Date.now(),
@@ -135,7 +142,7 @@ document.getElementById('newTranslationButton').onclick = function() {
 };
 
 // Auto-save functionality every 10 seconds
-setInterval(function() {
+setInterval(function () {
     if (currentTranslate != undefined) {
         save(true)
 

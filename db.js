@@ -66,7 +66,6 @@ function saveTranslations(updatedTranslations, callback) {
     });
 }
 
-
 // Function to delete a translation
 function deleteTranslation(key, callback) {
     // Load current translations

@@ -21,69 +21,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let words = [
         {
-            "meaning": "A sweet fruit from palm trees",
-            "note": "Often eaten dried",
-            "timestamp": "2024-08-18T06:51:41.179Z",
-            "word": "Date",
+            "correctAnswerIndex": 3,
+            "meaning": "bất lực",
+            "note": "- unable to defend oneself or to act without help\nThe burst into helpless laughter",
             "shuffledMeanings": [
-                "A small red fruit",
-                "A sweet fruit from palm trees",
-                "A tropical yellow fruit",
-                "A dark purple fruit"
+                "người chấm điểm, người lựa chọn",
+                "bất lực",
+                "bí đỏ, bí ngô",
+                "ẩm thực"
             ],
-            "correctAnswerIndex": 1
+            "timestamp": "9/24/2024, 3:01:22 PM",
+            "word": "helpless",
+            "shuffledWords": [
+                "implication",
+                "helpless",
+                "coastal",
+                "accompany"
+            ],
+            "correctAnswerIndexByMeaning": 1,
+            "correctAnswerIndexbyWord": 1
         },
         {
-            "meaning": "A large, orange-colored fruit",
-            "note": "Often used in pies",
-            "timestamp": "2024-08-19T10:30:00.000Z",
-            "word": "Pumpkin",
+            "meaning": "cường độ",
+            "note": "The pain grew in intensity\nThere is an intensity in his eyes that is downright scary",
+            "timestamp": "10/3/2024, 4:54:21 PM",
+            "word": "intensity",
             "shuffledMeanings": [
-                "A large, orange-colored fruit",
-                "A small, round green vegetable",
-                "A red, heart-shaped fruit",
-                "A purple berry"
+                "giáo trình",
+                "do dự",
+                "quyển sách nhỏ và mỏng",
+                "cường độ"
             ],
-            "correctAnswerIndex": 0
-        },
-        {
-            "meaning": "A green fruit with a fuzzy brown exterior",
-            "note": "Native to New Zealand",
-            "timestamp": "2024-08-20T14:15:00.000Z",
-            "word": "Kiwi",
-            "shuffledMeanings": [
-                "A citrus fruit with yellow skin",
-                "A green fruit with a fuzzy brown exterior",
-                "A tropical fruit with spiky skin",
-                "A small, round red fruit"
+            "shuffledWords": [
+                "laid back",
+                "herbivore",
+                "put off",
+                "intensity"
             ],
-            "correctAnswerIndex": 1
-        },
-        {
-            "meaning": "A tropical fruit with yellow flesh and spiky skin",
-            "note": "Contains an enzyme that can tenderize meat",
-            "timestamp": "2024-08-21T09:45:00.000Z",
-            "word": "Pineapple",
-            "shuffledMeanings": [
-                "A small, tart berry",
-                "A large, green melon",
-                "A tropical fruit with yellow flesh and spiky skin",
-                "A purple fruit with smooth skin"
-            ],
-            "correctAnswerIndex": 2
-        },
-        {
-            "meaning": "A small, sweet berry",
-            "note": "Often used in jams and pies",
-            "timestamp": "2024-08-22T16:20:00.000Z",
-            "word": "Strawberry",
-            "shuffledMeanings": [
-                "A large, yellow tropical fruit",
-                "A small, sweet berry",
-                "A green, sour fruit",
-                "A brown nut with a hard shell"
-            ],
-            "correctAnswerIndex": 1
+            "correctAnswerIndexByMeaning": 3,
+            "correctAnswerIndexbyWord": 3
         }
     ];
 
@@ -111,6 +87,24 @@ document.addEventListener('DOMContentLoaded', function () {
         return shuffle(meanings);
     }
 
+    function getRandomWords(currentWordIndex) {
+        const randomeWords = [];
+
+        // Add the correct word
+        randomeWords.push(words[currentWordIndex].word);
+
+        // Get other random words
+        const otherIndices = [...Array(words.length).keys()].filter(i => i !== currentWordIndex);
+        shuffle(otherIndices);
+
+        for (let i = 0; i < 3; i++) {
+            randomeWords.push(words[otherIndices[i]].word);
+        }
+
+        // Shuffle the array to mix the correct answer with the incorrect ones
+        return shuffle(randomeWords);
+    }
+
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -121,13 +115,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var currentWord;
 
+    const playModeSelect = document.getElementById('playMode'); // Get the play mode select element
+
     function loadQuestion() {
         document.querySelector('.question-card').style.display = 'block';
         nextButton.disabled = true; // Disable the Next button until a question is answered
         currentWord = words[currentWordIndex];
         console.log(currentWord);
 
-        wordElement.textContent = currentWord.word;
+        // Set the word or meaning based on the selected play mode
+        if (playModeSelect.value === 'word') {
+            wordElement.textContent = currentWord.word;
+        } else {
+            wordElement.textContent = currentWord.meaning; // Show meaning if selected
+        }
+
         const copyIcon = createCopyIcon(currentWord.word);
         wordElement.appendChild(copyIcon);
 
@@ -137,7 +139,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Get the array of meanings
         answersContainer.innerHTML = '';
-        currentWord.shuffledMeanings.forEach((meaning, index) => {
+        const meaningsToUse = playModeSelect.value === 'word' ? currentWord.shuffledMeanings : currentWord.shuffledWords; // Use meanings based on play mode
+        meaningsToUse.forEach((meaning, index) => {
             const button = document.createElement('button');
             button.textContent = meaning;
             button.classList.add('btn', 'btn-light', 'answer-button');
@@ -160,25 +163,29 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function checkAnswer(selectedIndex) {
+        console.log(currentWord)
+        var correctAnswerIndex = playModeSelect.value === 'word' ? currentWord.correctAnswerIndexByWord : currentWord.correctAnswerIndexbyMeaning
+        var correctAnswerValue = playModeSelect.value === 'word' ? currentWord.meaning : currentWord.word
+        console.log("checkAnswer selectedIndex=" + selectedIndex + " correctAnswerIndex=" + correctAnswerIndex)
         if (nextButton.disabled) {
-            totalQuestions++; // Increment total questions   
-            if (selectedIndex === currentWord.correctAnswerIndex) {
+            totalQuestions++; // Increment total questions
+            if (selectedIndex === correctAnswerIndex) {
                 correctAnswers++; // Increment correct answers
             } else {
                 wrongAnswers++; // Increment wrong answers
             }
 
             // Update stats for the current word
-            updateStats(currentWord.word, selectedIndex === currentWord.correctAnswerIndex);
+            updateStats(currentWord.word, selectedIndex === correctAnswerIndex);
         }
 
-        console.log("checkAnswer " + selectedIndex)
-        if (selectedIndex === currentWord.correctAnswerIndex) {
+        
+        if (selectedIndex === correctAnswerIndex) {
             resultElement.textContent = 'Correct!';
             resultElement.innerHTML = 'Correct!<br/>';
             resultElement.classList.add('text-success');
         } else {
-            resultElement.innerHTML = 'Incorrect. The correct answer is: ' + currentWord.meaning;
+            resultElement.innerHTML = 'Incorrect. The correct answer is: ' + correctAnswerValue;
             resultElement.classList.add('text-danger');
         }
         resultElement.classList.remove('text-success', 'text-danger');
@@ -224,6 +231,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 recentAccuracy: [],
                 lastUpdated: null
             };
+            if (isNaN(gameStats.totalQuestions)) {
+                gameStats.totalQuestions = 0;
+                gameStats.totalCorrect = 0;
+            }
+            console.log(gameStats);
             let wordStats = result.wordStats || {};
 
             const now = new Date();
@@ -267,6 +279,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 timestamp: timestamp
             });
 
+            console.log(gameStats)
+            // console.log(wordStats)
+
             // Save updated stats
             chrome.storage.local.set({ gameStats: gameStats, wordStats: wordStats }, function() {
                 console.log('Stats updated for word:', word);
@@ -279,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const correctElement = document.getElementById('correctAnswers');
         const wrongElement = document.getElementById('wrongAnswers');
 
-        totalElement.textContent = `Total Questions: ${totalQuestions}`;
+        totalElement.textContent = `Total Questions: ${totalQuestions}/${words.length}`;
         correctElement.textContent = `Correct Answers: ${correctAnswers}`;
         wrongElement.textContent = `Wrong Answers: ${wrongAnswers}`;
     }
@@ -344,7 +359,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // newWord = false;
     
     function prepareData() {
-        resetScore();
         chrome.storage.local.get({ words: [] }, function (result) {
             words = result.words;
             console.log(words);
@@ -373,10 +387,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // add suffledMeanings
             words.forEach((word, index) => {
                 word.shuffledMeanings = getRandomMeanings(index);
-                word.correctAnswerIndex = word.shuffledMeanings.indexOf(word.meaning); // Assuming the correct meaning is in the array
+                word.shuffledWords = getRandomWords(index)
+                word.correctAnswerIndexByWord = word.shuffledMeanings.indexOf(word.meaning); // Assuming the correct meaning is in the array
+                word.correctAnswerIndexbyMeaning = word.shuffledWords.indexOf(word.word); // Assuming the correct meaning is in the array
             });
             console.log(words);
             loadQuestion();
+            resetScore();
         });
     }
 
