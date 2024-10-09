@@ -1,52 +1,54 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const saveButton = document.getElementById('save');
+document.addEventListener('DOMContentLoaded', function () {
     const wordInput = document.getElementById('word');
     const meaningInput = document.getElementById('meaning');
     const noteInput = document.getElementById('note');
+    const saveButton = document.getElementById('save');
     const savedWordsList = document.getElementById('savedWords');
     const viewSavedWordsLink = document.getElementById('viewSavedWords');
 
     wordInput.value = window.getSelection().toString().trim()
 
+    // Restore saved values from chrome.storage.local
+    chrome.storage.local.get(['temp'], function (data) {
+        console.log("temp: " + data.temp)
+        if (data.temp) {
+            wordInput.value = data.temp.word || '';
+            meaningInput.value = data.temp.meaning || '';
+            noteInput.value = data.temp.note || '';
+        }
+    });
+
     // Send a message to the content script to get the selected text
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, { type: 'getSelectedText' }, function (response) {
-        if (response && response.word) {
-            wordInput.value = response.word;
-        }
+            if (response && response.word) {
+                wordInput.value = response.word;
+            }
         });
     });
-    
+
     // Listen for the selected word from content script
-    chrome.runtime.onMessage.addListener(function(request) {
+    chrome.runtime.onMessage.addListener(function (request) {
         if (request.word) {
             wordInput.value = request.word;
         }
     });
 
-    // // Load saved words
-    // chrome.storage.local.get({words: []}, function(result) {
-    //     result.words.forEach(item => {
-    //         addListItem(item.word, item.meaning, item.note);
-    //     });
-    // });
-
     // Save word, meaning, and note
-    saveButton.addEventListener('click', function() {
+    saveButton.addEventListener('click', function () {
         const timestamp = new Date().toLocaleString();
         const word = wordInput.value.trim();
         const meaning = meaningInput.value.trim();
         const note = noteInput.value.trim();
 
         if (word) {
-            chrome.storage.local.get({words: []}, function(result) {
+            chrome.storage.local.get({ words: [] }, function (result) {
                 const words = result.words;
-                words.push({timestamp, word, meaning, note});
-                chrome.storage.local.set({words: words}, function() {
+                words.push({ timestamp, word, meaning, note });
+                chrome.storage.local.set({ words: words }, function () {
                     addListItem(word, meaning, note);
-                    wordInput.value = '';
-                    meaningInput.value = '';
-                    noteInput.value = '';
+                    clearInputs();
+                    clearTemp();
                     console.log('Word saved: ' + words);
                 });
             });
@@ -60,8 +62,45 @@ document.addEventListener('DOMContentLoaded', function() {
         savedWordsList.appendChild(li);
     }
 
+    function saveTemp() {
+        const temp = {
+            word: wordInput.value.trim(),
+            meaning: meaningInput.value.trim(),
+            note: noteInput.value.trim()
+        };
+
+        // Save the temp object to chrome.storage.local
+        chrome.storage.local.set({ temp }, function () {
+            console.log('Temporary values auto-saved:', temp);
+        });
+    }
+
+    // Add input event listeners for auto-saving
+    wordInput.addEventListener('input', saveTemp);
+    meaningInput.addEventListener('input', saveTemp);
+    noteInput.addEventListener('input', saveTemp);
+
+
+    function clearTemp() {
+        const temp = {
+            word: "",
+            meaning: "",
+            note: ""
+        };
+
+        chrome.storage.local.set({ temp }, function () {
+            console.log('clearTemp:', temp);
+        });
+    }
+
     // Open saved_words.html in a new tab
-    viewSavedWordsLink.addEventListener('click', function() {
+    viewSavedWordsLink.addEventListener('click', function () {
         chrome.tabs.create({ url: chrome.runtime.getURL('saved_words.html') });
     });
+
+    function clearInputs() {
+        wordInput.value = '';
+        meaningInput.value = '';
+        noteInput.value = '';
+    }
 });
