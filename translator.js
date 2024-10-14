@@ -1,8 +1,8 @@
 // translations.js
 const defaultTranslations = [
-    { "key": 0, "title_en": "title English", "title_vi": "title Vietnamese", "text": "Hello", "translate": "Xin chào" },
-    { "key": 1, "title_en": "title English", "title_vi": "title Vietnamese", "text": "Goodbye", "translate": "Tạm biệt" },
-    { "key": 2, "title_en": "title English", "title_vi": "title Vietnamese", "text": "Thank you", "translate": "Cảm ơn" },
+    { "key": 0, "title_en": "title English", "title_vi": "title Vietnamese", "text": "Hello", "translate": "Xin chào", updated_at: new Date().toISOString() },
+    { "key": 1, "title_en": "title English", "title_vi": "title Vietnamese", "text": "Goodbye", "translate": "Tạm biệt", updated_at: new Date().toISOString() },
+    { "key": 2, "title_en": "title English", "title_vi": "title Vietnamese", "text": "Thank you", "translate": "Cảm ơn", updated_at: new Date().toISOString() },
 ];
 
 var currentTranslate;
@@ -11,7 +11,7 @@ var currentTranslate;
 function fillEachItemInList(item, listElement) {
     const listItem = document.createElement('li');
     listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-    listItem.textContent = `${new Date().toLocaleString()} - ${item.title_en} - ${item.title_vi}`;
+    listItem.textContent = `${new Date(item.updated_at).toLocaleString()} - ${item.title_en} - ${item.title_vi}`;
 
     // Create a delete button
     const deleteButton = document.createElement('button');
@@ -43,7 +43,7 @@ function createTranslationList(translateFromStorage) {
     translateFromStorage = translateFromStorage || [];
     const listElement = document.getElementById('translationList');
     listElement.innerHTML = ''; // Clear existing list
-    translateFromStorage.forEach(item => {
+    translateFromStorage.reverse().forEach(item => {
         fillEachItemInList(item, listElement); // Use the new function
     });
 }
@@ -99,7 +99,8 @@ function save(isAutoSave) {
         title_en: titleEn,
         title_vi: titleVi,
         text: englishText,
-        translate: vietnameseText
+        translate: vietnameseText,
+        updated_at: new Date().toISOString()
     };
 
     updateTranslation(updatedTranslation, function (translations) {
