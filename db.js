@@ -25,6 +25,21 @@ function deleteWord(wordData, callback) {
     }
 }
 
+function updateWord(currentWord, updatedWord, callback) {
+    chrome.storage.local.get({ words: [] }, function (result) {
+        result.words.forEach(word => {
+            if (word.word == currentWord.word) {
+                console.log(word);
+                word.word = updatedWord.word
+                word.meaning = updatedWord.meaning;
+                word.note = updatedWord.note;
+            }
+        });
+        updateWordInStorage(result.words);
+        if (callback) callback();
+    });
+    
+}
 function updateWordInStorage(words) {
     chrome.storage.local.set({ words: words }, function () {
         // Reload the table to reflect the changes

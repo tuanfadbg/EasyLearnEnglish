@@ -7,9 +7,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const loadRandomButton = document.getElementById('random10');
     const allButton = document.getElementById('loadall');
+    const editAndSaveWord = document.getElementById('editAndSaveWord');
+    let currentWordEdited;
 
     let isAscending = false; // Default sorting direction
-
+    var wordInTable;
+    
     // Function to load and display words
     function loadWords() {
         chrome.storage.local.get({ words: [] }, function (result) {
@@ -34,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fillInTable(randomWords)
         });
     }
-    var wordInTable;
+    
     function fillInTable(words) {
         wordInTable = words;
         wordInTable.sort(function (a, b) {
@@ -85,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Implement edit functionality here
                     // Populate a form with current word details for editing
                     showDialogEditAndFillData(wordData);
-
+                    currentWordEdited = wordData;
                 });
 
                 const deleteIcon = document.createElement('span');
@@ -132,34 +135,33 @@ document.addEventListener('DOMContentLoaded', function () {
         loadWords();
     });
 
-    loadWords();
-
-    function updateWordInTable() {
-        
+    function updateTheTable() {
+        let isModifyWord = true;
         wordInTable.forEach(word => {
             if (word.word == wordInput.value) {
+                isModifyWord = false;
                 word.meaning = meaningInput.value;
                 word.note = noteInput.value;
             }
         });
-        fillInTable(wordInTable);
+        if (isModifyWord == true) {
+            loadWords();
+        } else {
+            fillInTable(wordInTable);
+        }
+    }
 
-}
-    
-    const editAndSaveWord = document.getElementById('editAndSaveWord');
     editAndSaveWord.addEventListener('click', function () {
-        chrome.storage.local.get({ words: [] }, function (result) {
-            result.words.forEach(word => {
-                if (word.word == wordInput.value) {
-                    console.log(word);
-                    word.meaning = meaningInput.value;
-                    word.note = noteInput.value;
-                }
-            });
-            updateWordInStorage(result.words);
-            updateWordInTable()
+        const updatedWord = {
+            word: wordInput.value,
+            meaning: meaningInput.value,
+            note: noteInput.value
+        };
+        updateWord(currentWordEdited, updatedWord, () => {
+            updateTheTable()
         });
     });
 
 
+    loadWords();
 });
