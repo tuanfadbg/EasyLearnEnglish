@@ -24,17 +24,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // Send a message to the content script to get the selected text
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, { type: 'getSelectedText' }, function (response) {
-            if (response && response.word) {
-                wordInput.value = response.word;
-            }
+            // if (response && response.word) {
+            //     wordInput.value = response.word;
+            // }
         });
     });
 
     // Listen for the selected word from content script
     chrome.runtime.onMessage.addListener(function (request) {
-        if (request.word) {
-            wordInput.value = request.word;
-        }
+        // chrome.storage.local.get(['temp'], function (data) {
+        //     if (data.temp) {
+        //         if (request.word != null && (data.temp.word == null || data.temp.word == "")) {
+        //             wordInput.value = request.word;
+        //         }
+        //     }
+        // });
     });
 
     // Restore saved values from chrome.storage.local

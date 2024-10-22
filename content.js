@@ -81,7 +81,7 @@ if (window.location.hostname === "www.youtube.com") {
       titleDiv.insertBefore(clearButton, titleDiv.firstChild);
       titleDiv.insertBefore(inputElement, titleDiv.firstChild);
     } else {
-      console.error("Div with ID 'title' not found.");
+      console.log("Div with ID 'title' not found.");
     }
   }, 2000);
 }
@@ -100,7 +100,7 @@ if (window.location.hostname === "dailydictation.com") {
       dictationDiv.appendChild(inputElement);
       dictationDiv.appendChild(clearButton);
     } else {
-      console.error("Div with ID 'app-dictation' not found.");
+      console.log("Div with ID 'app-dictation' not found.");
     }
 
   }, 2000);
