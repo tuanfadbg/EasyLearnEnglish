@@ -19,7 +19,7 @@
             <button id="random20Button" class="btn btn-secondary">Random 20 Words</button>
             <button id="nightMode" class="btn btn-dark">Toggle Night Mode</button>
             <!-- New button for statistics page -->
-            <button id="statisticsButton" class="btn btn-light"><a href="statistics.html" target="_blank" style="color: black;">Statistics</a></button>
+            <button id="statisticsButton" class="btn btn-info"><a href="statistics.html" target="_blank" style="color: #ffffff;">Statistics</a></button>
         </div>
         <div class="form-group">
             <select id="playMode" class="form-control">
@@ -27,16 +27,16 @@
                 <option value="meaning">By Meaning</option>
             </select>
         </div>
-        <div id="scoreBoard">
-            <p id="totalQuestions">Total Questions: 0</p>
-            <p id="correctAnswers">Correct Answers: 0</p>
-            <p id="wrongAnswers">Wrong Answers: 0</p>
+        <div id="scoreBoard" style="display: flex; justify-content: space-between; margin: 10px;">
+            <p id="totalQuestions" style="margin: 0 10px;">Total Questions: 0</p>
+            <p id="correctAnswers" style="margin: 0 10px;">Correct Answers: 0</p>
+            <p id="wrongAnswers" style="margin: 0 10px;">Wrong Answers: 0</p>
         </div>
         <div class="question-card">
             <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 20px;">
                 <h2 id="wordQuestion" class="mb-0">Word</h2> <!-- Added mb-0 to remove bottom margin -->
                 <!-- New Edit button aligned to the right -->
-                <button id="editButton" class="btn btn-secondary">✏️</button>
+                <button id="editButton" class="btn">✏️</button>
             </div>
             <div id="answers">
                 <!-- Answers will be inserted here dynamically -->

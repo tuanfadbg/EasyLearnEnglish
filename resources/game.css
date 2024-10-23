@@ -55,9 +55,13 @@ input {
     border-radius: 4px;
 }
 
-.modal-content {
+body.dark-mode .modal-content {
     background-color: #121212;
     color: #ffffff;
+}
+.modal-content {
+    background-color: #efefef;
+    color: #090909;
 }
 
 /* body.dark-mode .modal-content {

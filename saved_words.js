@@ -74,9 +74,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const meaningCell = document.createElement('td');
                 meaningCell.textContent = wordData.meaning;
                 row.appendChild(meaningCell);
-
+                
                 const noteCell = document.createElement('td');
-                noteCell.textContent = wordData.note;
+                noteCell.innerHTML = wordData.note.replace(/\n/g, '<br>');
                 row.appendChild(noteCell);
 
                 // Create edit and delete icons

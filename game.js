@@ -73,14 +73,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const meanings = [];
 
         // Add the correct meaning
-        meanings.push(words[currentWordIndex].meaning);
+        meanings.push(words[currentWordIndex]);
 
         // Get other random meanings
         const otherIndices = [...Array(words.length).keys()].filter(i => i !== currentWordIndex);
         shuffle(otherIndices);
 
         for (let i = 0; i < 3; i++) {
-            meanings.push(words[otherIndices[i]].meaning);
+            meanings.push(words[otherIndices[i]]);
         }
 
         // Shuffle the array to mix the correct answer with the incorrect ones
@@ -91,14 +91,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const randomeWords = [];
 
         // Add the correct word
-        randomeWords.push(words[currentWordIndex].word);
+        randomeWords.push(words[currentWordIndex]);
 
         // Get other random words
         const otherIndices = [...Array(words.length).keys()].filter(i => i !== currentWordIndex);
         shuffle(otherIndices);
 
         for (let i = 0; i < 3; i++) {
-            randomeWords.push(words[otherIndices[i]].word);
+            randomeWords.push(words[otherIndices[i]]);
         }
 
         // Shuffle the array to mix the correct answer with the incorrect ones
@@ -140,9 +140,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Get the array of meanings
         answersContainer.innerHTML = '';
         const meaningsToUse = playModeSelect.value === 'word' ? currentWord.shuffledMeanings : currentWord.shuffledWords; // Use meanings based on play mode
-        meaningsToUse.forEach((meaning, index) => {
+        meaningsToUse.forEach((answer, index) => {
             const button = document.createElement('button');
-            button.textContent = meaning;
+            button.textContent = playModeSelect.value === 'word' ? answer.meaning : answer.word;
             button.classList.add('btn', 'btn-light', 'answer-button');
             button.addEventListener('click', () => {
                 copyToClipboard(meaning);
@@ -388,8 +388,20 @@ document.addEventListener('DOMContentLoaded', function () {
             words.forEach((word, index) => {
                 word.shuffledMeanings = getRandomMeanings(index);
                 word.shuffledWords = getRandomWords(index)
-                word.correctAnswerIndexByWord = word.shuffledMeanings.indexOf(word.meaning); // Assuming the correct meaning is in the array
-                word.correctAnswerIndexbyMeaning = word.shuffledWords.indexOf(word.word); // Assuming the correct meaning is in the array
+                for (let i = 0; i < word.shuffledMeanings.length; i++) {
+                    if (word.shuffledMeanings[i].meaning == word.meaning) {
+                        word.correctAnswerIndexByWord = i;
+                        break;
+                    }
+                }
+                for (let i = 0; i < word.shuffledWords.length; i++) {
+                    if (word.shuffledWords[i].word == word.word) {
+                        word.correctAnswerIndexbyMeaning = i;
+                        break;
+                    }
+                }
+                // word.correctAnswerIndexByWord = word.shuffledMeanings.indexOf(word.meaning); // Assuming the correct meaning is in the array
+                // word.correctAnswerIndexbyMeaning = word.shuffledWords.indexOf(word.word); // Assuming the correct meaning is in the array
             });
             console.log(words);
             loadQuestion();
