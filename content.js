@@ -1,7 +1,20 @@
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'getSelectedText') {
     const selectedText = window.getSelection().toString();
     sendResponse({ word: selectedText });
+  } else if (request.action === "findElement") {
+    const element = document.querySelector('span.ejoy-word.ejoy-sub-hovered[data-hover="true"]');
+    const selectedText = element ? getEjoySelectedText() : window.getSelection().toString();
+
+    if (element) {
+      const context = getEjoySelectedContext();
+      saveToWordbook(selectedText, context);
+    } else if (selectedText === '') {
+      console.log("Element not found.");
+      alert("Element not found.");
+    } else {
+      saveToWordbook(selectedText);
+    }
   }
 });
 
@@ -27,11 +40,14 @@ document.addEventListener('keydown', (event) => {
 
       // Check if Control key was pressed twice
       if (ctrlPressCount === 2) {
+        ctrlPressCount = 0; // Reset count after action
         console.log('Control key pressed twice!');
         // Perform your action here
         var inputElement = document.getElementById('dictationInputTuanFadbg');
-        inputElement.value = ''; // Example action: clear the input
-        ctrlPressCount = 0; // Reset count after action
+        if (inputElement != null) {
+          inputElement.value = ''; // Example action: clear the input
+        }
+
       }
     }
   }
@@ -104,4 +120,50 @@ if (window.location.hostname === "dailydictation.com") {
     }
 
   }, 2000);
+}
+
+/**
+ * Function to get all text from the specified div
+ * @returns {string} - The concatenated text from the div
+ */
+function getEjoySelectedContext() {
+  const div = document.querySelector('.glot-subtitles__sub__con');
+  if (div) {
+    // Get all span elements with class "ejoy-word" and concatenate their data-text attributes
+    const spans = div.querySelectorAll('span.ejoy-word[data-hover="true"]');
+    const texts = Array.from(spans).map(span => span.getAttribute('data-text')).join(' ');
+    console.log(`All text from div: ${texts}`);
+    return texts;
+  } else {
+    console.log("Div not found.");
+    alert("Div not found.");
+    return '';
+  }
+}
+
+function getEjoySelectedText() {
+  const element = document.querySelector('span.ejoy-word.ejoy-sub-hovered[data-hover="true"]');
+  if (element) {
+    const text = element.getAttribute('data-text'); // Get the data-text attribute
+    console.log(`Found element with text: ${text}`);
+    return text;
+  } else {
+    return '';
+  }
+}
+
+function saveToWordbook(text, context) {
+  chrome.storage.local.get(['wordbook'], function(result) {
+    const wordbook = result.wordbook || [];
+    console.log(wordbook);
+    wordbook.push({
+      "text": text,
+      "context": context,
+      "time_created": new Date().toISOString(),
+      "added_to_saved_word": "false"
+    }); // Add the new entry
+    chrome.storage.local.set({ wordbook: wordbook }, function() {
+      console.log('added to wordbook: ', wordbook);
+    });
+  });
 }

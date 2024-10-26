@@ -1,11 +1,16 @@
-// chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-//     if (request.type === 'save') { 
-//         chrome.storage.local.get({words: []}, function(result) {
-//         let words = result.words;
-//         words.push(request.word);
-//         chrome.storage.local.set({words: words}, function() {
-//             console.log('Word saved: ' + request.word);
-//         });
-//         });
-//     }
-// });
+// Create context menu item when the extension is installed
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.contextMenus.create({
+        id: "addToWordbook",
+        title: "Add to Wordbook",
+        contexts: ["all"] // Show this menu item everywhere
+    });
+});
+
+// Handle the click event on the context menu item
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "addToWordbook") {
+        // Send a message to the content script
+        chrome.tabs.sendMessage(tab.id, { action: "findElement" });
+    }
+});

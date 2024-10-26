@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="utils.js"></script>
+    <title>Saved Words</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="resources/wordbook.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4" id="title">WordBook</h1>
+        <!-- CLEAR ALL DATA -->
+        <button id="closeButton" class="btn btn-danger mb-4">Close This Page</button>
+        <button id="nightMode" class="btn btn-dark mb-4">Toggle Night Mode</button>
+        <table class="table table-striped" id="wordsTable">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Time</th>
+                    <th scope="col">Word</th>
+                    <th scope="col">Context</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be inserted here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bootstrap and jQuery -->
+    <script src="resources/jquery-3.5.1.slim.min.js"></script>
+    <script src="resources/popper.min.js"></script>
+    <script src="resources/bootstrap.min.js"></script>
+    <script src="utils.js"></script>
+    <script src="modal_edit_text.js"></script>
+    <script src="wordbook.js"></script>
+    <script src="db.js"></script>
+    <script src="modal_edit_text.js"></script>
+</body>
+
+</html>

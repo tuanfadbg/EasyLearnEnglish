@@ -11,18 +11,56 @@ function updateWord(wordToUpdate) {
     });
 }
 
+function checkWordIsExisted(wordWanttoCheck) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(['words'], function (result) {
+            const words = result.words || [];
+            const wordExists = words.some(word => word.word === wordWanttoCheck);
+            resolve(wordExists);
+        });
+    });
+}
+
+function addWord(word, meaning, note, callback) {
+    const timestamp = new Date().toLocaleString();
+    chrome.storage.local.get({ words: [] }, function (result) {
+        const words = result.words;
+        words.push({ timestamp, word, meaning, note });
+        updateWordInStorage(words, callback);
+    });
+}
+
 function deleteWord(wordData, callback) {
-    if (confirm('Are you sure you want to delete this word?')) {
+    console.log(wordData);
+    if (confirm('Are you sure you want to delete this wordssss?')) {
         // Remove the word from the words array and update storage
         // console.log(wordData);
         chrome.storage.local.get({ words: [] }, function (result) {
-            let words = result.words.filter(word => word.word != wordData.word);
-
-            // console.log(words);
-            updateWordInStorage(words);
-            if (callback) callback();
+            console.log(result.words);
+            let words = result.words.filter(word => 
+                (word.timestamp !== wordData.timestamp)
+            );
+            console.log(words);
+            updateWordInStorage(words, callback);
         });
     }
+}
+
+function deleteWordBook(word, callback) {
+    if (confirm('Are you sure you want to delete this wordbook?')) {
+        chrome.storage.local.get(['wordbook'], function (data) {
+            let wordbook = data.wordbook || [];
+            // Update the filter logic to use AND (&&) instead of OR (||)
+            wordbook = wordbook.filter(entry => 
+                // entry.text !== word.text && 
+                // entry.context !== word.context && 
+                entry.time_created !== word.time_created
+            ); // Filter out the deleted word by text and context
+            chrome.storage.local.set({ wordbook }, function () {
+                if (callback) callback();
+            });
+        });
+    }   
 }
 
 function updateWord(currentWord, updatedWord, callback) {
@@ -35,8 +73,7 @@ function updateWord(currentWord, updatedWord, callback) {
                 word.note = updatedWord.note;
             }
         });
-        updateWordInStorage(result.words);
-        if (callback) callback();
+        updateWordInStorage(result.words, callback);
     });
     
 }
@@ -44,6 +81,12 @@ function updateWordInStorage(words) {
     chrome.storage.local.set({ words: words }, function () {
         // Reload the table to reflect the changes
 
+    });
+}
+
+function updateWordInStorage(words, callback) {
+    chrome.storage.local.set({ words: words }, function () {
+        if (callback) callback();
     });
 }
 

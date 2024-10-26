@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let isAscending = false; // Default sorting direction
     var wordInTable;
-    
+
     // Function to load and display words
     function loadWords() {
         chrome.storage.local.get({ words: [] }, function (result) {
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fillInTable(randomWords)
         });
     }
-    
+
     function fillInTable(words) {
         wordInTable = words;
         wordInTable.sort(function (a, b) {
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const meaningCell = document.createElement('td');
                 meaningCell.textContent = wordData.meaning;
                 row.appendChild(meaningCell);
-                
+
                 const noteCell = document.createElement('td');
                 noteCell.innerHTML = wordData.note.replace(/\n/g, '<br>');
                 row.appendChild(noteCell);
@@ -97,7 +97,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 deleteIcon.style.marginLeft = '10px';
                 deleteIcon.addEventListener('click', function () {
                     deleteWord(wordData, () => {
-                        wordInTable = wordInTable.filter(word => word.word != wordData.word);
+                        wordInTable = wordInTable.filter(
+                            word => word.timestamp != wordData.timestamp);
                         fillInTable(wordInTable);
                     });
                 });

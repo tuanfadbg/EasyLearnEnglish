@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Fast Learning Vocabulary",
     "version": "1.1",
-    "permissions": ["storage", "activeTab", "scripting", "tabs"],
+    "permissions": ["storage", "activeTab", "scripting", "tabs", "contextMenus"],
     "background": {
       "service_worker": "background.js"
     },
@@ -26,6 +26,11 @@
         "resources": ["saved_words.html"],
         "matches": ["<all_urls>"]
       }
-    ]
+    ],
+    "icons": {
+      "16": "resources/icon.png",
+      "48": "resources/icon.png",
+      "128": "resources/icon.png"
+  }
   }
   

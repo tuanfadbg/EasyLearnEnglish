@@ -13,6 +13,7 @@ function createModal() {
                     <div class="container">
                         <label for="word">Word:</label>
                         <input type="text" id="word" placeholder="Enter word">
+                        <div id="error-message" style="color: red;"></div>
                         <label for="meaning">Meaning:</label><br/>
                         <input type="text" id="meaning" placeholder="Enter meaning"><br/>
                         <label for="note">Note:</label><br/>
@@ -47,10 +48,39 @@ const wordInput = document.getElementById('word');
 const meaningInput = document.getElementById('meaning');
 const noteInput = document.getElementById('note');
 
+wordInput.addEventListener('input', function() {
+    checkWordIsValid();
+});
+
+function checkWordIsValid() {
+    const word = wordInput.value.trim();
+    const errorMessage = document.getElementById('error-message'); // Add this line to get the error message element
+    errorMessage.textContent = ''; // Clear previous error message
+
+    if (word) {
+        checkWordIsExisted(word).then(exists => {
+            if (exists) {
+                console.log(`Word "${word}" already exists.`);
+                errorMessage.textContent = `Error: Word "${word}" already exists.`; // Display error message
+            } else {
+                console.log(`Word "${word}" does not exist.`);
+            }
+        });
+    }
+}
 
 function showDialogEditAndFillData(wordData) {
     $('#confirmDialog').modal('show');
     wordInput.value = wordData.word;
     meaningInput.value = wordData.meaning;
     noteInput.value = wordData.note;
+    checkWordIsValid();
+}
+
+function showDialogEditAndFillDataByWordbook(wordbookItem) {
+    $('#confirmDialog').modal('show');
+    wordInput.value = wordbookItem.text;
+    meaningInput.value = '';
+    noteInput.value = wordbookItem.context;
+    checkWordIsValid();
 }
