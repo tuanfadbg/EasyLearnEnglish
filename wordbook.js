@@ -23,10 +23,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const wordCell = document.createElement('td');
             wordCell.textContent = entry.text;
+            wordCell.addEventListener('click', function () {
+                openGoogleTranslate(entry.text);
+            });
             row.appendChild(wordCell);
 
             const contextCell = document.createElement('td');
             contextCell.textContent = entry.context;
+            contextCell.addEventListener('click', function () {
+                openGoogleTranslate(entry.context);
+            });
             row.appendChild(contextCell);
 
             const actionCell = document.createElement('td');

@@ -1,14 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const wordInput = document.getElementById('word');
+    const wordInputPopup = document.getElementById('word');
     const meaningInput = document.getElementById('meaning');
     const noteInput = document.getElementById('note');
     const saveButton = document.getElementById('save');
     const savedWordsList = document.getElementById('savedWords');
     const viewSavedWordsLink = document.getElementById('viewSavedWords');
 
-    wordInput.value = window.getSelection().toString().trim()
+    wordInputPopup.value = window.getSelection().toString().trim()
     // Add input event listeners for auto-saving
-    wordInput.addEventListener('input', saveTemp);
+    wordInputPopup.addEventListener('input', saveTemp);
     meaningInput.addEventListener('input', saveTemp);
     noteInput.addEventListener('input', saveTemp);
 
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, { type: 'getSelectedText' }, function (response) {
             // if (response && response.word) {
-            //     wordInput.value = response.word;
+            //     wordInputPopup.value = response.word;
             // }
         });
     });
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // chrome.storage.local.get(['temp'], function (data) {
         //     if (data.temp) {
         //         if (request.word != null && (data.temp.word == null || data.temp.word == "")) {
-        //             wordInput.value = request.word;
+        //             wordInputPopup.value = request.word;
         //         }
         //     }
         // });
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.storage.local.get(['temp'], function (data) {
             console.log("temp: " + data.temp)
             if (data.temp) {
-                wordInput.value = data.temp.word || '';
+                wordInputPopup.value = data.temp.word || '';
                 meaningInput.value = data.temp.meaning || '';
                 noteInput.value = data.temp.note || '';
             }
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Save word, meaning, and note
     function handleSave() {
         const timestamp = new Date().toLocaleString();
-        const word = wordInput.value.trim();
+        const word = wordInputPopup.value.trim();
         const meaning = meaningInput.value.trim();
         const note = noteInput.value.trim();
 
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function saveTemp() {
         const temp = {
-            word: wordInput.value.trim(),
+            word: wordInputPopup.value.trim(),
             meaning: meaningInput.value.trim(),
             note: noteInput.value.trim()
         };
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function clearInputs() {
-        wordInput.value = '';
+        wordInputPopup.value = '';
         meaningInput.value = '';
         noteInput.value = '';
     }

@@ -157,7 +157,7 @@ function saveToWordbook(text, context) {
     const wordbook = result.wordbook || [];
     console.log(wordbook);
     wordbook.push({
-      "text": text,
+      "text": text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""),
       "context": context,
       "time_created": new Date().toISOString(),
       "added_to_saved_word": "false"
