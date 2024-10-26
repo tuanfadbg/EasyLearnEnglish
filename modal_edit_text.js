@@ -81,6 +81,6 @@ function showDialogEditAndFillDataByWordbook(wordbookItem) {
     $('#confirmDialog').modal('show');
     wordInput.value = wordbookItem.text;
     meaningInput.value = '';
-    noteInput.value = wordbookItem.context;
+    noteInput.value = wordbookItem.context.join('\n');
     checkWordIsValid();
 }

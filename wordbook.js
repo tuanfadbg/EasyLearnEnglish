@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         wordbook.reverse();
 
+        console.log(wordbook);
         // Iterate over the wordbook and create table rows
         wordbook.forEach(entry => {
             const row = document.createElement('tr');
@@ -29,13 +30,25 @@ document.addEventListener('DOMContentLoaded', function () {
             row.appendChild(wordCell);
 
             const contextCell = document.createElement('td');
-            contextCell.textContent = entry.context;
+            contextCell.innerHTML = entry.context.join('<br\/>');
             contextCell.addEventListener('click', function () {
                 openGoogleTranslate(entry.context);
             });
             row.appendChild(contextCell);
 
-            const actionCell = document.createElement('td');
+            const action1Cell = document.createElement('td');
+            const editButton = document.createElement('button');
+            editButton.innerHTML = '<i class="fas fa-edit"></i>';
+            editButton.className = 'btn btn-primary btn-sm ml-2';
+            editButton.textContent = 'Add';
+            editButton.onclick = () => {
+                showDialogEditAndFillDataByWordbook(entry); // Function to edit the word
+            };
+
+            action1Cell.appendChild(editButton);
+            row.appendChild(action1Cell);
+
+            const action2Cell = document.createElement('td');
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
             deleteButton.className = 'btn btn-danger btn-sm';
@@ -44,16 +57,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     location.reload(); // Reload the page to refresh the table
                 });
             };
-            const editButton = document.createElement('button');
-            editButton.innerHTML = '<i class="fas fa-edit"></i>';
-            editButton.className = 'btn btn-primary btn-sm ml-2';
-            editButton.textContent = 'Add';
-            editButton.onclick = () => {
-                showDialogEditAndFillDataByWordbook(entry); // Function to edit the word
-            };
-            actionCell.appendChild(editButton);
-            actionCell.appendChild(deleteButton);
-            row.appendChild(actionCell);
+            action2Cell.appendChild(deleteButton);
+            row.appendChild(action2Cell);
 
             // Append the row to the table body
             wordsTableBody.appendChild(row);
@@ -70,3 +75,18 @@ editAndSaveWord.addEventListener('click', function () {
 
 // Add event listener for close button
 document.getElementById('closeButton').addEventListener('click', () => window.close());
+
+
+// chrome.storage.local.get(['wordbook'], function (data) {
+//     const wordbook = data.wordbook || [];
+    
+//     // Replace the context of all entries with an empty array
+//     const updatedWordbook = wordbook.map(entry => ({
+//         ...entry,
+//         context: [entry.context] // Set context to an empty array for all entries
+//     }));
+  
+//     // Update the storage with the modified wordbook
+//     chrome.storage.local.set({ wordbook: updatedWordbook }, function () {
+//     });
+//   });

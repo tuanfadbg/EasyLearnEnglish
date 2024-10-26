@@ -153,17 +153,25 @@ function getEjoySelectedText() {
 }
 
 function saveToWordbook(text, context) {
+  text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+  text = text.toLowerCase();
   chrome.storage.local.get(['wordbook'], function(result) {
     const wordbook = result.wordbook || [];
     console.log(wordbook);
-    wordbook.push({
-      "text": text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""),
-      "context": context,
-      "time_created": new Date().toISOString(),
-      "added_to_saved_word": "false"
-    }); // Add the new entry
+    const existingEntry = wordbook.find(entry => entry.text === text);
+    if (existingEntry) {
+      existingEntry.context.push(context);
+    } else {
+      wordbook.push({
+        "text": text,
+        "context": [context],
+        "time_created": new Date().toISOString(),
+        "added_to_saved_word": "false"
+      }); // Add the new entry
+    }
     chrome.storage.local.set({ wordbook: wordbook }, function() {
       console.log('added to wordbook: ', wordbook);
     });
   });
 }
+
