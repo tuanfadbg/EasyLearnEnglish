@@ -161,11 +161,13 @@ function saveToWordbook(text, context) {
     const existingEntry = wordbook.find(entry => entry.text === text);
     if (existingEntry) {
       existingEntry.context.push(context);
+      existingEntry.time_updated = new Date().toISOString();
     } else {
       wordbook.push({
         "text": text,
         "context": [context],
         "time_created": new Date().toISOString(),
+        "time_updated": new Date().toISOString(),
         "added_to_saved_word": "false"
       }); // Add the new entry
     }

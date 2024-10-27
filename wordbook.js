@@ -1,25 +1,55 @@
 document.addEventListener('DOMContentLoaded', function () {
     const wordsTableBody = document.querySelector('#wordsTable tbody');
+    const timeHeader = document.querySelector('#wordsTable th[data-sort="time"]'); // Select the time header
+    let sortOrder = 'desc'; // Default sort order
 
     // Fetch the wordbook data from chrome.storage.local
     chrome.storage.local.get(['wordbook'], function (data) {
         const wordbook = data.wordbook || []; // Default to an empty array if not found
 
+        wordbook.forEach(item => {
+            if (!item.time_updated) {
+                item.time_updated = item.time_created;
+            }
+        });
+
         // Check if the wordbook is empty
         if (wordbook.length === 0) {
-            wordsTableBody.innerHTML = '<tr><td colspan="4">No words found in the wordbook.</td></tr>';
+            wordsTableBody.innerHTML = '<tr><td colspan="5">No words found in the wordbook.</td></tr>';
             return;
         }
-        wordbook.reverse();
+        // wordbook.reverse();
+        // Check if each item of wordbook has no time_updated, time updated = time created
 
         console.log(wordbook);
         // Iterate over the wordbook and create table rows
+        sortWordbook(wordbook, sortOrder);
+        populateTable(wordbook);
+
+        // Add click event to the time header for sorting
+        timeHeader.addEventListener('click', () => {
+            sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'; // Toggle sort order
+            sortWordbook(wordbook, sortOrder);
+            populateTable(wordbook);
+        });
+    });
+
+    function sortWordbook(wordbook, order) {
+        wordbook.sort((a, b) => {
+            return order === 'desc' 
+                ? new Date(b.time_updated) - new Date(a.time_updated) 
+                : new Date(a.time_updated) - new Date(b.time_updated);
+        });
+    }
+
+    function populateTable(wordbook) {
+        wordsTableBody.innerHTML = ''; // Clear existing rows
         wordbook.forEach(entry => {
             const row = document.createElement('tr');
 
             // Create cells for each entry
             const timeCell = document.createElement('td');
-            timeCell.textContent = new Date(entry.time_created).toLocaleString(); // Format time to local string
+            timeCell.textContent = formatDate(entry.time_updated); // Format time to custom string
             row.appendChild(timeCell);
 
             const wordCell = document.createElement('td');
@@ -53,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteButton.textContent = 'Delete';
             deleteButton.className = 'btn btn-danger btn-sm';
             deleteButton.onclick = () => {
-                deleteWordBook(entry, ()=> {
+                deleteWordBook(entry, () => {
                     location.reload(); // Reload the page to refresh the table
                 });
             };
@@ -63,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Append the row to the table body
             wordsTableBody.appendChild(row);
         });
-    });
+    }
 });
 
 const editAndSaveWord = document.getElementById('editAndSaveWord');
@@ -75,7 +105,6 @@ editAndSaveWord.addEventListener('click', function () {
 
 // Add event listener for close button
 document.getElementById('closeButton').addEventListener('click', () => window.close());
-
 
 // chrome.storage.local.get(['wordbook'], function (data) {
 //     const wordbook = data.wordbook || [];
