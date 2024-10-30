@@ -107,3 +107,71 @@ window.onload = function() {
     }
 }
 
+function convertForSearch(word) {
+    // Define regular expressions for different patterns
+    const patterns = [
+        { regex: /^(.*)ies$/, replacement: '$1y' },          // Change 'ies' to 'y' (e.g., babies => baby)
+        { regex: /^(.*)ed$/, replacement: '$1' },            // Remove 'ed' (e.g., tempered => temper)
+        { regex: /^(.*)ing$/, replacement: '$1' },           // Remove 'ing' (e.g., running => run)
+        { regex: /^(.*)ate$/, replacement: '$1' },           // Remove 'ate' (e.g., conflated => conflat)
+        { regex: /^(.*)ly$/, replacement: '$1' },            // Remove 'ly' (e.g., quickly => quick)
+        { regex: /^(.*)s$/, replacement: '$1' },             // Remove 's' (e.g., cats => cat)
+        { regex: /^(.*)es$/, replacement: '$1' },            // Remove 'es' (e.g., boxes => box)
+        { regex: /^(.*)ion$/, replacement: '$1' },           // Remove 'ion' (e.g., action => act)
+        { regex: /^(.*)ify$/, replacement: '$1' },           // Remove 'ify' (e.g., simplify => simple)
+        { regex: /^(.*)ment$/, replacement: '$1' },          // Remove 'ment' (e.g., development => develop)
+        { regex: /^(.*)ness$/, replacement: '$1' },          // Remove 'ness' (e.g., happiness => happy)
+        { regex: /^(.*)ful$/, replacement: '$1' },           // Remove 'ful' (e.g., beautiful => beauti)
+        { regex: /^(.*)less$/, replacement: '$1' },          // Remove 'less' (e.g., helpless => help)
+        { regex: /^(.*)ous$/, replacement: '$1' },           // Remove 'ous' (e.g., joyous => joy)
+        { regex: /^(.*)ive$/, replacement: '$1' },           // Remove 'ive' (e.g., creative => creat)
+        { regex: /^(.*)al$/, replacement: '$1' },            // Remove 'al' (e.g., personal => person)
+        { regex: /^(.*)er$/, replacement: '$1' },            // Remove 'er' (e.g., teacher => teach)
+        { regex: /^(.*)est$/, replacement: '$1' },           // Remove 'est' (e.g., biggest => big)
+        { regex: /^(.*)y$/, replacement: '$1' },             // Remove 'y' (e.g., happy => happ)
+        { regex: /^(.*)e$/, replacement: '$1' },             // Remove 'e' (e.g., make => mak)
+        { regex: /^(.*)ic$/, replacement: '$1' },            // Remove 'ic' (e.g., music => musi)
+        { regex: /^(.*)ity$/, replacement: '$1' },           // Remove 'ity' (e.g., activity => activ)
+        { regex: /^(.*)ty$/, replacement: '$1' },            // Remove 'ty' (e.g., beauty => beaut)
+        { regex: /^(.*)ment$/, replacement: '$1' },          // Remove 'ment' (e.g., enjoyment => enjoy)
+        { regex: /^(.*)tion$/, replacement: '$1' },          // Remove 'tion' (e.g., information => inform)
+        { regex: /^(.*)sion$/, replacement: '$1' },          // Remove 'sion' (e.g., decision => decide)
+        { regex: /^(.*)hood$/, replacement: '$1' },          // Remove 'hood' (e.g., childhood => child)
+        { regex: /^(.*)ship$/, replacement: '$1' },          // Remove 'ship' (e.g., friendship => friend)
+        { regex: /^(.*)dom$/, replacement: '$1' },           // Remove 'dom' (e.g., kingdom => king)
+        { regex: /^(.*)er$/, replacement: '$1' },            // Remove 'er' (e.g., player => play)
+        { regex: /^(.*)ing$/, replacement: '$1' },           // Remove 'ing' (e.g., playing => play)
+        { regex: /^(.*)ed$/, replacement: '$1' },            // Remove 'ed' (e.g., played => play)
+        { regex: /^(.*)s$/, replacement: '$1' },             // Remove 's' (e.g., dogs => dog)
+    ];
+
+    // Iterate through the patterns and apply the first match
+    for (const { regex, replacement } of patterns) {
+        if (regex.test(word)) {
+            return word.replace(regex, replacement);
+        }
+    }
+
+    // Return the original word if no patterns matched
+    return word;
+}
+
+// // Example usage
+// console.log(convertForSearch('likes'));      // Output: like
+// console.log(convertForSearch('conciously')); // Output: concious
+// console.log(convertForSearch('imposing'));   // Output: impose
+// console.log(convertForSearch('running'));     // Output: run
+// console.log(convertForSearch('quickly'));     // Output: quick
+// console.log(convertForSearch('cats'));        // Output: cat
+// console.log(convertForSearch('tempered'));    // Output: temper
+// console.log(convertForSearch('conflated'));   // Output: conflat
+// console.log(convertForSearch('exhaling'));     // Output: exhale
+// console.log(convertForSearch('unknown'));     // Output: unknown
+// console.log(convertForSearch('action'));      // Output: act
+// console.log(convertForSearch('simplify'));    // Output: simple
+// console.log(convertForSearch('development')); // Output: develop
+// console.log(convertForSearch('happiness'));   // Output: happy
+// console.log(convertForSearch('friendship'));  // Output: friend
+// console.log(convertForSearch('childhood'));   // Output: child
+// console.log(convertForSearch('kingdom'));     // Output: king
+// console.log(convertForSearch('creativity'));  // Output: creat

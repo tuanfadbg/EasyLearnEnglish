@@ -8,6 +8,14 @@
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="resources/wordbook.css" rel="stylesheet">
+    <!-- <link href="resources/full-screen-modal.css" rel="stylesheet"> -->
+    <!-- <style>
+        .modal-dialog { 
+            align-content: center;
+            max-width: 800px; /* This line is commented out */
+            margin: 1.75rem; /* This will override the margin */
+    }
+    </style> -->
 </head>
 
 <body>
@@ -16,6 +24,8 @@
         <!-- CLEAR ALL DATA -->
         <button id="closeButton" class="btn btn-danger mb-4">Close This Page</button>
         <button id="nightMode" class="btn btn-dark mb-4">Toggle Night Mode</button>
+        <button id="memoryGame" class="btn btn-success mb-4">Memory Game</button>
+        <button id="showStatisticsButton" class="btn btn-info mb-4">Show Game Statistics</button>
         <table class="table table-striped" id="wordsTable">
             <thead class="thead-dark">
                 <tr>
@@ -32,7 +42,54 @@
         </table>
     </div>
 
-    <!-- Bootstrap and jQuery -->
+   
+
+    <!-- Modal for Memory Game -->
+    <div class="modal fade" id="memoryGameModal" tabindex="-1" role="dialog" aria-labelledby="memoryGameModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="memoryGameModalLabel">Memory Game</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="randomWord"></p>
+                    <p id="randomContext"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="rememberButton">Remember</button>
+                    <button type="button" class="btn btn-danger" id="notRememberButton">Not Remember</button>
+                    <button type="button" class="btn btn-warning" id="rememberForeverButton">Remember Forever</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Game Statistics -->
+    <div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog" aria-labelledby="statisticsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statisticsModalLabel">Game Statistics</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="statisticsContent">
+                        <!-- Statistics will be displayed here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <!-- Bootstrap and jQuery -->
     <script src="resources/jquery-3.5.1.slim.min.js"></script>
     <script src="resources/popper.min.js"></script>
     <script src="resources/bootstrap.min.js"></script>

@@ -133,3 +133,42 @@ function deleteTranslation(key, callback) {
         saveTranslations(updatedTranslations, callback); // Save updated translations
     });
 }
+
+// Function to update remember statistics in local storage
+function updateRememberStatisticsDB(word, remembered, remember_forever) {
+    chrome.storage.local.get(['remember_statistic'], function (data) {
+        const rememberStatistic = data.remember_statistic || {};
+        
+        // Initialize the word entry if it doesn't exist
+        if (!rememberStatistic[word]) {
+            rememberStatistic[word] = { re: 0, not_re: 0, re_fo: 0 }; // Add re_fo key
+        }
+
+        if (remember_forever) {
+            if (isNaN(rememberStatistic[word].re_fo))
+                rememberStatistic[word].re_fo = 1
+            else
+                rememberStatistic[word].re_fo += 1; // Increment remembered forever count
+        } else {
+            // Update the counts based on whether the word was remembered or not
+            if (remembered) {
+                rememberStatistic[word].re += 1; // Increment remembered count
+            } else {
+                rememberStatistic[word].not_re += 1; // Increment not remembered count
+            }
+        }
+
+        console.log(rememberStatistic);
+        // Save the updated statistics back to local storage
+        chrome.storage.local.set({ remember_statistic: rememberStatistic }, function () {
+            console.log(`Updated statistics for "${word}":`, rememberStatistic[word]);
+        });
+    });
+}
+
+function updateRememberForeverStatistics(word) {
+    updateRememberStatisticsDB(word, true, true);
+}
+function updateRememberStatistics(word, remembered) {
+    updateRememberStatisticsDB(word, remembered, false);
+}

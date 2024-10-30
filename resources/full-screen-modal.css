@@ -1,0 +1,5 @@
+/* /* @media (min-width: 576px) { */
+    .modal-dialog { 
+        max-width: 2000px; /* This line is commented out */
+        margin: 1.75rem; /* This will override the margin */
+    }
