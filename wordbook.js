@@ -139,6 +139,7 @@ document.getElementById('memoryGame').addEventListener('click', function () {
     showRandomWord();
 });
 
+var randomWordGame;
 // Function to show a random word
 function showRandomWord() {
     // Fetch the wordbook data from chrome.storage.local
@@ -152,33 +153,36 @@ function showRandomWord() {
 
         // Select a random word from the wordbook
         const randomIndex = Math.floor(Math.random() * wordbook.length);
-        const randomWordEntry = wordbook[randomIndex];
+        randomWordGame = wordbook[randomIndex];
 
         // Display the random word and context in the modal
-        document.getElementById('randomWord').textContent = `${randomWordEntry.text}`;
-        document.getElementById('randomContext').innerHTML = `${randomWordEntry.context.join('<br/>')}`;
+        document.getElementById('randomWord').textContent = `${randomWordGame.text}`;
+        document.getElementById('randomContext').innerHTML = `${randomWordGame.context.join('<br/>')}`;
 
-        document.getElementById('randomWord').addEventListener('click', function () {
-            openGoogleTranslate(randomWordEntry.text);
-        });
-
-        document.getElementById('randomContext').addEventListener('click', function () {
-            openGoogleTranslate(randomWordEntry.context.join('<br/>'));
-        });
+        
 
         // Store the current word for remembering/not remembering
-        document.getElementById('rememberButton').dataset.word = randomWordEntry.text;
+        document.getElementById('rememberButton').dataset.word = randomWordGame.text;
 
         // Show the modal
         $('#memoryGameModal').modal('show');
     });
 }
 
+document.getElementById('randomWord').addEventListener('click', function () {
+    openGoogleTranslate(randomWordGame.text);
+});
+
+document.getElementById('randomContext').addEventListener('click', function () {
+    openGoogleTranslate(randomWordGame.context.join('\n'));
+});
+
 // Handle Remember button click
 document.getElementById('rememberButton').addEventListener('click', function () {
     const word = this.dataset.word; // Get the word from the dataset
     updateRememberStatistics(word, true); // Update statistics for remembering
     showRandomWord(); // Show the next random word
+    collapseSaveContainer();
 });
 
 // Handle Not Remember button click
@@ -186,6 +190,7 @@ document.getElementById('notRememberButton').addEventListener('click', function 
     const word = document.getElementById('rememberButton').dataset.word; // Get the word from the dataset
     updateRememberStatistics(word, false); // Update statistics for not remembering
     showRandomWord(); // Show the next random word
+    collapseSaveContainer();
 });
 
 // Add event listener for Remember Forever button click
@@ -193,6 +198,7 @@ document.getElementById('rememberForeverButton').addEventListener('click', funct
     const word = document.getElementById('rememberButton').dataset.word; // Get the word from the dataset
     updateRememberForeverStatistics(word); // Update statistics for remembering forever
     showRandomWord(); // Show the next random word
+    collapseSaveContainer();
 });
 
 const editAndSaveWord = document.getElementById('editAndSaveWord');
@@ -250,3 +256,110 @@ function showGameStatistics() {
 
 // Add event listener for a button to show statistics
 document.getElementById('showStatisticsButton').addEventListener('click', showGameStatistics);
+
+
+function fillWordNeededToAdd() {
+    const wordInput = document.getElementById('word-save');
+    const meaningInput = document.getElementById('meaning-save');
+    const noteInput = document.getElementById('note-save');
+    if (randomWordGame.linkedTo != undefined) {
+        wordInput.value = randomWordGame.linkedTo;
+    } else {
+        wordInput.value = randomWordGame.text;
+    }
+    meaningInput.value = '';
+    noteInput.value = randomWordGame.context;
+    // checkWordIsExist();
+    fillExistedWordToInput();
+}
+
+
+function checkWordIsExist() {
+    const word = document.getElementById('word-save').value.trim();
+    const errorMessage = document.getElementById('error-message-save'); // Add this line to get the error message element
+    errorMessage.textContent = ''; // Clear previous error message
+    
+    if (word) {
+        checkWordIsExisted(word).then(exists => {
+            if (exists) {
+                console.log(`Word "${word}" already exists.`);
+                errorMessage.textContent = `Word "${word}" already exists. Click to autoFill`; // Display error message
+            } else {
+                console.log(`Word "${word}" does not exist.`);
+            }
+        });
+    }
+}
+
+function fillExistedWordToInput() {
+    const meaningInput = document.getElementById('meaning-save');
+    const noteInput = document.getElementById('note-save');
+    const word = document.getElementById('word-save').value.trim();
+    const errorMessage = document.getElementById('error-message-save'); // Add this line to get the error message element
+    errorMessage.textContent = '';
+    if (word) {
+        findWord(word).then(wordFound => {
+            console.log(wordFound);
+            if (wordFound) {
+                meaningInput.value = wordFound.meaning;
+                noteInput.value = wordFound.note + '\n' + randomWordGame.context;
+                console.log(`Word "${word}" is filled.`);
+                console.log(`Word "${word}" already exists.`);
+                errorMessage.textContent = `Error: Word "${word}" already exists.`; // Display error message
+            } else {
+                meaningInput.value = '';
+                noteInput.value = randomWordGame.context;
+                console.log(`Word "${word}" does not exist.`);
+            }
+        });
+    }
+}
+
+// Add event listener for "Add to Saved Word" button
+document.getElementById('addToSavedWordButton').addEventListener('click', function () {
+    
+    const saveContainer = document.getElementById('save-container');
+    // Collapse the save-container only if it's open
+    $(saveContainer).collapse('show');
+    fillWordNeededToAdd();
+});
+
+document.getElementById('cancel-save').addEventListener('click', cancelSaveToWordBook);
+document.getElementById('editAndSaveWord-save').addEventListener('click', saveToSavedWord);
+document.getElementById('word-save').addEventListener('input', fillExistedWordToInput);
+document.getElementById('error-message-save').addEventListener('click', fillExistedWordToInput);
+
+function cancelSaveToWordBook() {
+    collapseSaveContainer();
+
+    document.getElementById('word-save').value = '';
+    document.getElementById('meaning-save').value = '';
+    document.getElementById('note-save').value = '';
+}
+
+function saveToSavedWord() {
+    const wordInput = document.getElementById('word-save');
+    const meaningInput = document.getElementById('meaning-save');
+    const noteInput = document.getElementById('note-save');
+    addWordOrUpdateIfExist(wordInput.value, meaningInput.value, noteInput.value, () => {
+        collapseSaveContainer();
+    });
+
+    addLinkedToSavedWord(
+        document.getElementById('rememberButton').dataset.word, 
+        wordInput.value, 
+        ()=> {}
+    );
+}
+
+function collapseSaveContainer() {
+    const saveContainer = document.getElementById('save-container');
+    // Collapse the save-container only if it's open
+    // if ($(saveContainer).collapse('show')) {
+        $(saveContainer).collapse('hide');
+    // }
+}
+
+$('#memoryGameModal').on('hidden.bs.modal', function () {
+    collapseSaveContainer(); // Call collapseSaveContainer when the modal is closed
+});

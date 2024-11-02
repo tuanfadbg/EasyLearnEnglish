@@ -42,10 +42,11 @@
         </table>
     </div>
 
-   
+
 
     <!-- Modal for Memory Game -->
-    <div class="modal fade" id="memoryGameModal" tabindex="-1" role="dialog" aria-labelledby="memoryGameModalLabel" aria-hidden="true">
+    <div class="modal fade" id="memoryGameModal" tabindex="-1" role="dialog" aria-labelledby="memoryGameModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -58,7 +59,30 @@
                     <p id="randomWord"></p>
                     <p id="randomContext"></p>
                 </div>
+                <div class="collapse" id="save-container">
+                    <div class="save-word" style="margin: 0px 16px;">
+                        <div class="form-group">
+                            <label for="word-save" class="font-weight-bold">Word:</label>
+                            <input type="text" id="word-save" placeholder="Enter word" class="form-control">
+                            <div id="error-message-save" style="color: red;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="meaning-save" class="font-weight-bold">Meaning:</label>
+                            <input type="text" id="meaning-save" placeholder="Enter meaning" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="note-save" class="font-weight-bold">Note:</label>
+                            <textarea id="note-save" placeholder="Enter note" rows="5" class="form-control"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="save-word-footer" style="margin: 0px 16px 16px 16px;">
+                        <button type="button" id="cancel-save" class="btn btn-secondary">Cancel</button>
+                        <button type="button" id="editAndSaveWord-save" class="btn btn-primary">OK</button>
+                    </div>
+                </div>
                 <div class="modal-footer">
+                    <button type="button" id="addToSavedWordButton" data-toggle="collapse" data-target="#save-container" class="btn btn-primary">Add to Saved Word</button>
                     <button type="button" class="btn btn-success" id="rememberButton">Remember</button>
                     <button type="button" class="btn btn-danger" id="notRememberButton">Not Remember</button>
                     <button type="button" class="btn btn-warning" id="rememberForeverButton">Remember Forever</button>
@@ -68,7 +92,8 @@
     </div>
 
     <!-- Modal for Game Statistics -->
-    <div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog" aria-labelledby="statisticsModalLabel" aria-hidden="true">
+    <div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog" aria-labelledby="statisticsModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -89,7 +114,7 @@
         </div>
     </div>
 
-     <!-- Bootstrap and jQuery -->
+    <!-- Bootstrap and jQuery -->
     <script src="resources/jquery-3.5.1.slim.min.js"></script>
     <script src="resources/popper.min.js"></script>
     <script src="resources/bootstrap.min.js"></script>

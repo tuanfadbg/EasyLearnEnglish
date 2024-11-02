@@ -10,6 +10,19 @@ function updateWord(wordToUpdate) {
         });
     });
 }
+function updateWordWithCallBack(wordToUpdate, callback) {
+    chrome.storage.local.get(['words'], function (result) {
+        const words = result.words || [];
+        // Find the word in the words array and update its note
+        const updatedWords = words.map(word => word.word === wordToUpdate.word ? wordToUpdate : word);
+
+        // Save the updated words array to storage
+        chrome.storage.local.set({ words: updatedWords }, function () {
+            console.log('Note saved:', wordToUpdate);
+            if (callback) callback();
+        });
+    });
+}
 
 function checkWordIsExisted(wordWanttoCheck) {
     return new Promise((resolve, reject) => {
@@ -21,7 +34,50 @@ function checkWordIsExisted(wordWanttoCheck) {
     });
 }
 
+function findWord(wordWanttoFind) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(['words'], function (result) {
+            const words = result.words || [];
+            const foundWord = words.find(word => word.word === wordWanttoFind);
+            resolve(foundWord);
+        });
+    });
+}
+
+
+function addWordOrUpdateIfExist(word, meaning, note, callback) {
+    console.log(`addWordOrUpdateIfExist: ${word}, Meaning: ${meaning}, Note: ${note}, Callback: ${callback}`);
+    chrome.storage.local.get(['words'], function (result) {
+        const words = result.words || [];
+        const wordExists = words.some(w => w.word == word);
+        if (wordExists) {
+            const updatedWord = words.find(w => w.word == word);
+            updatedWord.meaning = meaning;
+            updatedWord.note = note;
+            updateWordWithCallBack(updatedWord, callback);
+        } else {
+            addWord(word, meaning, note, callback);
+        }
+    });
+}
+
+function addLinkedToSavedWord(wordInWordBook, wordInSavedWord, callback) {
+    console.log(`addLinkedToSavedWord: ${wordInWordBook}, ${wordInSavedWord}, ${callback}`);
+    chrome.storage.local.get(['wordbook'], function (data) {
+        let wordbook = data.wordbook || [];
+        const word = wordbook.find(entry => entry.text === wordInWordBook);
+        if (word) {
+            word.linkedTo = wordInSavedWord;
+        }
+        console.log(word);
+        chrome.storage.local.set({ wordbook }, function () {
+            if (callback) callback();
+        });
+    });
+}
+
 function addWord(word, meaning, note, callback) {
+    console.log(`Adding word: ${word}, meaning: ${meaning}, note: ${note}`);
     const timestamp = new Date().toLocaleString();
     chrome.storage.local.get({ words: [] }, function (result) {
         const words = result.words;
@@ -74,9 +130,9 @@ function updateWord(currentWord, updatedWord, callback) {
             }
         });
         updateWordInStorage(result.words, callback);
-    });
-    
+    });    
 }
+
 function updateWordInStorage(words) {
     chrome.storage.local.set({ words: words }, function () {
         // Reload the table to reflect the changes

@@ -46,8 +46,9 @@ document.addEventListener('keydown', (event) => {
         var inputElement = document.getElementById('dictationInputTuanFadbg');
         if (inputElement != null) {
           inputElement.value = ''; // Example action: clear the input
+          inputElement.focus(); // Focus the keyboard to the input element
         }
-
+        
       }
     }
   }
