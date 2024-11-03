@@ -112,6 +112,17 @@ function save(isAutoSave) {
     });
 }
 
+
+document.getElementById('randomWord').onclick = function () {
+    var text = document.getElementById('randomWordText');
+    getRandomWord(3).then(words => {
+        console.log(words);
+        if (words && Array.isArray(words)) {
+            const wordConcated = words.map(word => word.word).join(', ');
+            text.textContent = wordConcated;
+        }
+    });
+};
 // Save button functionality
 document.getElementById('saveButton').onclick = function () {
     save(false)

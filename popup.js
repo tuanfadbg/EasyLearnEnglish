@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 wordInputPopup.value = data.temp.word || '';
                 meaningInput.value = data.temp.meaning || '';
                 noteInput.value = data.temp.note || '';
+                checkWordIsValid();
             }
         });
     }
@@ -110,5 +111,36 @@ document.addEventListener('DOMContentLoaded', function () {
         wordInputPopup.value = '';
         meaningInput.value = '';
         noteInput.value = '';
+    }
+
+    wordInputPopup.addEventListener('input', function() {
+        checkWordIsValid();
+    });
+    
+    function checkWordIsValid() {
+        const word = wordInputPopup.value.trim();
+        const errorMessage = document.getElementById('error-message'); // Add this line to get the error message element
+        errorMessage.textContent = ''; // Clear previous error message
+    
+        if (word) {
+            checkWordIsExisted(word).then(exists => {
+                if (exists) {
+                    console.log(`Word "${word}" already exists.`);
+                    errorMessage.textContent = `Error: Word "${word}" already exists.`; // Display error message
+                } else {
+                    console.log(`Word "${word}" does not exist.`);
+                }
+            });
+        }
+    }
+
+    function checkWordIsExisted(wordWanttoCheck) {
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.get(['words'], function (result) {
+                const words = result.words || [];
+                const wordExists = words.some(word => word.word === wordWanttoCheck);
+                resolve(wordExists);
+            });
+        });
     }
 });

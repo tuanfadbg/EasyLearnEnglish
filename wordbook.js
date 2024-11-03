@@ -302,13 +302,13 @@ function fillExistedWordToInput() {
             console.log(wordFound);
             if (wordFound) {
                 meaningInput.value = wordFound.meaning;
-                noteInput.value = wordFound.note + '\n' + randomWordGame.context;
+                noteInput.value = wordFound.note + '\n' + randomWordGame.context.join('\n');
                 console.log(`Word "${word}" is filled.`);
                 console.log(`Word "${word}" already exists.`);
                 errorMessage.textContent = `Error: Word "${word}" already exists.`; // Display error message
             } else {
                 meaningInput.value = '';
-                noteInput.value = randomWordGame.context;
+                noteInput.value = randomWordGame.context.join('\n');
                 console.log(`Word "${word}" does not exist.`);
             }
         });

@@ -1,3 +1,16 @@
+function getRandomWord(count) {
+    console.log(`Getting ${count} random words.`);
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(['words'], function (result) {
+            const words = result.words || [];
+            // Find the word in the words array and update its note
+            const randomWords = words.sort(() => Math.random() - 0.5).slice(0, count);
+            console.log('Random words:', randomWords);
+            resolve(randomWords);
+        });
+    });
+}
+
 function updateWord(wordToUpdate) {
     chrome.storage.local.get(['words'], function (result) {
         const words = result.words || [];
@@ -10,6 +23,7 @@ function updateWord(wordToUpdate) {
         });
     });
 }
+
 function updateWordWithCallBack(wordToUpdate, callback) {
     chrome.storage.local.get(['words'], function (result) {
         const words = result.words || [];
@@ -93,7 +107,7 @@ function deleteWord(wordData, callback) {
         // console.log(wordData);
         chrome.storage.local.get({ words: [] }, function (result) {
             console.log(result.words);
-            let words = result.words.filter(word => 
+            let words = result.words.filter(word =>
                 (word.timestamp !== wordData.timestamp)
             );
             console.log(words);
@@ -107,7 +121,7 @@ function deleteWordBook(word, callback) {
         chrome.storage.local.get(['wordbook'], function (data) {
             let wordbook = data.wordbook || [];
             // Update the filter logic to use AND (&&) instead of OR (||)
-            wordbook = wordbook.filter(entry => 
+            wordbook = wordbook.filter(entry =>
                 // entry.text !== word.text && 
                 // entry.context !== word.context && 
                 entry.time_created !== word.time_created
@@ -116,7 +130,7 @@ function deleteWordBook(word, callback) {
                 if (callback) callback();
             });
         });
-    }   
+    }
 }
 
 function updateWord(currentWord, updatedWord, callback) {
@@ -130,7 +144,7 @@ function updateWord(currentWord, updatedWord, callback) {
             }
         });
         updateWordInStorage(result.words, callback);
-    });    
+    });
 }
 
 function updateWordInStorage(words) {
@@ -160,7 +174,7 @@ function updateTranslation(updatedTranslation, callback) {
     loadTranslations(function (allTranslations) {
         // Find the index of the current translation to update
         const index = allTranslations.findIndex(item => item.key === updatedTranslation.key);
-        
+
         if (index !== -1) {
             allTranslations[index] = updatedTranslation; // Update existing translation
         } else {
@@ -194,7 +208,7 @@ function deleteTranslation(key, callback) {
 function updateRememberStatisticsDB(word, remembered, remember_forever) {
     chrome.storage.local.get(['remember_statistic'], function (data) {
         const rememberStatistic = data.remember_statistic || {};
-        
+
         // Initialize the word entry if it doesn't exist
         if (!rememberStatistic[word]) {
             rememberStatistic[word] = { re: 0, not_re: 0, re_fo: 0 }; // Add re_fo key
