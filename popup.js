@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     viewSavedWordsLink.addEventListener('click', function () {
         chrome.tabs.create({ url: chrome.runtime.getURL('saved_words.html') });
     });
-    
+
     // Send a message to the content script to get the selected text
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, { type: 'getSelectedText' }, function (response) {
@@ -113,15 +113,15 @@ document.addEventListener('DOMContentLoaded', function () {
         noteInput.value = '';
     }
 
-    wordInputPopup.addEventListener('input', function() {
+    wordInputPopup.addEventListener('input', function () {
         checkWordIsValid();
     });
-    
+
     function checkWordIsValid() {
         const word = wordInputPopup.value.trim();
         const errorMessage = document.getElementById('error-message'); // Add this line to get the error message element
         errorMessage.textContent = ''; // Clear previous error message
-    
+
         if (word) {
             checkWordIsExisted(word).then(exists => {
                 if (exists) {
@@ -144,3 +144,47 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+
+document.getElementById('saveToTranslation').addEventListener('click', function () {
+    // Add your code here
+    console.log("translatedSentences");
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, { type: 'getTranslationValue' }, function (response) {
+            if (response && response.word) {
+
+            }
+        });
+    });
+});
+
+document.getElementById('listTranslations').addEventListener('click', loadListTranslation);
+
+function loadListTranslation() {
+    const translationsDiv = document.getElementById('list-translations');
+    translationsDiv.innerHTML = ''; // Clear previous translations
+    chrome.storage.local.get(['translationContainer'], function (result) {
+        const translationContainer = result.translationContainer || [];
+        console.log(translationContainer);
+        translationContainer.forEach(translation => {
+            const translationItem = document.createElement('div');
+            translationItem.textContent = `${translation.content[0].text}`;
+            translationItem.id = 'item-' + translation.id;
+            translationItem.style = 'margin-bottom: 10px; padding: 10px; border-radius: 5px; background-color: #f0f0f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+            translationItem.addEventListener('click', function () {
+                console.log(`Translation item clicked: ${translation.content[0].text}`);
+                sendTranslationDataToContentJS(translation);
+            });
+            translationsDiv.appendChild(translationItem);
+        });
+    });
+}
+
+function sendTranslationDataToContentJS(translation) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, { type: 'sendTranslationDataToContentJS', translation: translation }, function (response) {
+
+        });
+    });
+}
+

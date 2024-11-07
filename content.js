@@ -15,6 +15,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       saveToWordbook(selectedText);
     }
+  } else if (request.type == 'getTranslationValue') {
+    console.log("Received translated sentences:");
+    var hiddenOutput;
+    hiddenOutput = document.getElementById('translation-data-hidden-output');
+    console.log(hiddenOutput.innerHTML)
+    const data = JSON.parse(hiddenOutput.innerHTML);
+    saveToTranslation(data);
+  } else if (request.type == 'sendTranslationDataToContentJS') {
+    var data = request.translation;
+    console.log("Received translation data:", data);
+    var hiddenInput = document.getElementById('translation-data-hidden-input');
+    hiddenInput.value = JSON.stringify(request.translation);
+    hiddenInput.dispatchEvent(new Event('input'));
   }
 });
 
@@ -122,7 +135,6 @@ if (window.location.hostname === "dailydictation.com") {
 
   }, 2000);
 }
-
 /**
  * Function to get all text from the specified div
  * @returns {string} - The concatenated text from the div
@@ -178,3 +190,27 @@ function saveToWordbook(text, context) {
   });
 }
 
+function saveToTranslation(dataContainer) {
+//   var dataContainer = {
+//     id: translationId,//11231231231231232
+//     content: translatedSentences //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
+// };
+  chrome.storage.local.get(['translationContainer'], function(result) {
+    const translationContainer = result.translationContainer || [];
+    console.log(translationContainer);
+    const existingEntry = translationContainer.find(entry => entry.id === dataContainer.id);
+    if (existingEntry) {
+      existingEntry.content = dataContainer.content;
+      existingEntry.time_updated = new Date().toISOString();
+    } else {
+      translationContainer.push({
+        "id": dataContainer.id,
+        "content": dataContainer.content,
+        "time_updated": new Date().toISOString(),
+      }); // Add the new entry
+    }
+    chrome.storage.local.set({ translationContainer: translationContainer }, function() {
+      console.log('added to translationContainer: ', translationContainer);
+    });
+  });
+}

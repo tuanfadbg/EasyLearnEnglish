@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translate Sentences</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #007BFF;
+        }
+
+        textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #output {
+            margin-top: 20px;
+        }
+
+        section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .translation-section,
+        .my-translation-section,
+        .original-section {
+            margin-bottom: 15px;
+        }
+
+        strong {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #007BFF;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 10px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"]:focus {
+            border-color: #007BFF;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Translate Sentences</h1>
+    <textarea id="textInput" rows="10" cols="50" placeholder="Enter text here..."></textarea>
+    <button id="translateButton" onclick="translateSentences()">Translate</button>
+    <button id="createNewTranslationButton" onclick="createNewTranslation()">Create New Translation</button>
+    <div id="output"></div>
+    <div id="translation-data-hidden-output" style="display: none;"></div>
+    <input id="translation-data-hidden-input" value="" style="display: none;"></input>
+    <script>
+
+        const translateButton = document.getElementById("translateButton");
+        const createNewTranslationButton = document.getElementById("createNewTranslationButton");
+        // List of language codes
+        // const OUTPUT_LANGS = ["en", "af", "sq", "ar", "hy", "az", "be", "bg", "zh-CN", "zh-TW", "hr", "cs", "da", "nl", "fi", "fr", "de", "el", "iw", "hi", "hu", "it", "ja", "kn", "ko", "lv", "lt", "mk", "ms", "ml", "mn", "ne", "no", "pl", "pt", "pa", "ro", "ru", "sk", "sl", "es", "sw", "sv", "ta", "te", "th", "tr", "uk", "ur", "vi", "zu"];
+        const OUTPUT_LANGS = ["en"];
+        var translationId; //11231231231231232
+        var translatedSentences; //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
+
+
+        function createNewTranslation() {
+            translationId = new Date().getTime();
+            translatedSentences = [];
+            displayAllSentences();
+        }
+
+        async function translateSentences() {
+            const textInput = document.getElementById("textInput").value;
+            if (!textInput.trim()) {
+                alert("Please enter some text to translate.");
+                return;
+            }
+
+            const sentences = splitIntoSentences(textInput);
+            const outputDiv = document.getElementById("output");
+            outputDiv.innerHTML = ""; // Clear previous output
+
+            translationId = new Date().getTime();
+            translatedSentences = sentences.map((sentence, index) => ({ id: `id-${index}`, text: sentence }));
+
+            for (const lang of OUTPUT_LANGS) {
+                console.log(translatedSentences);
+
+                displayAllSentences();
+
+                await Promise.all(translatedSentences.map(async (item, index) => {
+                    await new Promise(resolve => setTimeout(resolve, 2000 * (index + 1)));
+                    const translation = await translateText(item.text, lang);
+                    item.translated = translation.output.replace(/\\/g, '');
+                    updateDataTranslated(item);
+                }));
+            }
+        }
+
+        async function translateText(text, targetLang) {
+            console.log(text)
+            // const encodedText = encodeURIComponent(text);
+            const encodedText = text;
+
+            const response = await fetch('http://localhost:3000/translate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: encodedText, targetLang: targetLang }),
+            });
+            const data = await response.json();
+            console.log(data)
+            console.log(data.output)
+            return data;
+        }
+
+        function displayAllSentences() {
+            const outputDiv = document.getElementById("output");
+            outputDiv.innerHTML = "";
+            translatedSentences.forEach((sentence) => {
+                const section = document.createElement("section");
+
+                // Create a structured output with a more visually appealing design and set id for each input
+                section.innerHTML = `
+                    <div class="original-section">
+                        <strong>Original Text:</strong>
+                        <input type="text" id="original-${sentence.id}" value="${sentence.text}" readonly>
+                    </div>
+                    <div class="translation-section" style="display: none;">
+                        <strong>Translated Text:</strong>
+                        <input type="text" id="translated-${sentence.id}" value="${sentence.translated ? sentence.translated : ''}">
+                    </div>
+                    <div class="my-translation-section">
+                        <strong>My Translation:</strong>
+                        <input type="text" id="my-translation-${sentence.id}" value="${sentence.my_translation ? sentence.my_translation : ''}" oninput="updateMyTranslation('${sentence.id}')">
+                    </div>
+                    <button onclick="toggleTranslation('translated-${sentence.id}')">Show Translation</button>
+                `;
+
+                outputDiv.appendChild(section);
+            });
+        }
+
+        function updateMyTranslation(id) {
+            const myTranslationInput = document.getElementById(`my-translation-${id}`);
+            const updatedTranslation = myTranslationInput.value;
+            const sentenceToUpdate = translatedSentences.find(sentence => sentence.id === id);
+            if (sentenceToUpdate) {
+                sentenceToUpdate.my_translation = updatedTranslation;
+                setOutputData(); // Update the output data with the new my_translation value
+            }
+        }
+
+        function toggleTranslation(id) {
+            const translationSection = document.getElementById(id).parentNode;
+            translationSection.style.display = translationSection.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function updateDataTranslated(sentence) {
+            const translatedInput = document.getElementById(`translated-${sentence.id}`);
+            translatedInput.value = sentence.translated;
+            setOutputData();
+        }
+
+        function setOutputData() {
+            var dataContainer = {
+                id: translationId,//11231231231231232
+                content: translatedSentences //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
+            };
+            console.log(JSON.stringify(dataContainer));
+            document.getElementById('translation-data-hidden-output').innerHTML = JSON.stringify(dataContainer);
+        }
+
+        // Splits input text into individual sentences.
+        function splitIntoSentences(text) {
+            if (!/[.!?]$/.test(text)) {
+                text += '.';
+            }
+            const sentenceRegex = /([^.!?]+[.!?]+)(?=\s*[^.!?]|\s*$)/g;
+            const matches = text.match(sentenceRegex);
+            return matches ? matches.map(sentence => sentence.trim()) : [text];
+        }
+
+        document.getElementById('translation-data-hidden-input').addEventListener('input', parseDataFromDb);
+
+        function parseDataFromDb() {
+            const data = this.value;
+            try {
+                const dataContainer = JSON.parse(data);
+                translationId = dataContainer.id;
+                translatedSentences = dataContainer.content;
+                console.log(dataContainer);
+                // Assuming parsedData is an array of sentences
+                displayAllSentences();
+                setOutputData();
+            } catch (error) {
+                console.error('Error parsing data:', error);
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>

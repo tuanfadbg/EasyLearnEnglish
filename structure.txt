@@ -1,0 +1,6 @@
+translationContainer = [{
+    id: 11231231231231232, //datetime
+    content: [{ id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck" },
+        { id: "id-2", text: "2 con vịt", translated: "two duck", my_translation: "2 duck" }
+    ]
+}]
