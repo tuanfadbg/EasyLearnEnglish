@@ -166,6 +166,7 @@ function loadListTranslation() {
     chrome.storage.local.get(['translationContainer'], function (result) {
         const translationContainer = result.translationContainer || [];
         console.log(translationContainer);
+        translationContainer.reverse();
         translationContainer.forEach(translation => {
             const translationItem = document.createElement('div');
             translationItem.textContent = `${translation.content[0].text}`;

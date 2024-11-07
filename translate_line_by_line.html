@@ -19,7 +19,7 @@
         }
 
         textarea {
-            width: 100%;
+            width: calc(100% - 20px);
             margin-bottom: 10px;
             padding: 10px;
             border: 1px solid #ccc;
@@ -167,15 +167,15 @@
                 section.innerHTML = `
                     <div class="original-section">
                         <strong>Original Text:</strong>
-                        <input type="text" id="original-${sentence.id}" value="${sentence.text}" readonly>
+                        <input type="text" lines="2" id="original-${sentence.id}" value="${sentence.text.replace(/"/g, '&quot;')}" readonly>
                     </div>
                     <div class="translation-section" style="display: none;">
                         <strong>Translated Text:</strong>
-                        <input type="text" id="translated-${sentence.id}" value="${sentence.translated ? sentence.translated : ''}">
+                        <input type="text" id="translated-${sentence.id}" value="${sentence.translated ? sentence.translated.replace(/"/g, '&quot;') : ''}">
                     </div>
                     <div class="my-translation-section">
                         <strong>My Translation:</strong>
-                        <input type="text" id="my-translation-${sentence.id}" value="${sentence.my_translation ? sentence.my_translation : ''}" oninput="updateMyTranslation('${sentence.id}')">
+                        <input type="text" id="my-translation-${sentence.id}" value="${sentence.my_translation ? sentence.my_translation.replace(/"/g, '&quot;') : ''}" oninput="updateMyTranslation('${sentence.id}')">
                     </div>
                     <button onclick="toggleTranslation('translated-${sentence.id}')">Show Translation</button>
                 `;
