@@ -21,7 +21,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     hiddenOutput = document.getElementById('translation-data-hidden-output');
     console.log(hiddenOutput.innerHTML)
     const data = JSON.parse(hiddenOutput.innerHTML);
-    saveToTranslation(data);
+    saveToTranslation(data, ()=> {
+      sendResponse({ status: "oke" });
+    });
+    
   } else if (request.type == 'sendTranslationDataToContentJS') {
     var data = request.translation;
     console.log("Received translation data:", data);
@@ -61,7 +64,7 @@ document.addEventListener('keydown', (event) => {
           inputElement.value = ''; // Example action: clear the input
           inputElement.focus(); // Focus the keyboard to the input element
         }
-        
+
       }
     }
   }
@@ -166,9 +169,9 @@ function getEjoySelectedText() {
 }
 
 function saveToWordbook(text, context) {
-  text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+  text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
   text = text.toLowerCase();
-  chrome.storage.local.get(['wordbook'], function(result) {
+  chrome.storage.local.get(['wordbook'], function (result) {
     const wordbook = result.wordbook || [];
     console.log(wordbook);
     const existingEntry = wordbook.find(entry => entry.text === text);
@@ -184,18 +187,18 @@ function saveToWordbook(text, context) {
         "added_to_saved_word": "false"
       }); // Add the new entry
     }
-    chrome.storage.local.set({ wordbook: wordbook }, function() {
+    chrome.storage.local.set({ wordbook: wordbook }, function () {
       console.log('added to wordbook: ', wordbook);
     });
   });
 }
 
-function saveToTranslation(dataContainer) {
-//   var dataContainer = {
-//     id: translationId,//11231231231231232
-//     content: translatedSentences //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
-// };
-  chrome.storage.local.get(['translationContainer'], function(result) {
+function saveToTranslation(dataContainer, callback) {
+  //   var dataContainer = {
+  //     id: translationId,//11231231231231232
+  //     content: translatedSentences //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
+  // };
+  chrome.storage.local.get(['translationContainer'], function (result) {
     const translationContainer = result.translationContainer || [];
     console.log(translationContainer);
     const existingEntry = translationContainer.find(entry => entry.id === dataContainer.id);
@@ -209,8 +212,10 @@ function saveToTranslation(dataContainer) {
         "time_updated": new Date().toISOString(),
       }); // Add the new entry
     }
-    chrome.storage.local.set({ translationContainer: translationContainer }, function() {
+    chrome.storage.local.set({ translationContainer: translationContainer }, function () {
       console.log('added to translationContainer: ', translationContainer);
+      if (callback())
+        callback();
     });
   });
 }

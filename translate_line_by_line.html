@@ -91,6 +91,7 @@
     <textarea id="textInput" rows="10" cols="50" placeholder="Enter text here..."></textarea>
     <button id="translateButton" onclick="translateSentences()">Translate</button>
     <button id="createNewTranslationButton" onclick="createNewTranslation()">Create New Translation</button>
+    <button id="toggleAllTranslationsButton" onclick="toggleAllTranslations()">Show All Translations</button>
     <div id="output"></div>
     <div id="translation-data-hidden-output" style="display: none;"></div>
     <input id="translation-data-hidden-input" value="" style="display: none;"></input>
@@ -109,21 +110,23 @@
             translationId = new Date().getTime();
             translatedSentences = [];
             displayAllSentences();
+            location.reload();
         }
 
         async function translateSentences() {
-            const textInput = document.getElementById("textInput").value;
-            if (!textInput.trim()) {
-                alert("Please enter some text to translate.");
-                return;
+            if (!translatedSentences) {
+                const textInput = document.getElementById("textInput").value;
+                if (!textInput.trim()) {
+                    alert("Please enter some text to translate.");
+                    return;
+                }
+
+                const sentences = splitIntoSentences(textInput);
+                const outputDiv = document.getElementById("output");
+                outputDiv.innerHTML = ""; // Clear previous output
+                translationId = new Date().getTime();
+                translatedSentences = sentences.map((sentence, index) => ({ id: `id-${index}`, text: sentence }));
             }
-
-            const sentences = splitIntoSentences(textInput);
-            const outputDiv = document.getElementById("output");
-            outputDiv.innerHTML = ""; // Clear previous output
-
-            translationId = new Date().getTime();
-            translatedSentences = sentences.map((sentence, index) => ({ id: `id-${index}`, text: sentence }));
 
             for (const lang of OUTPUT_LANGS) {
                 console.log(translatedSentences);
@@ -177,7 +180,7 @@
                         <strong>My Translation:</strong>
                         <input type="text" id="my-translation-${sentence.id}" value="${sentence.my_translation ? sentence.my_translation.replace(/"/g, '&quot;') : ''}" oninput="updateMyTranslation('${sentence.id}')">
                     </div>
-                    <button onclick="toggleTranslation('translated-${sentence.id}')">Show Translation</button>
+                    <button onclick="toggleTranslation('${sentence.id}')">Show Translation</button>
                 `;
 
                 outputDiv.appendChild(section);
@@ -194,7 +197,18 @@
             }
         }
 
+        var isShowAllTranslation = false;
+        function toggleAllTranslations() {
+            isShowAllTranslation = !isShowAllTranslation;
+            const translationSections = document.querySelectorAll('.translation-section');
+            translationSections.forEach(section => {
+                section.style.display = isShowAllTranslation ? 'block' : 'none';
+            });
+            document.getElementById('toggleAllTranslationsButton').innerText = isShowAllTranslation ? 'Hide All Translations' : 'Show All Translations';
+        }
+        
         function toggleTranslation(id) {
+            id = 'translated-' + id;
             const translationSection = document.getElementById(id).parentNode;
             translationSection.style.display = translationSection.style.display === 'none' ? 'block' : 'none';
         }
