@@ -69,8 +69,8 @@
             color: #007BFF;
         }
 
-        input[type="text"] {
-            width: calc(100% - 10px);
+        input {
+            width: calc(100% - 15px);
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -92,6 +92,7 @@
     <button id="translateButton" onclick="translateSentences()">Translate</button>
     <button id="createNewTranslationButton" onclick="createNewTranslation()">Create New Translation</button>
     <button id="toggleAllTranslationsButton" onclick="toggleAllTranslations()">Show All Translations</button>
+    <button onclick="copyChatGPTAskForRatingAllPassage()">Ask for rating</button>
     <div id="output"></div>
     <div id="translation-data-hidden-output" style="display: none;"></div>
     <input id="translation-data-hidden-input" value="" style="display: none;"></input>
@@ -170,16 +171,16 @@
                 section.innerHTML = `
                     <div class="original-section">
                         <strong>Original Text:</strong>
-                        <input type="text" lines="2" id="original-${sentence.id}" value="${sentence.text.replace(/"/g, '&quot;')}" readonly>
+                        <input type="text" autocorrect="off" autocomplete="off" lines="2" id="original-${sentence.id}" value="${sentence.text.replace(/"/g, '&quot;')}" readonly>
                     </div>
                     <div class="translation-section" style="display: none;">
                         <strong>Translated Text:</strong>
-                        <input type="text" id="translated-${sentence.id}" value="${sentence.translated ? sentence.translated.replace(/"/g, '&quot;') : ''}">
+                        <input type="text" autocorrect="off" autocomplete="off" id="translated-${sentence.id}" value="${sentence.translated ? sentence.translated.replace(/"/g, '&quot;') : ''}">
                         
                     </div>
                     <div class="my-translation-section">
                         <strong>My Translation:</strong>
-                        <input type="text" id="my-translation-${sentence.id}" value="${sentence.my_translation ? sentence.my_translation.replace(/"/g, '&quot;') : ''}" oninput="updateMyTranslation('${sentence.id}')">
+                        <input type="text" autocorrect="off" autocomplete="off" id="my-translation-${sentence.id}" value="${sentence.my_translation ? sentence.my_translation.replace(/"/g, '&quot;') : ''}" oninput="updateMyTranslation('${sentence.id}')">
                     </div>
                     <button onclick="toggleTranslation('${sentence.id}')">Show Translation</button>
                     <button onclick="copyChatGPTAskForRating('${sentence.id}')">Ask for rating</button>
@@ -189,6 +190,20 @@
             });
         }
 
+        function copyChatGPTAskForRatingAllPassage() {
+            let combinedText = '';
+            let originalText = '';
+            let myTranslationText = '';
+            originalText = translatedSentences.filter(sentence => sentence.text && sentence.text.trim() !== '').map(sentence => sentence.text).join('\n');
+            myTranslationText = translatedSentences.filter(sentence => sentence.my_translation && sentence.my_translation.trim() !== '').map(sentence => sentence.my_translation).join('\n');
+
+            combinedText += `Rate my translation from Vietnamese to English:\n"${originalText}" \nto\n "${myTranslationText}"\n\n`;
+            navigator.clipboard.writeText(combinedText).then(() => {
+                console.log('Text copied to clipboard');
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
         function copyChatGPTAskForRating(id) {
             const originalText = document.getElementById(`original-${id}`).value;
             const myTranslationText = document.getElementById(`my-translation-${id}`).value;
@@ -267,6 +282,22 @@
                 console.error('Error parsing data:', error);
             }
         }
+
+        let isInputBlurred = false;
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Meta' || event.key === 'Control') {
+                isInputBlurred = !isInputBlurred;
+                const myTranslationInputs = document.querySelectorAll('input[id^="translated-"]');
+                myTranslationInputs.forEach(input => {
+                    if (isInputBlurred) {
+                        input.setAttribute('type', 'password');
+                    } else {
+                        input.setAttribute('type', 'text');
+                    }
+                });
+            }
+        });
 
     </script>
 
