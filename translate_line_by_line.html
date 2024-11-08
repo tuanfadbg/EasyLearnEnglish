@@ -175,15 +175,28 @@
                     <div class="translation-section" style="display: none;">
                         <strong>Translated Text:</strong>
                         <input type="text" id="translated-${sentence.id}" value="${sentence.translated ? sentence.translated.replace(/"/g, '&quot;') : ''}">
+                        
                     </div>
                     <div class="my-translation-section">
                         <strong>My Translation:</strong>
                         <input type="text" id="my-translation-${sentence.id}" value="${sentence.my_translation ? sentence.my_translation.replace(/"/g, '&quot;') : ''}" oninput="updateMyTranslation('${sentence.id}')">
                     </div>
                     <button onclick="toggleTranslation('${sentence.id}')">Show Translation</button>
+                    <button onclick="copyChatGPTAskForRating('${sentence.id}')">Ask for rating</button>
                 `;
 
                 outputDiv.appendChild(section);
+            });
+        }
+
+        function copyChatGPTAskForRating(id) {
+            const originalText = document.getElementById(`original-${id}`).value;
+            const myTranslationText = document.getElementById(`my-translation-${id}`).value;
+            const combinedText = `Rate my translation from Vietnamese to English:\n"${originalText}" \nto\n "${myTranslationText}"`;
+            navigator.clipboard.writeText(combinedText).then(() => {
+                console.log('Text copied to clipboard');
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
             });
         }
 
@@ -206,7 +219,7 @@
             });
             document.getElementById('toggleAllTranslationsButton').innerText = isShowAllTranslation ? 'Hide All Translations' : 'Show All Translations';
         }
-        
+
         function toggleTranslation(id) {
             id = 'translated-' + id;
             const translationSection = document.getElementById(id).parentNode;

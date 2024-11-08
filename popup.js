@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
     meaningInput.addEventListener('input', saveTemp);
     noteInput.addEventListener('input', saveTemp);
 
-    saveButton.addEventListener('click', handleSave);
+    saveButton.addEventListener('click', handleSaveOrUpdate);
 
     restoreTempData();
 
@@ -55,30 +55,70 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Save word, meaning, and note
-    function handleSave() {
+    function handleSaveOrUpdate() {
+        const word = wordInputPopup.value.trim();
+        if (word) {
+            checkWordIsExisted(word).then(exists => {
+                if (exists) {
+                    console.log(`Word "${word}" already exists.`);
+                    addNoteForExistedWord();
+                } else {
+                    console.log(`Word "${word}" does not exist.`);
+                    saveNewWord();
+                }
+            });
+        }
+    }
+
+    function addNoteForExistedWord() {
+        const word = wordInputPopup.value.trim();
+        const note = noteInput.value.trim();
+
+        chrome.storage.local.get(['words'], function (result) {
+            const words = result.words || [];
+            // Find the word in the words array and update its note
+            const updatedWord = words.find(w => w.word === word);
+            if (updatedWord) {
+                updatedWord.note = updatedWord.note ? updatedWord.note + '\n' + note : note;
+                chrome.storage.local.set({ words: words }, function () {
+                    displayUpdatedWord(updatedWord);
+                    clearInputs();
+                    clearTemp();
+                    console.log('Note saved:', updatedWord);
+                });
+            }
+        });
+
+    }
+
+    function saveNewWord() {
         const timestamp = new Date().toLocaleString();
         const word = wordInputPopup.value.trim();
         const meaning = meaningInput.value.trim();
         const note = noteInput.value.trim();
 
-        if (word) {
-            chrome.storage.local.get({ words: [] }, function (result) {
-                const words = result.words;
-                words.push({ timestamp, word, meaning, note });
-                chrome.storage.local.set({ words: words }, function () {
-                    addListItem(word, meaning, note);
-                    clearInputs();
-                    clearTemp();
-                    console.log('Word saved: ' + words);
-                });
+        chrome.storage.local.get({ words: [] }, function (result) {
+            const words = result.words;
+            words.push({ timestamp, word, meaning, note });
+            chrome.storage.local.set({ words: words }, function () {
+                displayRecentSavedWord(word, meaning, note);
+                clearInputs();
+                clearTemp();
+                console.log('Word saved: ' + words);
             });
-        }
+        });
     }
 
     // Function to add a list item
-    function addListItem(word, meaning, note) {
-        const li = document.createElement('li');
-        li.textContent = `Word: ${word}, Meaning: ${meaning}, Note: ${note}`;
+    function displayRecentSavedWord(word, meaning, note) {
+        const li = document.createElement('p');
+        li.innerHTML = `Word: ${word}, Meaning: ${meaning}, Note: ${note.replace(/\n/g, '<br>')}`;
+        savedWordsList.appendChild(li);
+    }
+
+    function displayUpdatedWord(updatedWord) {
+        const li = document.createElement('p');
+        li.innerHTML = `Word: ${updatedWord.word} add note: ${updatedWord.note.replace(/\n/g, '<br>')}`;
         savedWordsList.appendChild(li);
     }
 
