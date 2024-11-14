@@ -197,7 +197,11 @@
             originalText = translatedSentences.filter(sentence => sentence.text && sentence.text.trim() !== '').map(sentence => sentence.text).join('\n');
             myTranslationText = translatedSentences.filter(sentence => sentence.my_translation && sentence.my_translation.trim() !== '').map(sentence => sentence.my_translation).join('\n');
 
-            combinedText += `Rate my translation from Vietnamese to English:\n"${originalText}" \nto\n "${myTranslationText}"\n\n`;
+            
+            combinedText += `You are my English teacher who is rating my entire translation and each corresponding sentence from Vietnamese to English according to the IELTS band score of 10.
+The feedback structure is as follows:
+<overall score>: <your assessment of my translation>
+<My sentence in English> -> <the correct sentence you translated, bold wrong mistakes> - <score/10>\n"${originalText}" \nto\n "${myTranslationText}"\n\n`;
             navigator.clipboard.writeText(combinedText).then(() => {
                 console.log('Text copied to clipboard');
             }).catch(err => {
@@ -286,7 +290,7 @@
         let isInputBlurred = false;
 
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Meta' || event.key === 'Control') {
+            if (event.key === 'Alt') {
                 isInputBlurred = !isInputBlurred;
                 const myTranslationInputs = document.querySelectorAll('input[id^="translated-"]');
                 myTranslationInputs.forEach(input => {

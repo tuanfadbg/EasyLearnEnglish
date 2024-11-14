@@ -440,14 +440,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const noteInput = document.getElementById('noteInput');
         const newNote = noteInput.value;
         currentWord.note = newNote;
-        updateWord(currentWord);
-
-        // Show success message
-        const saveNoteMessage = document.getElementById('saveNoteMessage');
-        saveNoteMessage.style.display = 'block'; // Show the message
-        setTimeout(() => {
-            saveNoteMessage.style.display = 'none'; // Hide after 3 seconds
-        }, 3000);
+        const updatedWord = {
+            word: currentWord.word,
+            meaning: currentWord.meaning,
+            note: noteInput.value
+        };
+        updateWord(currentWord, updatedWord, () => {
+            // Show success message
+            const saveNoteMessage = document.getElementById('saveNoteMessage');
+            saveNoteMessage.style.display = 'block'; // Show the message
+            setTimeout(() => {
+                saveNoteMessage.style.display = 'none'; // Hide after 3 seconds
+            }, 3000);
+        });
     });
 
     // Add click event for the Edit button

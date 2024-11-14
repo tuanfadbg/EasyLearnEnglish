@@ -1,0 +1,335 @@
+# tactiq.io free youtube transcript
+# Adam Grant: What frogs in hot water can teach us about thinking again | TED
+# https://www.youtube.com/watch/CIlgTBmiov0
+
+00:00:00.000 Transcriber: 
+00:00:13.097 You might have heard that if you dropa frog in a pot of boiling water,
+00:00:16.530 it will jump out right away,
+00:00:18.330 but if you put it in lukewarm water,and then slowly heat it up,
+00:00:22.097 the frog won't survive.
+00:00:24.297 The frog's big problem is that it lacksthe ability to rethink the situation.
+00:00:28.363 It doesn’t realize that the warm bathis becoming a death trap --
+00:00:31.497 until it’s too late.
+00:00:33.430 Humans might be smarter than frogs,
+00:00:35.297 but our world is fullof slow-boiling pots.
+00:00:38.497 Think about how slow people wereto react to warnings about a pandemic,
+00:00:42.563 climate change or a democracy in peril.
+00:00:45.663 We fail to recognize the danger
+00:00:47.563 because we're reluctantto rethink the situation.
+00:00:50.930 We struggle with rethinkingin all kinds of situations.
+00:00:54.430 We expect our squeaky brakesto keep working,
+00:00:56.563 until they finally fail on the freeway.
+00:00:58.963 We believe the stock marketwill keep going up,
+00:01:01.263 even after we hearabout a real-estate bubble.
+00:01:03.863 And we keep watching "Game of Thrones"even after the show jumps the shark.
+00:01:08.997 Rethinking isn't a hurdlein every part of our lives.
+00:01:11.963 We're happy to refresh our wardrobesand renovate our kitchens.
+00:01:15.497 But when it comes to our goals,identities and habits,
+00:01:18.297 we tend to stick to our guns.
+00:01:20.197 And in a rapidly changing world,that's a huge problem.
+00:01:23.930 I'm an organizational psychologist.
+00:01:25.930 It's my job to rethinkhow we work, lead and live.
+00:01:29.730 But that hasn't stopped mefrom getting stuck in slow-boiling pots,
+00:01:33.163 so I started studying why.
+00:01:35.197 I learned that intelligencedoesn't help us escape;
+00:01:37.963 sometimes, it traps us longer.
+00:01:40.297 Being good at thinkingcan make you worse at rethinking.
+00:01:43.797 There's evidence that the smarter you are,
+00:01:45.897 the more likely you are to fall victimto the "I'm not biased" bias.
+00:01:50.230 You can always find reasons
+00:01:51.597 to convince yourselfyou're on the right path,
+00:01:53.963 which is exactly what my friends and Idid on a trip to Panama.
+00:01:57.930 I worked my way through college,
+00:01:59.497 and by my junior year,I'd finally saved enough money to travel.
+00:02:03.197 It was my first timeleaving North America.
+00:02:05.363 I was excited for my first timeclimbing a mountain,
+00:02:08.263 actually an active volcano,literally a slow-boiling pot.
+00:02:12.630 I set a goal to reach the summitand look into the crater.
+00:02:16.797 So, we're in Panama,
+00:02:18.230 we get off to a late start,
+00:02:19.963 but it's only supposed to takeabout two hours to get to the top.
+00:02:23.063 After four hours,we still haven't reached the top.
+00:02:26.330 It's a little strangethat it's taking so long,
+00:02:28.563 but we don't stop to rethinkwhether we should turn around.
+00:02:31.763 We've already come so far.
+00:02:33.263 We have to make it to the top.
+00:02:35.063 Do not stand between me and my goal.
+00:02:37.997 We don't realize we've read the wrong map.
+00:02:40.663 We're on Panama's highest mountain,
+00:02:42.530 it actually takes six to eight hoursto hike to the top.
+00:02:46.363 By the time we finally reach the summit,
+00:02:48.397 the sun is setting.
+00:02:49.897 We're stranded, with no food,no water, no cell phones,
+00:02:53.697 and no energy for the hike down.
+00:02:56.530 There's a name for this kind of mistake,
+00:02:58.530 it's called "escalation of commitmentto a losing course of action."
+00:03:02.630 It happens when you makean initial investment of time or money,
+00:03:06.130 and then you find outit might have been a bad choice,
+00:03:08.730 but instead of rethinking it,you double down and invest more.
+00:03:12.763 You want to prove to yourselfand everyone else
+00:03:15.063 that you made a good decision.
+00:03:17.463 Escalation of commitment
+00:03:18.663 explains so many familiar examplesof businesses plummeting.
+00:03:22.197 Blockbuster, BlackBerry, Kodak.
+00:03:25.097 Leaders just kept simmeringin their slow-boiling pots,
+00:03:27.997 failing to rethink their strategies.
+00:03:30.563 Escalation of commitment
+00:03:31.763 explains why you might have stuck aroundtoo long in a miserable job,
+00:03:35.530 why you've probably waited for a tableway too long at a restaurant
+00:03:39.597 and why you might have hung onto a bad relationship
+00:03:42.363 long after your friendsencouraged you to leave.
+00:03:45.230 It's hard to admit that we were wrong
+00:03:47.597 and that we might have evenwasted years of our lives.
+00:03:50.930 So we tell ourselves,
+00:03:52.330 "If I just try harder,I can turn this around."
+00:03:56.297 We live in a culture that worshipsat the altar of hustle
+00:03:59.263 and prays to the high priest of grit.
+00:04:02.030 But sometimes, that leads us to keep going
+00:04:04.630 when we should stop to think again.
+00:04:07.363 Experiments show that gritty people
+00:04:09.197 are more likely to overplaytheir hands in casino games
+00:04:12.563 and more likely to keep tryingto solve impossible puzzles.
+00:04:16.197 My colleagues and I have found
+00:04:17.697 that NBA basketball coaches
+00:04:19.029 who are determined to developthe potential in rookies
+00:04:21.797 keep them around much longerthan their performance justifies.
+00:04:25.363 And researchers have even suggested
+00:04:27.097 that the most tenacious mountaineersare more likely to die on expeditions,
+00:04:31.663 because they're determined to dowhatever it takes to reach the summit.
+00:04:36.963 In Panama, my friends and I got lucky.
+00:04:39.630 About an hour into our descent,
+00:04:41.263 a lone pickup truck came down the volcano
+00:04:44.030 and rescued us from our slow-boiling pot.
+00:04:47.430 There's a fine line between heroicpersistence and stubborn stupidity.
+00:04:51.897 Sometimes the best kind of grit
+00:04:53.730 is gritting your teethand packing your bags.
+00:04:57.097 "Never give up" doesn't mean "keep doingthe thing that's failing."
+00:05:01.197 It means "don't get lockedinto one narrow path,
+00:05:04.330 and stay open to broadening your goals.
+00:05:07.263 The ultimate goalis to make it down the mountain,
+00:05:09.763 not just to reach the top.
+00:05:12.363 Your goals can give you tunnel vision,blinding you to rethinking the situation.
+00:05:16.930 And it's not just goals that can causethis kind of shortsightedness,
+00:05:20.297 it's your identity too.
+00:05:22.163 As a kid, my identitywas wrapped up in sports.
+00:05:25.097 I spent countless hoursshooting hoops on my driveway,
+00:05:28.397 and then I got cut from the middle schoolbasketball team, all three years.
+00:05:32.630 I spent a decade playing soccer,but I didn't make the high school team.
+00:05:36.997 At that point, I shifted my focusto a new sport, diving.
+00:05:41.097 I was bad,
+00:05:42.397 I walked like Frankenstein,I couldn't jump,
+00:05:44.963 I could hardly touch my toeswithout bending my knees,
+00:05:47.530 and I was afraid of heights.
+00:05:49.663 But I was determined.
+00:05:51.863 I stayed at the pool until it was dark,
+00:05:53.830 and my coach kicked meout of practice. (Laughs)
+00:05:56.263 I knew that the seeds of greatnessare planted in the daily grind,
+00:06:00.530 and eventually, my hard work paid off.
+00:06:03.330 By my senior year,I made the All-American list,
+00:06:05.997 and I qualifiedfor the Junior Olympic Nationals.
+00:06:09.230 I was obsessed with diving.
+00:06:11.030 It was more than something I did,it became who I was.
+00:06:14.963 I had a diving sticker on my car,
+00:06:17.163 and my email addresswas “diverag at aol.com.”
+00:06:21.897 Diving gave me a way to fit inand to stand out.
+00:06:24.897 I had a team where I belongedand a rare skill to share.
+00:06:28.597 I had people rooting for meand control over my own progress.
+00:06:32.930 But when I got to college,
+00:06:34.330 the sport that I lovedbecame something I started to dread.
+00:06:37.930 At that level,
+00:06:39.097 I could not beat more talented diversby outworking them.
+00:06:42.397 I was supposed to be doing higher dives,
+00:06:44.430 but I was still afraid of heights,
+00:06:46.563 and 6am practice was brutal.
+00:06:49.563 My mind was awake,but my muscles were still asleep.
+00:06:52.997 I did back smacks and belly flops
+00:06:55.863 and my slow-boiling pot this timewas a freezing pool.
+00:07:00.530 There was one question, though,that stopped me from rethinking.
+00:07:04.930 "If I'm not a diver, who am I?"
+00:07:08.263 In psychology, there's a termfor this kind of failure to rethink --
+00:07:12.130 it's called "identity foreclosure."
+00:07:14.930 It's when you settle prematurelyon a sense of who you are
+00:07:18.330 and close your mind to alternative selves.
+00:07:21.897 You've probably experiencedidentity foreclosure.
+00:07:24.597 Maybe you were too attached
+00:07:25.997 to an early ideaof what school you'd go to,
+00:07:28.497 what kind of person you'd marry,
+00:07:30.197 or what career you'd choose.
+00:07:32.430 Foreclosing on one identityis like following a GPS
+00:07:35.697 that gives you the right directionsto the wrong destination.
+00:07:39.997 After my freshman year of college,I rethought my identity.
+00:07:44.097 I realized that diving was a passion,
+00:07:46.097 not a purpose.
+00:07:47.930 My values were to grow and excel,
+00:07:50.163 and to contribute to helpingmy teammates grow and excel.
+00:07:53.497 Grow, excel, contribute.
+00:07:56.030 I didn't have to be a diverto grow, excel and contribute.
+00:07:59.763 Research suggests that insteadof foreclosing on one identity,
+00:08:03.097 we're better off trying on a rangeof possible selves.
+00:08:06.597 Retiring from diving
+00:08:07.897 freed me up to spend the summerdoing psychology research
+00:08:10.730 and working as a diving coach.
+00:08:12.863 It also gave me time to concentrateon my dorkiest hobby,
+00:08:16.630 performing as a magician.
+00:08:18.497 I'm still working on my sleight of hand.
+00:08:28.263 Opening my mind to new identitiesopened new doors.
+00:08:31.663 Research showed me that I enjoyedcreating knowledge,
+00:08:34.429 not just consuming it.
+00:08:36.330 Coaching and performing
+00:08:37.797 helped me see myself as a teacherand an entertainer.
+00:08:41.330 If that hadn't happened,
+00:08:42.597 I might not have becomea psychologist and a professor,
+00:08:45.397 and I probably wouldn't begiving this TED talk.
+00:08:47.897 See, I'm an introvert,
+00:08:49.230 and when I first started teaching,I was afraid of public speaking.
+00:08:53.230 I had a mentor, Jane Dutton,
+00:08:54.730 who gave me some invaluable advice.
+00:08:57.030 She said, "You have to unleashyour inner magician."
+00:09:00.797 So I turned my class into a live show.
+00:09:03.363 Before the first day, I memorizedmy students' names and backgrounds,
+00:09:07.697 and then, I mastered my routine.
+00:09:10.563 Those habits served me well.
+00:09:12.263 I started to relax moreand I started to get good ratings.
+00:09:15.830 But just like with goals and identities,
+00:09:18.030 the routines that help us today
+00:09:19.730 can become the rutswe get trapped in tomorrow.
+00:09:23.463 One day, I taught a classon the importance of rethinking,
+00:09:26.463 and afterward, a student came up and said,
+00:09:28.697 "You know, you're not followingyour own principles."
+00:09:32.163 They say feedback is a gift,
+00:09:33.797 but right then, I wondered,"How do I return this?"
+00:09:37.363 (Takes a breath)
+00:09:38.930 I was teaching the same material,the same way, year after year.
+00:09:42.463 I didn't want to give upon a performance that was working.
+00:09:45.263 I had my act down.
+00:09:47.330 Even good habits can standin the way of rethinking.
+00:09:50.563 There's a name for that too.
+00:09:52.363 It's called "cognitive entrenchment,"
+00:09:54.530 where you get stuck in the wayyou've always done things.
+00:09:57.730 Just thinking about rethinkingmade me defensive.
+00:10:01.030 And then, I wentthrough the stages of grief.
+00:10:04.097 I happened to be doing some researchon emotion regulation at the time,
+00:10:07.530 and it came in handy.
+00:10:08.763 Although you don't always get to choosethe emotions you feel,
+00:10:11.730 you do get to pickwhich ones you internalize
+00:10:13.863 and which ones you express.
+00:10:16.097 I started to see emotionsas works in progress,
+00:10:18.730 kind of like art.
+00:10:20.263 If you were a painter,
+00:10:21.563 you probably wouldn't frameyour first sketch.
+00:10:24.063 Your initial feelingsare just a rough draft.
+00:10:27.030 As you gain perspective,you can rethink and revise what you feel.
+00:10:32.330 So that's what I did.
+00:10:33.763 Instead of defensiveness,I tried curiosity.
+00:10:36.863 I wondered, "What would happenif I became the student?"
+00:10:40.397 I threw out my plan for one day of class,
+00:10:42.597 and I invited the studentsto design their own session.
+00:10:46.163 The first year, they wrote lettersto their freshman selves,
+00:10:49.163 about what they wishthey’d rethought or known sooner.
+00:10:53.263 The next year, they gave passion talks.
+00:10:55.897 They each had one minute to share
+00:10:57.563 something they lovedor cared about deeply.
+00:11:00.330 And now, all my studentsgive passion talks
+00:11:02.863 to introduce themselves to the class.
+00:11:05.897 I believe that good teachersintroduce new thoughts
+00:11:08.330 but great teachers introducenew ways of thinking.
+00:11:11.397 But it wasn't until I ceded controlthat I truly understood
+00:11:14.663 how much my students hadto teach one another,
+00:11:17.097 and me.
+00:11:18.597 Ever since then,
+00:11:19.763 I put an annual reminder in my calendarto rethink what and how I teach.
+00:11:25.197 It's a checkup.
+00:11:26.830 Just when you go to the doctorfor an annual checkup
+00:11:29.297 when nothing seems to be wrong,
+00:11:30.997 you can do the same thingin the important parts of your life.
+00:11:34.063 A career checkup to considerhow your goals are shifting.
+00:11:37.497 A relationship checkupto re-examine your habits.
+00:11:40.697 An identity checkup to considerhow your values are evolving.
+00:11:45.497 Rethinking does nothave to change your mind --
+00:11:47.963 it just means taking time to reflect
+00:11:49.730 and staying open to reconsidering.
+00:11:52.830 A hallmark of wisdom
+00:11:54.230 is knowing when to grit and when to quit,
+00:11:57.230 when to throw in the towelon an old identity
+00:11:59.430 and dive into a new one,
+00:12:01.630 when to walk away from some old habitsand start scaling a new mountain.
+00:12:06.463 Your past can weigh you down,
+00:12:08.330 and rethinking can liberate you.
+00:12:11.063 Rethinking is not just a skillto master personally,
+00:12:13.863 it's a value we needto embrace culturally.
+00:12:16.930 We live in a world that mistakesconfidence for competence,
+00:12:20.630 that pressures us to favorthe comfort of conviction
+00:12:23.097 over the discomfort of doubt,
+00:12:24.997 that accuses people who changetheir minds of flip-flopping,
+00:12:28.097 when in fact, they might be learning.
+00:12:30.997 So let's talk about how to makerethinking the norm.
+00:12:34.163 We need to invite it and to model it.
+00:12:36.897 A few years ago,
+00:12:38.130 some of our students at Whartonchallenged the faculty to do that.
+00:12:41.263 They asked us to record
+00:12:42.797 our own versionof Jimmy Kimmel's Mean Tweets.
+00:12:45.997 We took the worst feedbackwe'd ever received
+00:12:48.230 on student course evaluations,
+00:12:50.130 and we read it out loud.
+00:12:52.197 Angela Duckworth: “It was easily one of the worst three classes I’ve ever taken...
+00:12:56.197 one of which the professorwas let go after the semester.”
+00:13:00.863 Mohamed El-Erian: “The number of stories you tell
+00:13:03.230 give ‘Aesop’s Fables’ a run for its money.
+00:13:05.763 Less can be more.”
+00:13:07.763 Ouch.
+00:13:09.330 Adam Grant: “You’re so nervous
+00:13:10.763 you’re causing usto physically shake in our seats.”
+00:13:13.530 (Laughs)
+00:13:14.697 Mae McDonnell: “So great to finally havea professor from Australia.
+00:13:18.530 You started strong but then got softer.
+00:13:21.530 You need tenure, so toughen upwith these brats.”
+00:13:26.530 I'm from Alabama.
+00:13:29.097 Michael Sinkinson: “Prof Sinkinson actsall down with pop culture
+00:13:32.230 but secretly thinks Ariana Grandeis a font in Microsoft Word.”
+00:13:36.430 (Laughs)
+00:13:38.363 AG: After I show these clips in class,
+00:13:40.230 students give more thoughtful feedback.
+00:13:42.430 They rethink what's relevant.
+00:13:44.197 They also become more comfortabletelling me what to think,
+00:13:47.430 because I'm not just claimingI'm receptive to criticism.
+00:13:50.597 I'm demonstrating that I can take it.
+00:13:53.663 We need that kind of openness in schools,
+00:13:56.197 in families, in businesses,in governments, in nonprofits.
+00:14:01.497 A couple of years ago, I was workingon a project for the Gates Foundation,
+00:14:05.063 and I suggested that leaders could recordtheir own version of Mean Tweets.
+00:14:08.663 Melinda Gates volunteered to go first,
+00:14:11.330 and one of the pointsof feedback that she read
+00:14:13.597 said "Melinda is like Mary effing Poppins.
+00:14:17.363 Practically perfect in every way."
+00:14:20.430 And then, she startedlisting her imperfections.
+00:14:24.630 People at the Gates Foundationwho saw that video
+00:14:27.497 ended up becoming more willing
+00:14:29.463 to recognize and overcometheir own limitations.
+00:14:32.497 They were also more likely to speak upabout problems and solutions.
+00:14:36.730 What Melinda was modelingwas confident humility.
+00:14:40.197 Confident humility is beingsecure enough in your strengths
+00:14:43.230 to acknowledge your weaknesses.
+00:14:45.097 Believing that the best wayto prove yourself is to improve yourself,
+00:14:49.263 knowing that weak leaderssilence their critics
+00:14:51.630 and make themselves weaker,
+00:14:53.297 while strong leaders engage their criticsand make themselves stronger.
+00:14:58.097 Confident humility gives youthe courage to say "I don't know,"
+00:15:01.563 instead of pretendingto have all the answers.
+00:15:04.263 To say "I was wrong,"instead of insisting you were right.
+00:15:08.863 It encourages you to listen to ideas
+00:15:10.930 that make you think hard,
+00:15:12.263 not just the ones that make you feel good,
+00:15:14.397 and to surround yourself with peoplewho challenge your thought process,
+00:15:17.863 not just the ones who agreewith your conclusions.
+00:15:21.030 And sometimes, it even leads youto challenge your own conclusions,
+00:15:25.597 like with the story about the frogthat can't survive the slow-boiling pot.
+00:15:30.797 I found out recently that's a myth.
+00:15:33.963 If you heat up the water,
+00:15:35.397 the frog will jump outas soon as it gets uncomfortably warm.
+00:15:39.030 Of course it jumps out, it's not an idiot.
+00:15:42.830 The problem is not the frog, it's us.
+00:15:45.830 Once we accept the story as true,we don't bother to think again.
+00:15:50.697 What if we were more like the frog,
+00:15:52.897 ready to jump outif the water gets too warm?
+00:15:55.930 We need to be quick to rethink.
+00:15:58.297 Thank you.

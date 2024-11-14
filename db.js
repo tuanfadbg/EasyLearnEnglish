@@ -134,13 +134,14 @@ function deleteWordBook(word, callback) {
 }
 
 function updateWord(currentWord, updatedWord, callback) {
+    console.log(`Updating word: ${currentWord.word}, to: ${updatedWord.word}, meaning: ${updatedWord.meaning}, note: ${updatedWord.note}`);
     chrome.storage.local.get({ words: [] }, function (result) {
         result.words.forEach(word => {
             if (word.word == currentWord.word) {
-                console.log(word);
                 word.word = updatedWord.word
                 word.meaning = updatedWord.meaning;
                 word.note = updatedWord.note;
+                console.log(word);
             }
         });
         updateWordInStorage(result.words, callback);

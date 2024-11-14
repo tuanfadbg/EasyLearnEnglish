@@ -151,9 +151,17 @@ function getEjoySelectedContext() {
     console.log(`All text from div: ${texts}`);
     return texts;
   } else {
-    console.log("Div not found.");
-    alert("Div not found.");
-    return '';
+    // If div is not found, find the text "danger"
+    const dangerDiv = document.querySelector('.word_content .word_word');
+    if (dangerDiv) {
+      const dangerText = dangerDiv.textContent;
+      console.log(`Found danger text: ${dangerText}`);
+      return dangerText;
+    } else {
+      console.log("Div not found and danger text not found.");
+      alert("Div not found and danger text not found.");
+      return '';
+    }
   }
 }
 
