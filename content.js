@@ -212,6 +212,7 @@ function saveToTranslation(dataContainer, callback) {
     const existingEntry = translationContainer.find(entry => entry.id === dataContainer.id);
     if (existingEntry) {
       existingEntry.content = dataContainer.content;
+      existingEntry.chatgpt = dataContainer.chatgpt;
       existingEntry.time_updated = new Date().toISOString();
     } else {
       translationContainer.push({

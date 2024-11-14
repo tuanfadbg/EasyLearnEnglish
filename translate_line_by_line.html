@@ -88,11 +88,16 @@
 
 <body>
     <h1>Translate Sentences</h1>
-    <textarea id="textInput" rows="10" cols="50" placeholder="Enter text here..."></textarea>
+    <div style="display: flex; justify-content: space-between;">
+        <textarea id="textInput" rows="10" cols="50" placeholder="Enter text here..."></textarea>
+        <textarea id="translatedInput" rows="10" cols="50" placeholder="Translated text..."></textarea>
+        <textarea id="chatgptTranslated" rows="10" cols="50" placeholder="ChatGPT Translated text..."></textarea>
+    </div>
     <button id="translateButton" onclick="translateSentences()">Translate</button>
     <button id="createNewTranslationButton" onclick="createNewTranslation()">Create New Translation</button>
     <button id="toggleAllTranslationsButton" onclick="toggleAllTranslations()">Show All Translations</button>
     <button onclick="copyChatGPTAskForRatingAllPassage()">Ask for rating</button>
+    <div id="chatgpt-rating"></div>
     <div id="output"></div>
     <div id="translation-data-hidden-output" style="display: none;"></div>
     <input id="translation-data-hidden-input" value="" style="display: none;"></input>
@@ -104,12 +109,13 @@
         // const OUTPUT_LANGS = ["en", "af", "sq", "ar", "hy", "az", "be", "bg", "zh-CN", "zh-TW", "hr", "cs", "da", "nl", "fi", "fr", "de", "el", "iw", "hi", "hu", "it", "ja", "kn", "ko", "lv", "lt", "mk", "ms", "ml", "mn", "ne", "no", "pl", "pt", "pa", "ro", "ru", "sk", "sl", "es", "sw", "sv", "ta", "te", "th", "tr", "uk", "ur", "vi", "zu"];
         const OUTPUT_LANGS = ["en"];
         var translationId; //11231231231231232
-        var translatedSentences; //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
-
+        var translatedSentences; //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck", chatgpt: "chatgpt's translation"}]
+        var chatGPTResult;
 
         function createNewTranslation() {
             translationId = new Date().getTime();
             translatedSentences = [];
+            chatGPTResult = {};
             displayAllSentences();
             location.reload();
         }
@@ -176,7 +182,10 @@
                     <div class="translation-section" style="display: none;">
                         <strong>Translated Text:</strong>
                         <input type="text" autocorrect="off" autocomplete="off" id="translated-${sentence.id}" value="${sentence.translated ? sentence.translated.replace(/"/g, '&quot;') : ''}">
-                        
+
+                        <strong style="margin-top: 15px;">ChatGPT Text (<span id="chatgpt-score-${sentence.id}"></span>):</strong>
+                        <input type="text" autocorrect="off" autocomplete="off" id="chatgpt-${sentence.id}" value="">
+                        <p id="feedback-${sentence.id}"></p>
                     </div>
                     <div class="my-translation-section">
                         <strong>My Translation:</strong>
@@ -190,6 +199,44 @@
             });
         }
 
+        // chatGPTResult
+        // {
+        //     overall_score: <overall_score>,
+        //     feedback: <your assessment of my translation>,
+        //     detail: {
+        //             [
+        //                 score: <score>,
+        //                 my_sentence: <My sentence 1 in English>,
+        //                 translated_sentence:  <the correct sentence 1 you translated, bold wrong mistakes>,
+        //                 feedback: your feedback  
+        //             ],.. sentence 2, sentence 3
+        //         }
+        // }
+
+        const chatgptTranslated = document.getElementById('chatgptTranslated');
+        chatgptTranslated.addEventListener('input', function () {
+            chatGPTResult = JSON.parse(this.value);
+            setDataFromChatGPTJsonToLayout();
+        });
+
+        function setDataFromChatGPTJsonToLayout() {
+            document.getElementById(`chatgpt-rating`).innerHTML = `<h2>Score: ${chatGPTResult.overall_score}</h2> <br/> ${chatGPTResult.feedback}`;
+            
+
+            console.log(chatGPTResult);
+            chatGPTResult.detail.forEach((item, index) => {
+                console.log(index);
+                console.log(item);
+                const translatedInput = document.getElementById(`chatgpt-id-${index}`);
+                const score = document.getElementById(`chatgpt-score-id-${index}`);
+                const feedback = document.getElementById(`feedback-id-${index}`);
+                translatedInput.value = item.translated_sentence;
+                score.innerHTML = item.score;
+                feedback.innerHTML = item.feedback;
+                setOutputData();
+            });
+        }
+
         function copyChatGPTAskForRatingAllPassage() {
             let combinedText = '';
             let originalText = '';
@@ -197,11 +244,22 @@
             originalText = translatedSentences.filter(sentence => sentence.text && sentence.text.trim() !== '').map(sentence => sentence.text).join('\n');
             myTranslationText = translatedSentences.filter(sentence => sentence.my_translation && sentence.my_translation.trim() !== '').map(sentence => sentence.my_translation).join('\n');
 
-            
+
             combinedText += `You are my English teacher who is rating my entire translation and each corresponding sentence from Vietnamese to English according to the IELTS band score of 10.
-The feedback structure is as follows:
-<overall score>: <your assessment of my translation>
-<My sentence in English> -> <the correct sentence you translated, bold wrong mistakes> - <score/10>\n"${originalText}" \nto\n "${myTranslationText}"\n\n`;
+
+the result format:
+{
+overall_score: <overall_score>,
+feedback: <your assessment of my translation>,
+detail: {
+        [
+            score: <score>,
+            my_sentence: <My sentence 1 in English>,
+            translated_sentence:  <the correct sentence 1 you translated, bold wrong mistakes>,
+            feedback: your feedback  
+        ],.. sentence 2, sentence 3
+    }
+}\n\n"${originalText}" \nto\n "${myTranslationText}"\n\n`;
             navigator.clipboard.writeText(combinedText).then(() => {
                 console.log('Text copied to clipboard');
             }).catch(err => {
@@ -252,12 +310,24 @@ The feedback structure is as follows:
         }
 
         function setOutputData() {
+            // const chatgptTranslated = document.getElementById('chatgptTranslated');
+            // const chatGPTResult = JSON.parse(chatgptTranslated.value);
+
             var dataContainer = {
                 id: translationId,//11231231231231232
-                content: translatedSentences //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
+                content: translatedSentences, //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
+                chatgpt: chatGPTResult
             };
             console.log(JSON.stringify(dataContainer));
             document.getElementById('translation-data-hidden-output').innerHTML = JSON.stringify(dataContainer);
+            var combinedTranslatedText = translatedSentences
+                .filter(sentence => sentence.my_translation !== undefined)
+                .map(sentence =>
+                    sentence.my_translation.endsWith('.') ? sentence.my_translation : sentence.my_translation + '.'
+                ).join('\n');
+            // console.log(translatedSentences);
+            console.log("translatedInput: " + combinedTranslatedText);
+            document.getElementById('translatedInput').value = combinedTranslatedText;
         }
 
         // Splits input text into individual sentences.
@@ -278,10 +348,13 @@ The feedback structure is as follows:
                 const dataContainer = JSON.parse(data);
                 translationId = dataContainer.id;
                 translatedSentences = dataContainer.content;
+                chatGPTResult = dataContainer.chatgpt;
+                document.getElementById('chatgptTranslated').value = JSON.stringify(chatGPTResult);
                 console.log(dataContainer);
                 // Assuming parsedData is an array of sentences
                 displayAllSentences();
                 setOutputData();
+                setDataFromChatGPTJsonToLayout();
             } catch (error) {
                 console.error('Error parsing data:', error);
             }
@@ -289,7 +362,7 @@ The feedback structure is as follows:
 
         let isInputBlurred = false;
 
-        document.addEventListener('keydown', function(event) {
+        document.addEventListener('keydown', function (event) {
             if (event.key === 'Alt') {
                 isInputBlurred = !isInputBlurred;
                 const myTranslationInputs = document.querySelectorAll('input[id^="translated-"]');
