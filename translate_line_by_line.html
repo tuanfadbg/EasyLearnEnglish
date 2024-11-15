@@ -89,9 +89,9 @@
 <body>
     <h1>Translate Sentences</h1>
     <div style="display: flex; justify-content: space-between;">
-        <textarea id="textInput" rows="10" cols="50" placeholder="Enter text here..."></textarea>
-        <textarea id="translatedInput" rows="10" cols="50" placeholder="Translated text..."></textarea>
-        <textarea id="chatgptTranslated" rows="10" cols="50" placeholder="ChatGPT Translated text..."></textarea>
+        <textarea id="textInput" rows="30" cols="50" placeholder="Enter text here..."></textarea>
+        <textarea id="translatedInput" rows="30" cols="50" placeholder="Translated text..."></textarea>
+        <textarea id="chatgptTranslated" rows="30" cols="50" placeholder="ChatGPT Translated text..."></textarea>
     </div>
     <button id="translateButton" onclick="translateSentences()">Translate</button>
     <button id="createNewTranslationButton" onclick="createNewTranslation()">Create New Translation</button>
@@ -185,11 +185,13 @@
 
                         <strong style="margin-top: 15px;">ChatGPT Text (<span id="chatgpt-score-${sentence.id}"></span>):</strong>
                         <input type="text" autocorrect="off" autocomplete="off" id="chatgpt-${sentence.id}" value="">
-                        <p id="feedback-${sentence.id}"></p>
                     </div>
                     <div class="my-translation-section">
                         <strong>My Translation:</strong>
-                        <input type="text" autocorrect="off" autocomplete="off" id="my-translation-${sentence.id}" value="${sentence.my_translation ? sentence.my_translation.replace(/"/g, '&quot;') : ''}" oninput="updateMyTranslation('${sentence.id}')">
+                        <input type="text" autocomplete="off" id="my-translation-${sentence.id}" value="${sentence.my_translation ? sentence.my_translation.replace(/"/g, '&quot;') : ''}" oninput="updateMyTranslation('${sentence.id}')">
+                    </div>
+                    <div class="translation-section" style="display: none;">
+                        <p id="feedback-${sentence.id}"></p>
                     </div>
                     <button onclick="toggleTranslation('${sentence.id}')">Show Translation</button>
                     <button onclick="copyChatGPTAskForRating('${sentence.id}')">Ask for rating</button>
@@ -219,6 +221,8 @@
             setDataFromChatGPTJsonToLayout();
         });
 
+        
+
         function setDataFromChatGPTJsonToLayout() {
             document.getElementById(`chatgpt-rating`).innerHTML = `<h2>Score: ${chatGPTResult.overall_score}</h2> <br/> ${chatGPTResult.feedback}`;
             
@@ -247,7 +251,7 @@
 
             combinedText += `You are my English teacher who is rating my entire translation and each corresponding sentence from Vietnamese to English according to the IELTS band score of 10.
 
-the result format:
+the result format as json:
 {
 overall_score: <overall_score>,
 feedback: <your assessment of my translation>,
@@ -298,9 +302,10 @@ detail: {
         }
 
         function toggleTranslation(id) {
-            id = 'translated-' + id;
-            const translationSection = document.getElementById(id).parentNode;
+            const translationSection = document.getElementById('translated-' + id).parentNode;
+            const feedBackSection = document.getElementById('feedback-' + id).parentNode;
             translationSection.style.display = translationSection.style.display === 'none' ? 'block' : 'none';
+            feedBackSection.style.display = translationSection.style.display;
         }
 
         function updateDataTranslated(sentence) {
