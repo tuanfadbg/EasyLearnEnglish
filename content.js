@@ -81,22 +81,14 @@ document.addEventListener('keydown', function (event) {
 });
 
 function openGoogleTranslateSelectedText() {
-  const text = window.getSelection().toString();
-  // const translateUrl = `https://translate.google.com/?sl=en&tl=vi&text=${encodeURIComponent(text)}&op=translate`;
-
-  //   // Check for existing Google Translate tab
-  //   chrome.tabs.query({}, (tabs) => {
-  //       const existingTab = tabs.find(tab => tab.url && tab.url.startsWith("https://translate.google.com/"));
-  //       if (existingTab) {
-  //           // If the tab exists, update its URL and focus on it
-  //           chrome.tabs.update(existingTab.id, { url: translateUrl, active: true });
-  //       } else {
-  //           // If not, create a new tab
-  //           chrome.tabs.create({ url: translateUrl });
-  //       }
-  //   });
-
-    chrome.runtime.sendMessage({ action: "openGoogleTranslate", data: text});
+  let text = window.getSelection().toString();
+  if (text == '') {
+    const element = document.querySelector('p.simple-translate-result'); 
+    text = element.textContent || element.innerText;
+  }
+  if (text == '')
+    return;
+  chrome.runtime.sendMessage({ action: "openGoogleTranslate", data: text});
 }
 
 
