@@ -163,6 +163,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    document.getElementById('random10ToCoping').onclick = function () {
+        getRandomWords(10);
+    };
+    document.getElementById('random20ToCoping').onclick = function () {
+        getRandomWords(20);
+    };
+    
+    function getRandomWords(count) {
+        var text = document.getElementById('random10ToCopingText');
+        getRandomWord(count).then(words => {
+            console.log(words);
+            if (words && Array.isArray(words)) {
+                const wordConcated = words.map(word => word.word).join(', ');
+                text.textContent = wordConcated;
+            }
+        });
+    }
+    
 
     loadWords();
 });

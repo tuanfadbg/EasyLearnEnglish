@@ -91,7 +91,7 @@
     <div style="display: flex; justify-content: space-between;">
         <textarea id="textInput" rows="30" cols="50" placeholder="Enter text here..."></textarea>
         <textarea id="translatedInput" rows="30" cols="50" placeholder="Translated text..."></textarea>
-        <textarea id="chatgptTranslated" rows="30" cols="50" placeholder="ChatGPT Translated text..."></textarea>
+        <textarea id="chatgptTranslated" autocomplete="off" rows="30" cols="50" placeholder="ChatGPT Translated text..."></textarea>
     </div>
     <button id="translateButton" onclick="translateSentences()">Translate</button>
     <button id="createNewTranslationButton" onclick="createNewTranslation()">Create New Translation</button>
@@ -210,7 +210,8 @@
         //                 score: <score>,
         //                 my_sentence: <My sentence 1 in English>,
         //                 translated_sentence:  <the correct sentence 1 you translated, bold wrong mistakes>,
-        //                 feedback: your feedback  
+        //                 feedback: your feedback,
+        //                 refined_version: <Your refined version to get the highest score>
         //             ],.. sentence 2, sentence 3
         //         }
         // }
@@ -221,7 +222,7 @@
             setDataFromChatGPTJsonToLayout();
         });
 
-        
+
 
         function setDataFromChatGPTJsonToLayout() {
             document.getElementById(`chatgpt-rating`).innerHTML = `<h2>Score: ${chatGPTResult.overall_score}</h2> <br/> ${chatGPTResult.feedback}`;
@@ -236,7 +237,7 @@
                 const feedback = document.getElementById(`feedback-id-${index}`);
                 translatedInput.value = item.translated_sentence;
                 score.innerHTML = item.score;
-                feedback.innerHTML = item.feedback;
+                feedback.innerHTML = item.feedback + '<br/>' + item.the_highest_score_version;
                 setOutputData();
             });
         }
@@ -249,18 +250,19 @@
             myTranslationText = translatedSentences.filter(sentence => sentence.my_translation && sentence.my_translation.trim() !== '').map(sentence => sentence.my_translation).join('\n');
 
 
-            combinedText += `You are my English teacher who is rating my entire translation and each corresponding sentence from Vietnamese to English according to the IELTS band score of 10.
+            combinedText += `You are my English teacher who is rating my entire translation and each corresponding sentence from Vietnamese to English according to the IELTS band score.
 
 the result format as json:
 {
 overall_score: <overall_score>,
-feedback: <your assessment of my translation>,
+feedback: <your assessment of my translation, bold the repeated mistakes according to my previous translations>,
 detail: {
         [
             score: <score>,
             my_sentence: <My sentence 1 in English>,
-            translated_sentence:  <the correct sentence 1 you translated, bold wrong mistakes>,
-            feedback: your feedback  
+            translated_sentence:  <the correct of sentence 1 you translated, please bold wrong mistakes>,
+            feedback: <your feedback about mistakes and suggestions will help me get a higher score.>,
+            the_highest_score_version: <Your translation version to get the highest score>
         ],.. sentence 2, sentence 3
     }
 }\n\n"${originalText}" \nto\n "${myTranslationText}"\n\n`;
@@ -380,7 +382,6 @@ detail: {
                 });
             }
         });
-
     </script>
 
 </body>

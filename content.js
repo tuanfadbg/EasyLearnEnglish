@@ -3,28 +3,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const selectedText = window.getSelection().toString();
     sendResponse({ word: selectedText });
   } else if (request.action === "findElement") {
-    const element = document.querySelector('span.ejoy-word.ejoy-sub-hovered[data-hover="true"]');
-    const selectedText = element ? getEjoySelectedText() : window.getSelection().toString();
-
-    if (element) {
-      const context = getEjoySelectedContext();
-      saveToWordbook(selectedText, context);
-    } else if (selectedText === '') {
-      console.log("Element not found.");
-      alert("Element not found.");
-    } else {
-      saveToWordbook(selectedText);
-    }
+    findTextAndAddToWordbook(request);
   } else if (request.type == 'getTranslationValue') {
     console.log("Received translated sentences:");
     var hiddenOutput;
     hiddenOutput = document.getElementById('translation-data-hidden-output');
     console.log(hiddenOutput.innerHTML)
     const data = JSON.parse(hiddenOutput.innerHTML);
-    saveToTranslation(data, ()=> {
+    saveToTranslation(data, () => {
       sendResponse({ status: "oke" });
     });
-    
+
   } else if (request.type == 'sendTranslationDataToContentJS') {
     var data = request.translation;
     console.log("Received translation data:", data);
@@ -33,7 +22,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     hiddenInput.dispatchEvent(new Event('input'));
   }
 });
-
 // Variables to track Control key presses
 let ctrlPressCount = 0;
 let lastCtrlPressTime = 0;
@@ -69,6 +57,48 @@ document.addEventListener('keydown', (event) => {
     }
   }
 });
+
+let lastAltPressTime = 0;
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Alt') {
+        const currentTime = new Date().getTime();
+        if (currentTime - lastAltPressTime < 500) { // 500 milliseconds for double-click
+            findTextAndAddToWordbook();
+        }
+        lastAltPressTime = currentTime;
+    }
+});
+
+let lastShiftPressTime = 0;
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Shift') {
+        const currentTime = new Date().getTime();
+        if (currentTime - lastShiftPressTime < 500) { // 500 milliseconds for double-click
+            openGoogleTranslateSelectedText();
+        }
+        lastShiftPressTime = currentTime;
+    }
+});
+
+function openGoogleTranslateSelectedText() {
+  const text = window.getSelection().toString();
+  // const translateUrl = `https://translate.google.com/?sl=en&tl=vi&text=${encodeURIComponent(text)}&op=translate`;
+
+  //   // Check for existing Google Translate tab
+  //   chrome.tabs.query({}, (tabs) => {
+  //       const existingTab = tabs.find(tab => tab.url && tab.url.startsWith("https://translate.google.com/"));
+  //       if (existingTab) {
+  //           // If the tab exists, update its URL and focus on it
+  //           chrome.tabs.update(existingTab.id, { url: translateUrl, active: true });
+  //       } else {
+  //           // If not, create a new tab
+  //           chrome.tabs.create({ url: translateUrl });
+  //       }
+  //   });
+
+    chrome.runtime.sendMessage({ action: "openGoogleTranslate", data: text});
+}
+
 
 function shouldAddTextInput() {
   return true;
@@ -138,6 +168,56 @@ if (window.location.hostname === "dailydictation.com") {
 
   }, 2000);
 }
+
+
+function saveToTranslation(dataContainer, callback) {
+  //   var dataContainer = {
+  //     id: translationId,//11231231231231232
+  //     content: translatedSentences //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
+  // };
+  chrome.storage.local.get(['translationContainer'], function (result) {
+    const translationContainer = result.translationContainer || [];
+    console.log(translationContainer);
+    const existingEntry = translationContainer.find(entry => entry.id === dataContainer.id);
+    if (existingEntry) {
+      existingEntry.content = dataContainer.content;
+      existingEntry.chatgpt = dataContainer.chatgpt;
+      existingEntry.time_updated = new Date().toISOString();
+    } else {
+      translationContainer.push({
+        "id": dataContainer.id,
+        "content": dataContainer.content,
+        "time_updated": new Date().toISOString(),
+      }); // Add the new entry
+    }
+    chrome.storage.local.set({ translationContainer: translationContainer }, function () {
+      console.log('added to translationContainer: ', translationContainer);
+      if (callback())
+        callback();
+    });
+  });
+}
+
+function findTextAndAddToWordbook(request) {
+  const ejoySelectedText = getEjoySelectedText();
+  if (ejoySelectedText === '') {
+    const selectedText = window.getSelection().toString();
+    if (selectedText === '') {
+      console.log("Element not found.");
+      if (request && request.type == "no-alert") {
+
+      } else {
+        showAlert("Element not found")
+      }
+    } else {
+      saveToWordbook(selectedText);
+    }
+  } else {
+    const context = getEjoySelectedContext();
+    saveToWordbook(ejoySelectedText, context);
+  }
+}
+
 /**
  * Function to get all text from the specified div
  * @returns {string} - The concatenated text from the div
@@ -166,7 +246,11 @@ function getEjoySelectedContext() {
 }
 
 function getEjoySelectedText() {
-  const element = document.querySelector('span.ejoy-word.ejoy-sub-hovered[data-hover="true"]');
+  let element = document.querySelector('span.ejoy-word.ejoy-sub-hovered[data-hover="true"]');
+  if (element) {
+  } else {
+    element = document.querySelector('span.ejoy-word.ejoy-sub-active');
+  }
   if (element) {
     const text = element.getAttribute('data-text'); // Get the data-text attribute
     console.log(`Found element with text: ${text}`);
@@ -197,34 +281,50 @@ function saveToWordbook(text, context) {
     }
     chrome.storage.local.set({ wordbook: wordbook }, function () {
       console.log('added to wordbook: ', wordbook);
+      showAlert("Saved to wordbook");
     });
   });
 }
 
-function saveToTranslation(dataContainer, callback) {
-  //   var dataContainer = {
-  //     id: translationId,//11231231231231232
-  //     content: translatedSentences //[{id: "id-1", text: "1 con vịt", translated: "a duck", my_translation: "1 duck"}]
-  // };
-  chrome.storage.local.get(['translationContainer'], function (result) {
-    const translationContainer = result.translationContainer || [];
-    console.log(translationContainer);
-    const existingEntry = translationContainer.find(entry => entry.id === dataContainer.id);
-    if (existingEntry) {
-      existingEntry.content = dataContainer.content;
-      existingEntry.chatgpt = dataContainer.chatgpt;
-      existingEntry.time_updated = new Date().toISOString();
-    } else {
-      translationContainer.push({
-        "id": dataContainer.id,
-        "content": dataContainer.content,
-        "time_updated": new Date().toISOString(),
-      }); // Add the new entry
-    }
-    chrome.storage.local.set({ translationContainer: translationContainer }, function () {
-      console.log('added to translationContainer: ', translationContainer);
-      if (callback())
-        callback();
-    });
-  });
+function showAlert(text) {
+  // Check if the popup already exists
+  let popup = document.getElementById('popup');
+
+  if (!popup) {
+    // Create the popup element
+    popup = document.createElement('div');
+    popup.id = 'popup';
+    document.body.appendChild(popup);
+
+    // Style the popup element
+    const style = document.createElement('style');
+    style.textContent = `
+        #popup {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            transform: translateX(-50%);
+        }
+    `;
+    document.head.appendChild(style);
+  }
+
+  popup.textContent = text;
+
+  // Show the popup
+  popup.style.visibility = 'visible';
+  setTimeout(function () {
+    popup.style.visibility = 'hidden';
+  }, 2000);
+
+
 }
