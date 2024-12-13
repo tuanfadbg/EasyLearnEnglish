@@ -74,6 +74,7 @@ document.addEventListener('keydown', function (event) {
     if (event.key === 'Shift') {
         const currentTime = new Date().getTime();
         if (currentTime - lastShiftPressTime < 500) { // 500 milliseconds for double-click
+            console.log('Shift key pressed twice!');
             openGoogleTranslateSelectedText();
         }
         lastShiftPressTime = currentTime;
@@ -82,12 +83,21 @@ document.addEventListener('keydown', function (event) {
 
 function openGoogleTranslateSelectedText() {
   let text = window.getSelection().toString();
-  if (text == '') {
+  if (text == '') { // check simple translate extension
     const element = document.querySelector('p.simple-translate-result'); 
-    text = element.textContent || element.innerText;
+    if (element == undefined)
+      text = '';
+    else
+      text = element.textContent || element.innerText;
+    console.log(element);
   }
-  if (text == '')
+  if (text == '') { // check ejoy
+    text = getEjoySelectedContext()
+    console.log(text);
+  }
+  if (text == '') 
     return;
+  console.log(text);
   chrome.runtime.sendMessage({ action: "openGoogleTranslate", data: text});
 }
 

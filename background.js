@@ -9,6 +9,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Handle the click event on the context menu item
 chrome.contextMenus.onClicked.addListener((info, tab) => {
+    console.log(info);
     if (info.menuItemId === "addToWordbook") {
         // Send a message to the content script
         chrome.tabs.sendMessage(tab.id, { action: "findElement" });
@@ -16,6 +17,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    console.log(request);
     if (request.action === "openGoogleTranslate") {
         openGoogleTranslate(request.data);
     }
