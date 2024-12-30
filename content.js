@@ -392,6 +392,7 @@ function processPassage(text, timeInSeconds) {
     }
   }
   transcriptTextElement.value = passage.map(p => `${p.text}`).join(' ');
+  transcriptTextElement.scrollTop = transcriptTextElement.scrollHeight;
 }
 
 function getCurrentTime() {
@@ -436,6 +437,6 @@ function initButtonAndTextArea() {
   transcriptTextElement.rows = 20; // Set the number of rows for a 2-line text input
 
   transcriptTextElement.addEventListener('input', function() {
-
+    
   });
 }
