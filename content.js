@@ -60,31 +60,31 @@ document.addEventListener('keydown', (event) => {
 
 let lastAltPressTime = 0;
 document.addEventListener('keydown', function (event) {
-    if (event.key === 'Alt') {
-        const currentTime = new Date().getTime();
-        if (currentTime - lastAltPressTime < 500) { // 500 milliseconds for double-click
-            findTextAndAddToWordbook();
-        }
-        lastAltPressTime = currentTime;
+  if (event.key === 'Alt') {
+    const currentTime = new Date().getTime();
+    if (currentTime - lastAltPressTime < 500) { // 500 milliseconds for double-click
+      findTextAndAddToWordbook();
     }
+    lastAltPressTime = currentTime;
+  }
 });
 
 let lastShiftPressTime = 0;
 document.addEventListener('keydown', function (event) {
-    if (event.key === 'Shift') {
-        const currentTime = new Date().getTime();
-        if (currentTime - lastShiftPressTime < 500) { // 500 milliseconds for double-click
-            console.log('Shift key pressed twice!');
-            openGoogleTranslateSelectedText();
-        }
-        lastShiftPressTime = currentTime;
+  if (event.key === 'Shift') {
+    const currentTime = new Date().getTime();
+    if (currentTime - lastShiftPressTime < 500) { // 500 milliseconds for double-click
+      console.log('Shift key pressed twice!');
+      openGoogleTranslateSelectedText();
     }
+    lastShiftPressTime = currentTime;
+  }
 });
 
 function openGoogleTranslateSelectedText() {
   let text = window.getSelection().toString();
   if (text == '') { // check simple translate extension
-    const element = document.querySelector('p.simple-translate-result'); 
+    const element = document.querySelector('p.simple-translate-result');
     if (element == undefined)
       text = '';
     else
@@ -95,10 +95,10 @@ function openGoogleTranslateSelectedText() {
     text = getEjoySelectedContext()
     console.log(text);
   }
-  if (text == '') 
+  if (text == '')
     return;
   console.log(text);
-  chrome.runtime.sendMessage({ action: "openGoogleTranslate", data: text});
+  chrome.runtime.sendMessage({ action: "openGoogleTranslate", data: text });
 }
 
 
@@ -107,33 +107,13 @@ function shouldAddTextInput() {
 }
 
 const inputElement = document.createElement('textarea');
-
-// Set attributes for the input element
-inputElement.id = 'dictationInputTuanFadbg'; // Set an ID for the input
-inputElement.placeholder = 'Type your dictation here';
-inputElement.style.width = '100%';
-inputElement.style.padding = '10px';
-inputElement.style.marginTop = '10px'; // Optional: Add some margin
-inputElement.style.border = 'none'; // Remove border
-inputElement.rows = 2; // Set the number of rows for a 2-line text input
-
-inputElement.addEventListener('dblclick', () => {
-  inputElement.value = ''; // Clear the input field
-});
-// Create a clear button
 const clearButton = document.createElement('button');
-clearButton.textContent = 'Clear';
-clearButton.style.marginTop = '10px'; // Optional: Add some margin
-clearButton.className = 'btn btn-primary'; // Optional: Add Bootstrap class for styling
-
-// Add event listener to the clear button
-clearButton.addEventListener('click', () => {
-  inputElement.value = ''; // Clear the input field
-});
+const transcriptDivElement = document.createElement('div');
+const transcriptTextElement = document.createElement('textarea');
+initButtonAndTextArea();
 
 // Check if the current URL is YouTube
-if (window.location.hostname === "www.youtube.com") {
-  setTimeout(() => {
+function handleYouTubeContent() {
     console.log("www.youtube.com")
     // Find the div with the ID 'title'
     const titleDiv = document.getElementById('below');
@@ -141,17 +121,33 @@ if (window.location.hostname === "www.youtube.com") {
     // Check if the div exists
     if (titleDiv) {
       console.log(titleDiv)
-      inputElement.style.fontSize = '2rem'
+      
       // Add the input element at the beginning of the div
       titleDiv.insertBefore(clearButton, titleDiv.firstChild);
       titleDiv.insertBefore(inputElement, titleDiv.firstChild);
+
+      const scrollContainerDiv = document.querySelector('div.style-scope ytd-watch-next-secondary-results-renderer');
+      if (scrollContainerDiv) {
+        scrollContainerDiv.insertBefore(transcriptDivElement, scrollContainerDiv.firstChild);
+        transcriptDivElement.appendChild(transcriptTextElement);
+      } else {
+        console.log("Div with class 'style-scope yt-chip-cloud-renderer' not found.");
+      }
+
+      let observeSubtitles = function () {
+        if (!observeSubtitlesChanges()) {
+          setTimeout(observeSubtitles, 3000);
+        }
+      };
+      observeSubtitles();
+      return true;
     } else {
       console.log("Div with ID 'title' not found.");
+      return false;
     }
-  }, 2000);
 }
 
-if (window.location.hostname === "dailydictation.com") {
+function handleDailyDictationContent() {
   setTimeout(() => {
     console.log("DOMContentLoaded");
     // Find the div with the ID 'app-dictation'
@@ -169,6 +165,18 @@ if (window.location.hostname === "dailydictation.com") {
     }
 
   }, 2000);
+}
+
+if (window.location.hostname === "www.youtube.com") {
+  let handleYouTubeContentInterval = setInterval(() => {
+    if (handleYouTubeContent()) {
+      clearInterval(handleYouTubeContentInterval);
+    }
+  }, 2000);
+}
+
+if (window.location.hostname === "dailydictation.com") {
+  handleDailyDictationContent();
 }
 
 
@@ -245,6 +253,18 @@ function getEjoySelectedContext() {
       return '';
     }
   }
+}
+
+function getCurrentEjoyEnglishText() {
+  const div = document.querySelector('.glot-subtitles__sub__con');
+  if (div) {
+    // Get all span elements with class "ejoy-word" and concatenate their data-text attributes
+    const spans = div.querySelectorAll('span.ejoy-word[data-hover="true"]');
+    const texts = Array.from(spans).map(span => span.getAttribute('data-text')).join(' ');
+    console.log(`All text from div: ${texts}`);
+    return texts;
+  }
+  return '';
 }
 
 function getEjoySelectedText() {
@@ -327,6 +347,95 @@ function showAlert(text) {
   setTimeout(function () {
     popup.style.visibility = 'hidden';
   }, 2000);
+}
 
 
+function observeSubtitlesChanges() {
+  console.log("Starting to observe changes in subtitles");
+  // Listen for changes in the glot-subtitles__sub__con element
+  let targetNode = document.querySelector('.ejoy-subtitles');
+  if (!targetNode) {
+    console.error('Target node for observing subtitles changes is not ready.');
+    return false;
+  }
+  let config = { childList: true, subtree: true };
+
+  let callback = function (mutationsList, observer) {
+    console.log('callback');
+    for (let mutation of mutationsList) {
+      if (mutation.type == 'childList') {
+        // Store the text and time into a passage array
+        let text = getCurrentEjoyEnglishText();
+        let timeInSeconds = getCurrentTime();
+        processPassage(text, timeInSeconds);
+      }
+    }
+  };
+
+  let observer = new MutationObserver(callback);
+  observer.observe(targetNode, config);
+  console.log("observer.observe(targetNode, config);");
+  return true;
+}
+
+let passage = [];
+let lastText = '';
+function processPassage(text, timeInSeconds) {
+  if (text !== lastText) {
+    let duplicateIndex = passage.findIndex(p => p.text === text && Math.abs(p.time - timeInSeconds) < 5);
+    if (duplicateIndex !== -1) { // duplicate
+      // passage.splice(duplicateIndex, 1); 
+    } else {
+      passage.push({text: text, time: timeInSeconds});
+      passage.sort((a, b) => a.time - b.time);
+      lastText = text;
+    }
+  }
+  transcriptTextElement.value = passage.map(p => `${p.text}`).join(' ');
+}
+
+function getCurrentTime() {
+  const video = document.querySelector('video');
+  if (video) {
+    return video.currentTime;
+  }
+  return 0;
+}
+
+
+
+
+
+function initButtonAndTextArea() {
+  // Set attributes for the input element
+  inputElement.id = 'dictationInputTuanFadbg'; // Set an ID for the input
+  inputElement.placeholder = 'Type your dictation here';
+  inputElement.style.width = '100%';
+  // inputElement.style.padding = '10px';
+  inputElement.style.marginTop = '10px'; // Optional: Add some margin
+  inputElement.style.border = 'none'; // Remove border
+  inputElement.rows = 2; // Set the number of rows for a 2-line text input
+  inputElement.style.fontSize = '2rem'
+  inputElement.addEventListener('dblclick', () => {
+    inputElement.value = ''; // Clear the input field
+  });
+
+  clearButton.textContent = 'Clear';
+  clearButton.style.marginTop = '10px'; // Optional: Add some margin
+  clearButton.className = 'btn btn-primary'; // Optional: Add Bootstrap class for styling
+
+  // Add event listener to the clear button
+  clearButton.addEventListener('click', () => {
+    inputElement.value = ''; // Clear the input field
+  });
+
+  // const transcriptDivElement = document.createElement('div');
+  transcriptDivElement.id = 'tuanfadbg-transcript';
+  transcriptTextElement.id = 'tuanfadbg-transcript-text';
+  transcriptTextElement.style.width = '100%';
+  transcriptTextElement.rows = 20; // Set the number of rows for a 2-line text input
+
+  transcriptTextElement.addEventListener('input', function() {
+
+  });
 }
