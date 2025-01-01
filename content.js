@@ -109,7 +109,6 @@ function shouldAddTextInput() {
 const inputElement = document.createElement('textarea');
 const clearButton = document.createElement('button');
 const transcriptDivElement = document.createElement('div');
-const transcriptTextElement = document.createElement('textarea');
 initButtonAndTextArea();
 
 // Check if the current URL is YouTube
@@ -129,7 +128,7 @@ function handleYouTubeContent() {
       const scrollContainerDiv = document.querySelector('div.style-scope ytd-watch-next-secondary-results-renderer');
       if (scrollContainerDiv) {
         scrollContainerDiv.insertBefore(transcriptDivElement, scrollContainerDiv.firstChild);
-        transcriptDivElement.appendChild(transcriptTextElement);
+        // transcriptDivElement.appendChild(transcriptTextElement);
       } else {
         console.log("Div with class 'style-scope yt-chip-cloud-renderer' not found.");
       }
@@ -368,6 +367,7 @@ function observeSubtitlesChanges() {
         let text = getCurrentEjoyEnglishText();
         let timeInSeconds = getCurrentTime();
         processPassage(text, timeInSeconds);
+        selectWordInTranscriptAndScroll(text);
       }
     }
   };
@@ -391,8 +391,7 @@ function processPassage(text, timeInSeconds) {
       lastText = text;
     }
   }
-  transcriptTextElement.value = passage.map(p => `${p.text}`).join(' ');
-  transcriptTextElement.scrollTop = transcriptTextElement.scrollHeight;
+  transcriptDivElement.innerHTML = passage.map(p => `${p.text}`).join(' ');
 }
 
 function getCurrentTime() {
@@ -403,7 +402,31 @@ function getCurrentTime() {
   return 0;
 }
 
+function selectWordInTranscriptAndScroll(word) {
+    const text = transcriptDivElement.innerHTML;
 
+    // Create a regex to find the target word (case-sensitive)
+    const regex = new RegExp(`\\b(${word})\\b`, 'g');
+
+    // Replace the word with a highlighted version
+    const highlightedText = text.replace(regex, '<span class="highlight">$1</span>');
+
+    // Update the container with the highlighted text
+    transcriptDivElement.innerHTML = highlightedText;
+    scrollToHighlightedText();
+}
+
+function scrollToHighlightedText() {
+  // Find the first highlighted element
+  const highlightedElement = transcriptDivElement.querySelector(".highlight");
+  if (!highlightedElement) {
+      console.error("No highlighted text found");
+      return;
+  }
+
+  // Scroll the container to the highlighted element
+  highlightedElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
 
 
 
@@ -430,13 +453,36 @@ function initButtonAndTextArea() {
     inputElement.value = ''; // Clear the input field
   });
 
-  // const transcriptDivElement = document.createElement('div');
   transcriptDivElement.id = 'tuanfadbg-transcript';
-  transcriptTextElement.id = 'tuanfadbg-transcript-text';
-  transcriptTextElement.style.width = '100%';
-  transcriptTextElement.rows = 20; // Set the number of rows for a 2-line text input
-
-  transcriptTextElement.addEventListener('input', function() {
-    
-  });
 }
+
+function addDynamicCSS() {
+  // Create a <style> element
+  const style = document.createElement('style');
+  style.type = 'text/css';
+
+  // Define the CSS rules
+  const css = `
+      .highlight {
+          background-color: #20b2b2;
+      }
+
+      #tuanfadbg-transcript {
+          max-height: 300px; /* Maximum height */
+          overflow-y: auto;  /* Enable vertical scrolling */
+          padding: 10px; /* Optional: Add some padding */
+          color: white;
+          font-family: "Roboto", "Arial", sans-serif;
+          font-size: 2rem;
+      }    
+  `;
+
+  // Add the CSS rules to the <style> element
+  style.appendChild(document.createTextNode(css));
+
+  // Append the <style> element to the <head>
+  document.head.appendChild(style);
+}
+
+// Call the function to add the CSS
+addDynamicCSS();
