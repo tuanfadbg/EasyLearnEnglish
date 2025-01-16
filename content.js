@@ -261,7 +261,7 @@ function getCurrentEjoyEnglishText() {
     const spans = div.querySelectorAll('span.ejoy-word[data-hover="true"]');
     const texts = Array.from(spans).map(span => span.getAttribute('data-text')).join(' ');
     console.log(`All text from div: ${texts}`);
-    return texts;
+    return texts.replace(/&nbsp;/g, ' ').replace(/\s{2,}/g, ' ');
   }
   return '';
 }
@@ -365,9 +365,9 @@ function observeSubtitlesChanges() {
       if (mutation.type == 'childList') {
         // Store the text and time into a passage array
         let text = getCurrentEjoyEnglishText();
+        console.log('text: ' + text);
         let timeInSeconds = getCurrentTime();
         processPassage(text, timeInSeconds);
-        selectWordInTranscriptAndScroll(text);
       }
     }
   };
@@ -391,7 +391,8 @@ function processPassage(text, timeInSeconds) {
       lastText = text;
     }
   }
-  transcriptDivElement.innerHTML = passage.map(p => `${p.text}`).join(' ');
+  transcriptDivElement.innerHTML = passage.map(p => p.text === text ? `<span class="highlight">${p.text}</span>` : `${p.text}`).join(' ');
+  scrollToHighlightedText();
 }
 
 function getCurrentTime() {
@@ -400,20 +401,6 @@ function getCurrentTime() {
     return video.currentTime;
   }
   return 0;
-}
-
-function selectWordInTranscriptAndScroll(word) {
-    const text = transcriptDivElement.innerHTML;
-
-    // Create a regex to find the target word (case-sensitive)
-    const regex = new RegExp(`\\b(${word})\\b`, 'g');
-
-    // Replace the word with a highlighted version
-    const highlightedText = text.replace(regex, '<span class="highlight">$1</span>');
-
-    // Update the container with the highlighted text
-    transcriptDivElement.innerHTML = highlightedText;
-    scrollToHighlightedText();
 }
 
 function scrollToHighlightedText() {
