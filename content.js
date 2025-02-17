@@ -380,8 +380,10 @@ function observeSubtitlesChanges() {
 
 let passage = [];
 let lastText = '';
+let preHighlight = '';
 function processPassage(text, timeInSeconds) {
   if (text !== lastText) {
+    preHighlight = lastText;
     let duplicateIndex = passage.findIndex(p => p.text === text && Math.abs(p.time - timeInSeconds) < 5);
     if (duplicateIndex !== -1) { // duplicate
       // passage.splice(duplicateIndex, 1); 
@@ -391,7 +393,17 @@ function processPassage(text, timeInSeconds) {
       lastText = text;
     }
   }
-  transcriptDivElement.innerHTML = passage.map(p => p.text === text ? `<span class="highlight">${p.text}</span>` : `${p.text}`).join(' ');
+  console.log('preHighlight: ' + preHighlight);
+  let formattedPassage = passage.map(p => {
+    if (p.text === text) {
+      return `<span class="highlight">${p.text}</span>`;
+    } else if (p.text === preHighlight) {
+      return `<span class="pre-highlight">${p.text}</span>`;
+    } else {
+      return `${p.text}`;
+    }
+  }).join(' ');
+  transcriptDivElement.innerHTML = formattedPassage;
   scrollToHighlightedText();
 }
 
@@ -450,6 +462,9 @@ function addDynamicCSS() {
 
   // Define the CSS rules
   const css = `
+      .pre-highlight {
+          color: yellow;
+      }    
       .highlight {
           background-color: #20b2b2;
       }
