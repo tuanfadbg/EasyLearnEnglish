@@ -434,18 +434,26 @@ function initButtonAndTextArea() {
   inputElement.id = 'dictationInputTuanFadbg'; // Set an ID for the input
   inputElement.placeholder = 'Type your dictation here';
   inputElement.style.width = '100%';
-  // inputElement.style.padding = '10px';
+  inputElement.style.backgroundColor = 'white'; // Set background color to white
+  inputElement.style.borderRadius = '12px'; // Set border radius to 16px
   inputElement.style.marginTop = '10px'; // Optional: Add some margin
   inputElement.style.border = 'none'; // Remove border
   inputElement.rows = 2; // Set the number of rows for a 2-line text input
-  inputElement.style.fontSize = '2rem'
+  inputElement.style.fontSize = '2rem'; // Set font size
+  inputElement.style.boxSizing = 'border-box'; // Add box-sizing
+  inputElement.style.padding = '12px'; // Add padding
   inputElement.addEventListener('dblclick', () => {
     inputElement.value = ''; // Clear the input field
   });
 
   clearButton.textContent = 'Clear';
   clearButton.style.marginTop = '10px'; // Optional: Add some margin
-  clearButton.className = 'btn btn-primary'; // Optional: Add Bootstrap class for styling
+  clearButton.style.fontSize = '1.5rem'; // Add font size
+  clearButton.style.backgroundColor = 'rgba(128, 128, 128, 0.2)'; // Add background color with opacity
+  clearButton.style.color = 'white'; // Add text color
+  clearButton.style.padding = '8px'; // Add padding
+  clearButton.style.borderRadius = '12px'; // Add border radius
+  // clearButton.className = 'btn btn-primary'; // Optional: Add Bootstrap class for styling
 
   // Add event listener to the clear button
   clearButton.addEventListener('click', () => {
@@ -463,10 +471,10 @@ function addDynamicCSS() {
   // Define the CSS rules
   const css = `
       .pre-highlight {
-          color: yellow;
+          color: #90EE90;
       }    
       .highlight {
-          background-color: #20b2b2;
+          background-color: #198e8e;
       }
 
       #tuanfadbg-transcript {
