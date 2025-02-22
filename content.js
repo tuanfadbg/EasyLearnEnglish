@@ -58,6 +58,15 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+const style = document.createElement('style');
+style.textContent = `
+  .gtx-bubble {
+    z-index: 9999;
+  }
+`;
+document.head.appendChild(style);
+
+
 let lastAltPressTime = 0;
 document.addEventListener('keydown', function (event) {
   if (event.key === 'Alt') {
@@ -282,6 +291,7 @@ function getEjoySelectedText() {
 }
 
 function saveToWordbook(text, context) {
+  
   text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
   text = text.toLowerCase();
   chrome.storage.local.get(['wordbook'], function (result) {
@@ -300,11 +310,99 @@ function saveToWordbook(text, context) {
         "added_to_saved_word": "false"
       }); // Add the new entry
     }
+    showFixedBroadOnBottomLeft(text, context);
+
     chrome.storage.local.set({ wordbook: wordbook }, function () {
       console.log('added to wordbook: ', wordbook);
       showAlert("Saved to wordbook");
     });
   });
+}
+
+function showFixedBroadOnBottomLeft(text, context) {
+  createFixedBroad();
+
+  let loadingButton = document.getElementById('loadingButton');
+  if (loadingButton) {
+    loadingButton.style.display = 'block';
+  }
+
+  fetch(`http://localhost:5678/webhook/word?word=${text}`)
+    .then(response => response.json())
+    .then(data => {
+      let loadingButton = document.getElementById('loadingButton');
+      if (loadingButton) {
+        loadingButton.style.display = 'none';
+      }
+      fillBroadData(data);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function fillBroadData(data) {
+  let outputDiv = document.getElementById('outputDiv');
+  outputDiv.innerHTML = "";
+  // data = {"output":["The artist hopes to create a beautiful sculpture from this block of marble.","The company's creative team is brainstorming new ideas for the next advertising campaign.","Her innovative creations have earned her recognition in the design world."]}
+  data.output.forEach((item) => {
+    const paragraph = document.createElement('p');
+    paragraph.textContent = item;
+    outputDiv.appendChild(paragraph);
+  });
+}
+
+function createFixedBroad() {
+  let fixedDiv = document.getElementById('fixedDiv');
+    if (!fixedDiv) {
+      fixedDiv = document.createElement('div');
+      fixedDiv.id = 'fixedDiv';
+      fixedDiv.style.position = 'fixed';
+      fixedDiv.style.bottom = '16px';
+      fixedDiv.style.left = '16px'; // Changed from '50%' to '0' to position on the left of the screen
+      fixedDiv.style.width = '40%';
+      fixedDiv.style.backgroundColor = 'gray';
+      fixedDiv.style.color = 'white';
+      fixedDiv.style.padding = '16px';
+      fixedDiv.style.borderRadius = '6px';
+      fixedDiv.style.zIndex = '9999';
+    }
+
+    let closeButton = document.getElementById('closeButton');
+    if (!closeButton) {
+      closeButton = document.createElement('button');
+      closeButton.id = 'closeButton';
+      closeButton.style.position = 'absolute';
+      closeButton.style.top = '0';
+      closeButton.style.right = '0';
+      closeButton.textContent = 'X';
+      closeButton.style.padding = '10px'; // Added padding 10px
+      closeButton.onclick = function() {
+        fixedDiv.remove();
+      };
+    }
+
+    let loadingButton = document.getElementById('loadingButton');
+    if (!loadingButton) {
+      loadingButton = document.createElement('p');
+      loadingButton.id = 'loadingButton';
+      loadingButton.textContent = 'Loading...';
+    }
+
+
+    
+
+    let outputDiv = document.getElementById('outputDiv');
+    if (!outputDiv) {
+      outputDiv = document.createElement('div');
+      outputDiv.id = 'outputDiv';
+      outputDiv.style.overflowY = 'auto';
+      outputDiv.style.marginRight = '40px';
+      outputDiv.style.maxHeight = '200px';
+    }
+
+    fixedDiv.appendChild(closeButton);
+    fixedDiv.appendChild(loadingButton);
+    fixedDiv.appendChild(outputDiv);
+    document.body.appendChild(fixedDiv);
 }
 
 function showAlert(text) {
