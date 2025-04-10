@@ -61,7 +61,7 @@ document.addEventListener('keydown', (event) => {
 const style = document.createElement('style');
 style.textContent = `
   .gtx-bubble {
-    z-index: 9999;
+    z-index: 9998!important;
   }
 `;
 document.head.appendChild(style);
@@ -87,6 +87,18 @@ document.addEventListener('keydown', function (event) {
       openGoogleTranslateSelectedText();
     }
     lastShiftPressTime = currentTime;
+  }
+});
+
+document.addEventListener('keydown', function (event) {
+  if (event.metaKey && event.key === 'u' || event.metaKey && event.key === 'U') {
+    console.log('Command + U key pressed!');
+    let broadDiv = document.getElementById('broadDiv');
+    if (broadDiv) {
+      broadDiv.remove();
+    } else {
+      showTypeAndVoiceInputOnBottomRight();
+    }
   }
 });
 
@@ -297,6 +309,15 @@ function saveToWordbook(text, context) {
   chrome.storage.local.get(['wordbook'], function (result) {
     const wordbook = result.wordbook || [];
     console.log(wordbook);
+    
+    let previousWord = '';
+    for (let i = wordbook.length - 1; i >= 0; i--) {
+      if (wordbook[i].text !== text) {
+        previousWord = wordbook[i].text;
+        break;
+      }
+    }
+
     const existingEntry = wordbook.find(entry => entry.text === text);
     if (existingEntry) {
       existingEntry.context.push(context);
@@ -310,7 +331,7 @@ function saveToWordbook(text, context) {
         "added_to_saved_word": "false"
       }); // Add the new entry
     }
-    showFixedBroadOnBottomLeft(text, context);
+    showFixedBroadOnBottomLeft(text, previousWord);
 
     chrome.storage.local.set({ wordbook: wordbook }, function () {
       console.log('added to wordbook: ', wordbook);
@@ -319,7 +340,7 @@ function saveToWordbook(text, context) {
   });
 }
 
-function showFixedBroadOnBottomLeft(text, context) {
+function showFixedBroadOnBottomLeft(text, previousWord) {
   createFixedBroad();
 
   let loadingButton = document.getElementById('loadingButton');
@@ -327,7 +348,7 @@ function showFixedBroadOnBottomLeft(text, context) {
     loadingButton.style.display = 'block';
   }
 
-  fetch(`http://localhost:5678/webhook/word?word=${text}`)
+  fetch(`http://localhost:5678/webhook/word?word=${text}&previousWord=${previousWord}`)
     .then(response => response.json())
     .then(data => {
       let loadingButton = document.getElementById('loadingButton');
@@ -336,7 +357,11 @@ function showFixedBroadOnBottomLeft(text, context) {
       }
       fillBroadData(data);
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+      let errorData = {"output": [error]}
+      fillBroadData(errorData);
+      setTimeout(closeFixedBroad, 2000);
+    });
 }
 
 function fillBroadData(data) {
@@ -348,6 +373,11 @@ function fillBroadData(data) {
     paragraph.textContent = item;
     outputDiv.appendChild(paragraph);
   });
+}
+
+function closeFixedBroad() {
+  let fixedDiv = document.getElementById('fixedDiv');
+  fixedDiv.remove();
 }
 
 function createFixedBroad() {
@@ -376,7 +406,7 @@ function createFixedBroad() {
       closeButton.textContent = 'X';
       closeButton.style.padding = '10px'; // Added padding 10px
       closeButton.onclick = function() {
-        fixedDiv.remove();
+        closeFixedBroad();
       };
     }
 
@@ -385,11 +415,9 @@ function createFixedBroad() {
       loadingButton = document.createElement('p');
       loadingButton.id = 'loadingButton';
       loadingButton.textContent = 'Loading...';
+      loadingButton.style.fontSize = '15px';
     }
-
-
     
-
     let outputDiv = document.getElementById('outputDiv');
     if (!outputDiv) {
       outputDiv = document.createElement('div');
@@ -397,12 +425,46 @@ function createFixedBroad() {
       outputDiv.style.overflowY = 'auto';
       outputDiv.style.marginRight = '40px';
       outputDiv.style.maxHeight = '200px';
+      outputDiv.style.fontSize = '15px';
     }
 
     fixedDiv.appendChild(closeButton);
     fixedDiv.appendChild(loadingButton);
     fixedDiv.appendChild(outputDiv);
     document.body.appendChild(fixedDiv);
+}
+
+function showTypeAndVoiceInputOnBottomRight() {
+  let broadDiv = document.getElementById('broadDiv');
+  if (!broadDiv) {
+    broadDiv = document.createElement('div');
+    broadDiv.id = 'broadDiv';
+    broadDiv.style.position = 'fixed';
+    broadDiv.style.bottom = '16px';
+    broadDiv.style.right = '16px';
+    broadDiv.style.width = '40%';
+    broadDiv.style.backgroundColor = 'gray';
+    broadDiv.style.color = 'white';
+    broadDiv.style.padding = '10px';
+    broadDiv.style.borderRadius = '6px';
+    broadDiv.style.zIndex = '9999';
+  }
+
+  let textInput = document.getElementById('broadDivInput');
+  if (!textInput) {
+    textInput = document.createElement('textarea');
+    textInput.id = 'broadDivInput';
+    textInput.style.width = '100%';
+    textInput.style.height = '100px';
+    textInput.style.resize = 'none';
+    textInput.style.fontSize = '15px';
+    textInput.style.borderRadius = '6px';
+    textInput.style.boxSizing = 'border-box'; // Add box-sizing
+  }
+
+  // broadDiv.appendChild(closeButton);
+  broadDiv.appendChild(textInput);
+  document.body.appendChild(broadDiv);
 }
 
 function showAlert(text) {
@@ -479,6 +541,7 @@ function observeSubtitlesChanges() {
 let passage = [];
 let lastText = '';
 let preHighlight = '';
+let preHighlightInSubtitle = '';
 function processPassage(text, timeInSeconds) {
   if (text !== lastText) {
     preHighlight = lastText;
@@ -492,6 +555,11 @@ function processPassage(text, timeInSeconds) {
     }
   }
   console.log('preHighlight: ' + preHighlight);
+  if (preHighlightInSubtitle != preHighlight) {
+    preHighlightInSubtitle = preHighlight
+    addPreHighlightSubtitle(preHighlightInSubtitle)
+  }
+  
   let formattedPassage = passage.map(p => {
     if (p.text === text) {
       return `<span class="highlight">${p.text}</span>`;
@@ -502,7 +570,31 @@ function processPassage(text, timeInSeconds) {
     }
   }).join(' ');
   transcriptDivElement.innerHTML = formattedPassage;
+
+  
   scrollToHighlightedText();
+}
+
+function addPreHighlightSubtitle(rawText) {
+  addPreHightlightSubtitleWraper();
+  document.querySelector('.pre-highlight-subtitle').innerHTML = convertRawTextToSubtitleFormat(rawText);
+}
+
+function convertRawTextToSubtitleFormat(rawText) {
+  const words = rawText.split(' ');
+  let html = '';
+  words.forEach((word) => {
+    html += `<span class="ejoy-word" data-hover="true" data-text="${word}">${word} </span><span> </span>`;
+  });
+  return html;
+}
+
+function addPreHightlightSubtitleWraper() {
+  if (!document.querySelector('.pre-highlight-subtitle')) {
+    let html = '<div class="pre-highlight-subtitle" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;"></div>';
+    document.querySelector('.ejoy-subs-wrap').insertAdjacentHTML(
+      'afterbegin', html);
+  }
 }
 
 function getCurrentTime() {
