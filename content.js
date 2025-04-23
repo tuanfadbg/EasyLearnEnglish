@@ -602,6 +602,9 @@ function processPassage(text, timeInSeconds) {
 
   let formattedPassage = formatPassage(passage, text, preHighlight);
   transcriptDivElement.innerHTML = formattedPassage;
+  if (document.getElementById('autoscrollTranscriptButton').checked) {
+    scrollToHighlightedText();
+  }
 }
 
 function formatPassage(passage, text, preHighlight) {
@@ -643,10 +646,6 @@ function getSurroundingItems(text) {
   let beforeItem = index > 0 ? passage[index - 1] : null;
   let afterItem = index < passage.length - 1 ? passage[index + 1] : null;
   return { before: beforeItem, after: afterItem };
-}
-
-if (document.getElementById('autoscrollTranscriptButton').checked) {
-  scrollToHighlightedText();
 }
 
 function addPreHighlightSubtitle(rawText) {
