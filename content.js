@@ -58,6 +58,40 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+function addDynamicCSS() {
+  // Create a <style> element
+  const style = document.createElement('style');
+  style.type = 'text/css';
+
+  // Define the CSS rules
+  const css = `
+      .pre-highlight {
+          color: #90EE90;
+      }    
+      .highlight {
+          background-color: #198e8e;
+      }
+
+      #tuanfadbg-transcript {
+          max-height: 300px; /* Maximum height */
+          overflow-y: auto;  /* Enable vertical scrolling */
+          padding: 10px; /* Optional: Add some padding */
+          color: white;
+          font-family: "Roboto", "Arial", sans-serif;
+          font-size: 2rem;
+      }    
+  `;
+
+  // Add the CSS rules to the <style> element
+  style.appendChild(document.createTextNode(css));
+
+  // Append the <style> element to the <head>
+  document.head.appendChild(style);
+}
+
+// Call the function to add the CSS
+addDynamicCSS();
+
 const style = document.createElement('style');
 style.textContent = `
   .gtx-bubble {
@@ -130,41 +164,47 @@ function shouldAddTextInput() {
 const inputElement = document.createElement('textarea');
 const clearButton = document.createElement('button');
 const transcriptDivElement = document.createElement('div');
+const switchButton = document.createElement('input');
+switchButton.type = 'checkbox';
+switchButton.id = 'autoscrollTranscriptButton';
+switchButton.checked = true;
 initButtonAndTextArea();
 
 // Check if the current URL is YouTube
 function handleYouTubeContent() {
-    console.log("www.youtube.com")
-    // Find the div with the ID 'title'
-    const titleDiv = document.getElementById('below');
+  console.log("www.youtube.com")
+  // Find the div with the ID 'title'
+  const titleDiv = document.getElementById('below');
 
-    // Check if the div exists
-    if (titleDiv) {
-      console.log(titleDiv)
-      
-      // Add the input element at the beginning of the div
-      titleDiv.insertBefore(clearButton, titleDiv.firstChild);
-      titleDiv.insertBefore(inputElement, titleDiv.firstChild);
+  // Check if the div exists
+  if (titleDiv) {
+    console.log(titleDiv)
 
-      const scrollContainerDiv = document.querySelector('div.style-scope ytd-watch-next-secondary-results-renderer');
-      if (scrollContainerDiv) {
-        scrollContainerDiv.insertBefore(transcriptDivElement, scrollContainerDiv.firstChild);
-        // transcriptDivElement.appendChild(transcriptTextElement);
-      } else {
-        console.log("Div with class 'style-scope yt-chip-cloud-renderer' not found.");
-      }
+    // Add the input element at the beginning of the div
+    titleDiv.insertBefore(clearButton, titleDiv.firstChild);
+    titleDiv.insertBefore(inputElement, titleDiv.firstChild);
 
-      let observeSubtitles = function () {
-        if (!observeSubtitlesChanges()) {
-          setTimeout(observeSubtitles, 3000);
-        }
-      };
-      observeSubtitles();
-      return true;
+    const scrollContainerDiv = document.querySelector('div.style-scope ytd-watch-next-secondary-results-renderer');
+    if (scrollContainerDiv) {
+
+      scrollContainerDiv.insertBefore(switchButton, scrollContainerDiv.firstChild);
+      scrollContainerDiv.insertBefore(transcriptDivElement, scrollContainerDiv.firstChild);
+      // transcriptDivElement.appendChild(transcriptTextElement);
     } else {
-      console.log("Div with ID 'title' not found.");
-      return false;
+      console.log("Div with class 'style-scope yt-chip-cloud-renderer' not found.");
     }
+
+    let observeSubtitles = function () {
+      if (!observeSubtitlesChanges()) {
+        setTimeout(observeSubtitles, 3000);
+      }
+    };
+    observeSubtitles();
+    return true;
+  } else {
+    console.log("Div with ID 'title' not found.");
+    return false;
+  }
 }
 
 function handleDailyDictationContent() {
@@ -303,13 +343,13 @@ function getEjoySelectedText() {
 }
 
 function saveToWordbook(text, context) {
-  
+
   text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
   text = text.toLowerCase();
   chrome.storage.local.get(['wordbook'], function (result) {
     const wordbook = result.wordbook || [];
     console.log(wordbook);
-    
+
     let previousWord = '';
     for (let i = wordbook.length - 1; i >= 0; i--) {
       if (wordbook[i].text !== text) {
@@ -358,7 +398,7 @@ function showFixedBroadOnBottomLeft(text, previousWord) {
       fillBroadData(data);
     })
     .catch(error => {
-      let errorData = {"output": [error]}
+      let errorData = { "output": [error] }
       fillBroadData(errorData);
       setTimeout(closeFixedBroad, 2000);
     });
@@ -382,56 +422,56 @@ function closeFixedBroad() {
 
 function createFixedBroad() {
   let fixedDiv = document.getElementById('fixedDiv');
-    if (!fixedDiv) {
-      fixedDiv = document.createElement('div');
-      fixedDiv.id = 'fixedDiv';
-      fixedDiv.style.position = 'fixed';
-      fixedDiv.style.bottom = '16px';
-      fixedDiv.style.left = '16px'; // Changed from '50%' to '0' to position on the left of the screen
-      fixedDiv.style.width = '40%';
-      fixedDiv.style.backgroundColor = 'gray';
-      fixedDiv.style.color = 'white';
-      fixedDiv.style.padding = '16px';
-      fixedDiv.style.borderRadius = '6px';
-      fixedDiv.style.zIndex = '9999';
-    }
+  if (!fixedDiv) {
+    fixedDiv = document.createElement('div');
+    fixedDiv.id = 'fixedDiv';
+    fixedDiv.style.position = 'fixed';
+    fixedDiv.style.bottom = '16px';
+    fixedDiv.style.left = '16px'; // Changed from '50%' to '0' to position on the left of the screen
+    fixedDiv.style.width = '40%';
+    fixedDiv.style.backgroundColor = 'gray';
+    fixedDiv.style.color = 'white';
+    fixedDiv.style.padding = '16px';
+    fixedDiv.style.borderRadius = '6px';
+    fixedDiv.style.zIndex = '9999';
+  }
 
-    let closeButton = document.getElementById('closeButton');
-    if (!closeButton) {
-      closeButton = document.createElement('button');
-      closeButton.id = 'closeButton';
-      closeButton.style.position = 'absolute';
-      closeButton.style.top = '0';
-      closeButton.style.right = '0';
-      closeButton.textContent = 'X';
-      closeButton.style.padding = '10px'; // Added padding 10px
-      closeButton.onclick = function() {
-        closeFixedBroad();
-      };
-    }
+  let closeButton = document.getElementById('closeButton');
+  if (!closeButton) {
+    closeButton = document.createElement('button');
+    closeButton.id = 'closeButton';
+    closeButton.style.position = 'absolute';
+    closeButton.style.top = '0';
+    closeButton.style.right = '0';
+    closeButton.textContent = 'X';
+    closeButton.style.padding = '10px'; // Added padding 10px
+    closeButton.onclick = function () {
+      closeFixedBroad();
+    };
+  }
 
-    let loadingButton = document.getElementById('loadingButton');
-    if (!loadingButton) {
-      loadingButton = document.createElement('p');
-      loadingButton.id = 'loadingButton';
-      loadingButton.textContent = 'Loading...';
-      loadingButton.style.fontSize = '15px';
-    }
-    
-    let outputDiv = document.getElementById('outputDiv');
-    if (!outputDiv) {
-      outputDiv = document.createElement('div');
-      outputDiv.id = 'outputDiv';
-      outputDiv.style.overflowY = 'auto';
-      outputDiv.style.marginRight = '40px';
-      outputDiv.style.maxHeight = '200px';
-      outputDiv.style.fontSize = '15px';
-    }
+  let loadingButton = document.getElementById('loadingButton');
+  if (!loadingButton) {
+    loadingButton = document.createElement('p');
+    loadingButton.id = 'loadingButton';
+    loadingButton.textContent = 'Loading...';
+    loadingButton.style.fontSize = '15px';
+  }
 
-    fixedDiv.appendChild(closeButton);
-    fixedDiv.appendChild(loadingButton);
-    fixedDiv.appendChild(outputDiv);
-    document.body.appendChild(fixedDiv);
+  let outputDiv = document.getElementById('outputDiv');
+  if (!outputDiv) {
+    outputDiv = document.createElement('div');
+    outputDiv.id = 'outputDiv';
+    outputDiv.style.overflowY = 'auto';
+    outputDiv.style.marginRight = '40px';
+    outputDiv.style.maxHeight = '200px';
+    outputDiv.style.fontSize = '15px';
+  }
+
+  fixedDiv.appendChild(closeButton);
+  fixedDiv.appendChild(loadingButton);
+  fixedDiv.appendChild(outputDiv);
+  document.body.appendChild(fixedDiv);
 }
 
 function showTypeAndVoiceInputOnBottomRight() {
@@ -540,8 +580,7 @@ function observeSubtitlesChanges() {
 
 let passage = [];
 let lastText = '';
-let preHighlight = '';
-let preHighlightInSubtitle = '';
+
 function processPassage(text, timeInSeconds) {
   if (text !== lastText) {
     preHighlight = lastText;
@@ -549,18 +588,24 @@ function processPassage(text, timeInSeconds) {
     if (duplicateIndex !== -1) { // duplicate
       // passage.splice(duplicateIndex, 1); 
     } else {
-      passage.push({text: text, time: timeInSeconds});
+      passage.push({ text: text, time: timeInSeconds });
       passage.sort((a, b) => a.time - b.time);
       lastText = text;
     }
   }
-  console.log('preHighlight: ' + preHighlight);
-  if (preHighlightInSubtitle != preHighlight) {
-    preHighlightInSubtitle = preHighlight
-    addPreHighlightSubtitle(preHighlightInSubtitle)
-  }
-  
-  let formattedPassage = passage.map(p => {
+
+  let surroundingItems = getSurroundingItems(text);
+  // console.log('Before Item:', surroundingItems.before ? surroundingItems.before.text : 'None');
+  // console.log('After Item:', surroundingItems.after ? surroundingItems.after.text : 'None');
+
+  displaySurroundingItems(surroundingItems);
+
+  let formattedPassage = formatPassage(passage, text, preHighlight);
+  transcriptDivElement.innerHTML = formattedPassage;
+}
+
+function formatPassage(passage, text, preHighlight) {
+  return passage.map(p => {
     if (p.text === text) {
       return `<span class="highlight">${p.text}</span>`;
     } else if (p.text === preHighlight) {
@@ -569,18 +614,48 @@ function processPassage(text, timeInSeconds) {
       return `${p.text}`;
     }
   }).join(' ');
-  transcriptDivElement.innerHTML = formattedPassage;
+}
 
-  
+let beforeText = "";
+
+function displaySurroundingItems(surroundingItems) {
+  console.log(beforeText);
+  if (surroundingItems.before == null) return;
+  if (beforeText === surroundingItems.before.text) return;
+
+  beforeText = surroundingItems.before.text;
+  addHightlightSubtitleWraper();
+  if (surroundingItems.before == null) {
+    document.querySelector('.pre-highlight-subtitle').innerHTML = "";
+  } else {
+    document.querySelector('.pre-highlight-subtitle').innerHTML = convertRawTextToSubtitleFormat(surroundingItems.before.text);
+  }
+  if (surroundingItems.after == null) {
+    document.querySelector('.post-highlight-subtitle').innerHTML = "";
+  } else {
+    document.querySelector('.post-highlight-subtitle').innerHTML = convertRawTextToSubtitleFormat(surroundingItems.after.text);
+  }
+}
+
+// Function to get 1 item before and 1 item after text inside passage
+function getSurroundingItems(text) {
+  let index = passage.findIndex(p => p.text === text);
+  let beforeItem = index > 0 ? passage[index - 1] : null;
+  let afterItem = index < passage.length - 1 ? passage[index + 1] : null;
+  return { before: beforeItem, after: afterItem };
+}
+
+if (document.getElementById('autoscrollTranscriptButton').checked) {
   scrollToHighlightedText();
 }
 
 function addPreHighlightSubtitle(rawText) {
-  addPreHightlightSubtitleWraper();
+  addHightlightSubtitleWraper();
   document.querySelector('.pre-highlight-subtitle').innerHTML = convertRawTextToSubtitleFormat(rawText);
 }
 
 function convertRawTextToSubtitleFormat(rawText) {
+  if (rawText == null) return "";
   const words = rawText.split(' ');
   let html = '';
   words.forEach((word) => {
@@ -589,11 +664,15 @@ function convertRawTextToSubtitleFormat(rawText) {
   return html;
 }
 
-function addPreHightlightSubtitleWraper() {
+function addHightlightSubtitleWraper() {
   if (!document.querySelector('.pre-highlight-subtitle')) {
     let html = '<div class="pre-highlight-subtitle" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;"></div>';
     document.querySelector('.ejoy-subs-wrap').insertAdjacentHTML(
       'afterbegin', html);
+
+    let htmlpost = '<div class="post-highlight-subtitle" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;"></div>';
+    document.querySelector('.ejoy-subs-wrap').insertAdjacentHTML(
+      'beforeend', htmlpost);
   }
 }
 
@@ -609,8 +688,8 @@ function scrollToHighlightedText() {
   // Find the first highlighted element
   const highlightedElement = transcriptDivElement.querySelector(".highlight");
   if (!highlightedElement) {
-      console.error("No highlighted text found");
-      return;
+    console.error("No highlighted text found");
+    return;
   }
 
   // Scroll the container to the highlighted element
@@ -653,36 +732,4 @@ function initButtonAndTextArea() {
   transcriptDivElement.id = 'tuanfadbg-transcript';
 }
 
-function addDynamicCSS() {
-  // Create a <style> element
-  const style = document.createElement('style');
-  style.type = 'text/css';
 
-  // Define the CSS rules
-  const css = `
-      .pre-highlight {
-          color: #90EE90;
-      }    
-      .highlight {
-          background-color: #198e8e;
-      }
-
-      #tuanfadbg-transcript {
-          max-height: 300px; /* Maximum height */
-          overflow-y: auto;  /* Enable vertical scrolling */
-          padding: 10px; /* Optional: Add some padding */
-          color: white;
-          font-family: "Roboto", "Arial", sans-serif;
-          font-size: 2rem;
-      }    
-  `;
-
-  // Add the CSS rules to the <style> element
-  style.appendChild(document.createTextNode(css));
-
-  // Append the <style> element to the <head>
-  document.head.appendChild(style);
-}
-
-// Call the function to add the CSS
-addDynamicCSS();
