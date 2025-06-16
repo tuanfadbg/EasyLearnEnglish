@@ -164,11 +164,12 @@ function shouldAddTextInput() {
 const inputElement = document.createElement('textarea');
 const clearButton = document.createElement('button');
 const transcriptDivElement = document.createElement('div');
-const switchButton = document.createElement('input');
-switchButton.type = 'checkbox';
-switchButton.id = 'autoscrollTranscriptButton';
-switchButton.checked = true;
+const switchButton = createSwitchButton();
+const switchButtonLabel = createSwitchButtonLabel();
+const switchButtonDiv = createSwitchButtonDiv();
+
 initButtonAndTextArea();
+
 
 // Check if the current URL is YouTube
 function handleYouTubeContent() {
@@ -187,8 +188,9 @@ function handleYouTubeContent() {
     const scrollContainerDiv = document.querySelector('div.style-scope ytd-watch-next-secondary-results-renderer');
     if (scrollContainerDiv) {
 
-      scrollContainerDiv.insertBefore(switchButton, scrollContainerDiv.firstChild);
+      scrollContainerDiv.insertBefore(switchButtonDiv, scrollContainerDiv.firstChild);
       scrollContainerDiv.insertBefore(transcriptDivElement, scrollContainerDiv.firstChild);
+
       // transcriptDivElement.appendChild(transcriptTextElement);
     } else {
       console.log("Div with class 'style-scope yt-chip-cloud-renderer' not found.");
@@ -379,6 +381,7 @@ function saveToWordbook(text, context) {
     });
   });
 }
+const webhookUrl = 'http://localhost:5678/webhook/word';
 
 function showFixedBroadOnBottomLeft(text, previousWord) {
   createFixedBroad();
@@ -388,7 +391,7 @@ function showFixedBroadOnBottomLeft(text, previousWord) {
     loadingButton.style.display = 'block';
   }
 
-  fetch(`http://localhost:5678/webhook/word?word=${text}&previousWord=${previousWord}`)
+  fetch(`${webhookUrl}?word=${text}&previousWord=${previousWord}`)
     .then(response => response.json())
     .then(data => {
       let loadingButton = document.getElementById('loadingButton');
@@ -507,47 +510,6 @@ function showTypeAndVoiceInputOnBottomRight() {
   document.body.appendChild(broadDiv);
 }
 
-function showAlert(text) {
-  // Check if the popup already exists
-  let popup = document.getElementById('popup');
-
-  if (!popup) {
-    // Create the popup element
-    popup = document.createElement('div');
-    popup.id = 'popup';
-    document.body.appendChild(popup);
-
-    // Style the popup element
-    const style = document.createElement('style');
-    style.textContent = `
-        #popup {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #4CAF50;
-            color: white;
-            text-align: center;
-            border-radius: 2px;
-            padding: 16px;
-            position: fixed;
-            z-index: 1;
-            left: 50%;
-            bottom: 30px;
-            font-size: 17px;
-            transform: translateX(-50%);
-        }
-    `;
-    document.head.appendChild(style);
-  }
-
-  popup.textContent = text;
-
-  // Show the popup
-  popup.style.visibility = 'visible';
-  setTimeout(function () {
-    popup.style.visibility = 'hidden';
-  }, 2000);
-}
-
 
 function observeSubtitlesChanges() {
   console.log("Starting to observe changes in subtitles");
@@ -633,11 +595,11 @@ function displaySurroundingItems(surroundingItems) {
   } else {
     document.querySelector('.pre-highlight-subtitle').innerHTML = convertRawTextToSubtitleFormat(surroundingItems.before.text);
   }
-  if (surroundingItems.after == null) {
-    document.querySelector('.post-highlight-subtitle').innerHTML = "";
-  } else {
-    document.querySelector('.post-highlight-subtitle').innerHTML = convertRawTextToSubtitleFormat(surroundingItems.after.text);
-  }
+  // if (surroundingItems.after == null) {
+  //   document.querySelector('.post-highlight-subtitle').innerHTML = "";
+  // } else {
+  //   document.querySelector('.post-highlight-subtitle').innerHTML = convertRawTextToSubtitleFormat(surroundingItems.after.text);
+  // }
 }
 
 // Function to get 1 item before and 1 item after text inside passage
@@ -698,30 +660,28 @@ function scrollToHighlightedText() {
 
 
 function initButtonAndTextArea() {
-  // Set attributes for the input element
-  inputElement.id = 'dictationInputTuanFadbg'; // Set an ID for the input
+  inputElement.id = 'dictationInputTuanFadbg';
   inputElement.placeholder = 'Type your dictation here';
   inputElement.style.width = '100%';
-  inputElement.style.backgroundColor = 'white'; // Set background color to white
-  inputElement.style.borderRadius = '12px'; // Set border radius to 16px
-  inputElement.style.marginTop = '10px'; // Optional: Add some margin
-  inputElement.style.border = 'none'; // Remove border
-  inputElement.rows = 2; // Set the number of rows for a 2-line text input
-  inputElement.style.fontSize = '2rem'; // Set font size
-  inputElement.style.boxSizing = 'border-box'; // Add box-sizing
-  inputElement.style.padding = '12px'; // Add padding
+  // inputElement.style.backgroundColor = 'white';
+  inputElement.style.borderRadius = '12px';
+  inputElement.style.marginTop = '10px';
+  inputElement.style.border = 'none';
+  inputElement.rows = 2;
+  inputElement.style.fontSize = '2rem';
+  inputElement.style.boxSizing = 'border-box';
+  inputElement.style.padding = '12px';
   inputElement.addEventListener('dblclick', () => {
-    inputElement.value = ''; // Clear the input field
+    inputElement.value = '';
   });
 
   clearButton.textContent = 'Clear';
-  clearButton.style.marginTop = '10px'; // Optional: Add some margin
-  clearButton.style.fontSize = '1.5rem'; // Add font size
-  clearButton.style.backgroundColor = 'rgba(128, 128, 128, 0.2)'; // Add background color with opacity
-  clearButton.style.color = 'white'; // Add text color
-  clearButton.style.padding = '8px'; // Add padding
-  clearButton.style.borderRadius = '12px'; // Add border radius
-  // clearButton.className = 'btn btn-primary'; // Optional: Add Bootstrap class for styling
+  clearButton.style.marginTop = '10px';
+  clearButton.style.fontSize = '1.5rem';
+  clearButton.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
+  clearButton.style.color = 'white';
+  clearButton.style.padding = '8px';
+  clearButton.style.borderRadius = '12px';
 
   // Add event listener to the clear button
   clearButton.addEventListener('click', () => {
@@ -731,4 +691,79 @@ function initButtonAndTextArea() {
   transcriptDivElement.id = 'tuanfadbg-transcript';
 }
 
+// Function to create and configure the switch button
+function createSwitchButton() {
+  const switchButton = document.createElement('input');
+  switchButton.type = 'checkbox';
+  switchButton.id = 'autoscrollTranscriptButton';
+  switchButton.checked = false;
+  switchButton.style.fontSize = 'larger';
+  switchButton.style.textAlign = 'left';
+  switchButton.style.marginLeft = '0px';
+  switchButton.style.display = 'inline-block';
+  return switchButton;
+}
 
+// Function to create and configure the switch button label
+function createSwitchButtonLabel() {
+  const switchButtonLabel = document.createElement('label');
+  switchButtonLabel.htmlFor = 'autoscrollTranscriptButton';
+  switchButtonLabel.style.fontSize = 'larger';
+  switchButtonLabel.style.marginLeft = '5px';
+  switchButtonLabel.style.color = 'white';
+  switchButtonLabel.textContent = 'Auto Scroll';
+  switchButtonLabel.style.display = 'inline-block';
+  return switchButtonLabel;
+}
+
+// Function to create and configure the switch button container
+function createSwitchButtonDiv() {
+  const switchButtonDiv = document.createElement('div');
+  switchButtonDiv.style.display = 'flex';
+  switchButtonDiv.style.alignItems = 'center';
+  switchButtonDiv.style.justifyContent = 'center';
+  switchButtonDiv.appendChild(switchButton);
+  switchButtonDiv.appendChild(switchButtonLabel);
+  return switchButtonDiv;
+}
+
+function showAlert(text) {
+  // Check if the popup already exists
+  let popup = document.getElementById('popup');
+
+  if (!popup) {
+    // Create the popup element
+    popup = document.createElement('div');
+    popup.id = 'popup';
+    document.body.appendChild(popup);
+
+    // Style the popup element
+    const style = document.createElement('style');
+    style.textContent = `
+        #popup {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            transform: translateX(-50%);
+        }
+    `;
+    document.head.appendChild(style);
+  }
+
+  popup.textContent = text;
+
+  // Show the popup
+  popup.style.visibility = 'visible';
+  setTimeout(function () {
+    popup.style.visibility = 'hidden';
+  }, 2000);
+}
