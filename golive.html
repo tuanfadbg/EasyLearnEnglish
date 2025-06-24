@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Go Live Word Lookup</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; color: #222; padding: 40px; }
+    .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px #0002; position: relative; }
+    label { display: block; margin-bottom: 8px; font-size: 1.1em; }
+    input[type="text"] { width: 100%; padding: 8px; font-size: 1.1em; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 16px; }
+    textarea { width: 100%; padding: 8px; font-size: 1.1em; border-radius: 6px; border: 1px solid #ccc; resize: none; background: #f4f4f4; color: #222; }
+    .loading { color: #198e8e; margin-bottom: 8px; }
+    .toggle-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #eee;
+      color: #222;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .toggle-btn.night {
+      background: #222;
+      color: #fff;
+    }
+    body.night-mode {
+      background: #222;
+      color: #fff;
+    }
+    body.night-mode .container {
+      background: #333;
+      box-shadow: 0 2px 8px #0008;
+    }
+    body.night-mode input[type="text"],
+    body.night-mode textarea {
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+    }
+    body.night-mode .loading {
+      color: #90ee90;
+    }
+    .previous-result-section {
+      margin-top: 32px;
+      padding: 16px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border: 1px solid #eee;
+      color: #444;
+    }
+    body.night-mode .previous-result-section {
+      background: #222;
+      border: 1px solid #444;
+      color: #bbb;
+    }
+    .previous-result-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 1.05em;
+    }
+    .previous-result-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .previous-result-item {
+      padding: 10px 12px;
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      color: #222;
+      white-space: pre-wrap;
+      font-family: inherit;
+      font-size: 1em;
+      box-shadow: 0 1px 3px #0001;
+    }
+    body.night-mode .previous-result-item {
+      background: #222;
+      border: 1px solid #444;
+      color: #bbb;
+      box-shadow: 0 1px 3px #0006;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button id="toggleNightMode" class="toggle-btn" aria-pressed="false" title="Toggle night mode">🌙 Night Mode</button>
+    <label for="wordInput">Enter word:</label>
+    <input type="text" id="wordInput" autocomplete="off" placeholder="Type a word and press Enter..." />
+    <label for="outputArea">Result:</label>
+    <textarea id="outputArea" rows="20"></textarea>
+    <div id="loadingMsg" class="loading" style="display:none;">Loading...</div>
+    <div id="previousResultSection" class="previous-result-section" style="display:none;">
+      <div class="previous-result-title">Previous Results:</div>
+      <div id="previousResultList" class="previous-result-list"></div>
+    </div>
+  </div>
+  <script>
+    const webhookUrl = 'http://localhost:5678/webhook/word';
+    const wordInput = document.getElementById('wordInput');
+    const outputArea = document.getElementById('outputArea');
+    const loadingMsg = document.getElementById('loadingMsg');
+    const toggleNightMode = document.getElementById('toggleNightMode');
+    const previousResultSection = document.getElementById('previousResultSection');
+    const previousResultList = document.getElementById('previousResultList');
+
+    // Store all previous results
+    const previousResults = [];
+    let previousWord = '';
+    let currentWord = '';
+
+    // Default to light mode
+    document.body.classList.remove('night-mode');
+    toggleNightMode.classList.remove('night');
+    toggleNightMode.setAttribute('aria-pressed', 'false');
+    toggleNightMode.textContent = '🌙 Night Mode';
+
+    toggleNightMode.addEventListener('click', function() {
+      const isNight = document.body.classList.toggle('night-mode');
+      if (isNight) {
+        toggleNightMode.classList.add('night');
+        toggleNightMode.setAttribute('aria-pressed', 'true');
+        toggleNightMode.textContent = '☀️ Light Mode';
+      } else {
+        toggleNightMode.classList.remove('night');
+        toggleNightMode.setAttribute('aria-pressed', 'false');
+        toggleNightMode.textContent = '🌙 Night Mode';
+      }
+    });
+
+    wordInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const word = wordInput.value.trim();
+        if (word) {
+          previousWord = currentWord;
+          currentWord = word;
+          helloMyServer(word, previousWord);
+        }
+      }
+    });
+
+    function helloMyServer(text, previousWord) {
+      // Store current result in previousResults array if not empty
+      if (outputArea.value.trim() !== '') {
+        previousResults.unshift(outputArea.value); // Add to the beginning
+        renderPreviousResults();
+      }
+      loadingMsg.style.display = 'block';
+      outputArea.value = '';
+      fetch(`${webhookUrl}?word=${encodeURIComponent(text)}&previousWord=${encodeURIComponent(previousWord)}`)
+        .then(response => response.json())
+        .then(data => {
+          loadingMsg.style.display = 'none';
+          fillBroadData(data);
+        })
+        .catch(error => {
+          loadingMsg.style.display = 'none';
+          fillBroadData({ output: [error.toString()] });
+        });
+    }
+
+    function fillBroadData(data) {
+      if (data && Array.isArray(data.output)) {
+        outputArea.value = data.output.join('\n');
+      } else {
+        outputArea.value = 'No output.';
+      }
+    }
+
+    function renderPreviousResults() {
+      previousResultList.innerHTML = '';
+      if (previousResults.length === 0) {
+        previousResultSection.style.display = 'none';
+        return;
+      }
+      previousResultSection.style.display = 'block';
+      previousResults.forEach((result, idx) => {
+        const div = document.createElement('div');
+        div.className = 'previous-result-item';
+        div.textContent = result;
+        previousResultList.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
