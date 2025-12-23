@@ -274,6 +274,8 @@ function findTextAndAddToWordbook(request) {
   const ejoySelectedText = getEjoySelectedText();
   if (ejoySelectedText === '') {
     const selectedText = window.getSelection().toString();
+    // check if dictationInput is not empty 
+    const context = document.getElementById('dictationInput') ? document.getElementById('dictationInput').value : '';
     if (selectedText === '') {
       console.log("Element not found.");
       if (request && request.type == "no-alert") {
@@ -282,7 +284,7 @@ function findTextAndAddToWordbook(request) {
         showAlert("Element not found")
       }
     } else {
-      saveToWordbook(selectedText);
+      saveToWordbook(selectedText, context);
     }
   } else {
     const context = getEjoySelectedContext();

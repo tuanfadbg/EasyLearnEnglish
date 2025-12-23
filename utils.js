@@ -79,7 +79,7 @@ function toggleNightMode() {
 
 // Add click event to the word element to open Google Translate
 function openGoogleTranslate(text) {
-    const translateUrl = `https://translate.google.com/?sl=en&tl=vi&text=${encodeURIComponent(text)}&op=translate`;
+    const translateUrl = `https://translate.google.com/details?sl=en&tl=vi&text=${encodeURIComponent(text)}&op=translate`;
 
     // Check for existing Google Translate tab
     chrome.tabs.query({}, (tabs) => {
