@@ -424,33 +424,54 @@ function showFixedBroadOnBottomLeft(text, previousWord) {
     loadingButton.style.display = 'block';
   }
 
+  const startTime = performance.now();
+
   return fetch(`${webhookUrl}?word=${text}&previousWord=${previousWord}`)
     .then(response => response.json())
     .then(data => {
+      const endTime = performance.now();
+      const processingTime = endTime - startTime;
+
       let loadingButton = document.getElementById('loadingButton');
       if (loadingButton) {
         loadingButton.style.display = 'none';
       }
-      fillBroadData(data);
+      fillBroadData(data, processingTime);
+      // Return both data.output and processing time in ms
       return data.output;
     })
     .catch(error => {
+      const endTime = performance.now();
+      const processingTime = endTime - startTime;
       let errorData = { "output": [error] }
-      fillBroadData(errorData);
+      fillBroadData(errorData, processingTime);
       setTimeout(closeFixedBroad, 2000);
-      return Promise.reject(errorData);
+      return Promise.reject({ errorData, processingTime });
     });
 }
 
-function fillBroadData(data) {
+function fillBroadData(data, processingTime) {
+  processingTime = Math.round(processingTime);
   let outputDiv = document.getElementById('outputDiv');
   outputDiv.innerHTML = "";
+  const processingTimeText = `Processing time: ${processingTime} ms`;
+  
   // data = {"output":["The artist hopes to create a beautiful sculpture from this block of marble.","The company's creative team is brainstorming new ideas for the next advertising campaign.","Her innovative creations have earned her recognition in the design world."]}
-  data.output.forEach((item) => {
-    const paragraph = document.createElement('p');
-    paragraph.textContent = item;
-    outputDiv.appendChild(paragraph);
-  });
+  try {
+    data.output.forEach((item) => {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = item;
+      outputDiv.appendChild(paragraph);
+    });
+  } catch (err) {
+    // If there's an error, show the raw data
+    const errorParagraph = document.createElement('p');
+    errorParagraph.textContent = 'Raw data: ' + JSON.stringify(data);
+    outputDiv.appendChild(errorParagraph);
+  }
+  const processingTimeParagraph = document.createElement('p');
+  processingTimeParagraph.textContent = processingTimeText;
+  outputDiv.appendChild(processingTimeParagraph);
 }
 
 function closeFixedBroad() {
@@ -471,7 +492,7 @@ function createFixedBroad() {
     fixedDiv.style.color = 'white';
     fixedDiv.style.padding = '16px';
     fixedDiv.style.borderRadius = '6px';
-    fixedDiv.style.zIndex = '9999';
+    fixedDiv.style.zIndex = '9997';
   }
 
   let closeButton = document.getElementById('closeButton');

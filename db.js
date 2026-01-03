@@ -90,6 +90,64 @@ function addLinkedToSavedWord(wordInWordBook, wordInSavedWord, callback) {
     });
 }
 
+function addContextToWordbook(text, context) {
+    // Normalize text: remove punctuation and convert to lowercase
+    text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+    text = text.toLowerCase();
+    
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(['wordbook'], function (result) {
+            const wordbook = result.wordbook || [];
+            console.log(wordbook);
+
+            let previousWord = '';
+            for (let i = wordbook.length - 1; i >= 0; i--) {
+                if (wordbook[i].text !== text) {
+                    previousWord = wordbook[i].text;
+                    break;
+                }
+            }
+
+            // Normalize context to an array
+            let contextsToAdd = [];
+            if (Array.isArray(context)) {
+                // If context is an array, filter out empty strings and add all valid contexts
+                contextsToAdd = context.filter(ctx => ctx && typeof ctx === 'string' && ctx.trim() !== '');
+            } else if (typeof context === 'string' && context.trim() !== '') {
+                // If context is a string, add it to the array
+                contextsToAdd = [context];
+            }
+
+            const existingEntry = wordbook.find(entry => entry.text === text);
+            if (existingEntry) {
+                // Remove any empty or whitespace-only contexts from existingEntry.context
+                existingEntry.context = existingEntry.context.filter(ctx => ctx && ctx.trim() !== '');
+                // Add new contexts (avoid duplicates)
+                contextsToAdd.forEach(newContext => {
+                    if (!existingEntry.context.includes(newContext)) {
+                        existingEntry.context.push(newContext);
+                    }
+                });
+                existingEntry.time_updated = new Date().toISOString();
+            } else {
+                // Create new entry with contexts array
+                wordbook.push({
+                    "text": text,
+                    "context": contextsToAdd,
+                    "time_created": new Date().toISOString(),
+                    "time_updated": new Date().toISOString(),
+                    "added_to_saved_word": "false"
+                });
+            }
+
+            chrome.storage.local.set({ wordbook: wordbook }, function () {
+                console.log('added to wordbook: ', wordbook);
+                resolve({ text, previousWord });
+            });
+        });
+    });
+}
+
 function addWord(word, meaning, note, callback) {
     console.log(`Adding word: ${word}, meaning: ${meaning}, note: ${note}`);
     const timestamp = new Date().toLocaleString();
@@ -132,6 +190,8 @@ function deleteWordBook(word, callback) {
         });
     }
 }
+
+
 
 function updateWord(currentWord, updatedWord, callback) {
     console.log(`Updating word: ${currentWord.word}, to: ${updatedWord.word}, meaning: ${updatedWord.meaning}, note: ${updatedWord.note}`);

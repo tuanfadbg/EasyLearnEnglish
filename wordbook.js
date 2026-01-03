@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Update the title with the number of words
         document.getElementById('title').innerHTML = `WordBook (${wordbook.length} words)`; // Update the title
-        
+
 
         console.log(wordbook);
         // Iterate over the wordbook and create table rows
@@ -38,8 +38,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function sortWordbook(wordbook, order) {
         wordbook.sort((a, b) => {
-            return order === 'desc' 
-                ? new Date(b.time_updated) - new Date(a.time_updated) 
+            return order === 'desc'
+                ? new Date(b.time_updated) - new Date(a.time_updated)
                 : new Date(a.time_updated) - new Date(b.time_updated);
         });
     }
@@ -159,7 +159,7 @@ function showRandomWord() {
         document.getElementById('randomWord').textContent = `${randomWordGame.text}`;
         document.getElementById('randomContext').innerHTML = `${randomWordGame.context.join('<br/>')}`;
 
-        
+
 
         // Store the current word for remembering/not remembering
         document.getElementById('rememberButton').dataset.word = randomWordGame.text;
@@ -183,6 +183,7 @@ document.getElementById('rememberButton').addEventListener('click', function () 
     updateRememberStatistics(word, true); // Update statistics for remembering
     showRandomWord(); // Show the next random word
     collapseSaveContainer();
+    clearMemoryGameTextArea();
 });
 
 // Handle Not Remember button click
@@ -191,6 +192,7 @@ document.getElementById('notRememberButton').addEventListener('click', function 
     updateRememberStatistics(word, false); // Update statistics for not remembering
     showRandomWord(); // Show the next random word
     collapseSaveContainer();
+    clearMemoryGameTextArea();
 });
 
 // Add event listener for Remember Forever button click
@@ -199,12 +201,13 @@ document.getElementById('rememberForeverButton').addEventListener('click', funct
     updateRememberForeverStatistics(word); // Update statistics for remembering forever
     showRandomWord(); // Show the next random word
     collapseSaveContainer();
+    clearMemoryGameTextArea();
 });
 
 const editAndSaveWord = document.getElementById('editAndSaveWord');
 editAndSaveWord.addEventListener('click', function () {
     addWord(wordInput.value, meaningInput.value, noteInput.value, () => {
-        
+
     });
 });
 
@@ -278,7 +281,7 @@ function checkWordIsExist() {
     const word = document.getElementById('word-save').value.trim();
     const errorMessage = document.getElementById('error-message-save'); // Add this line to get the error message element
     errorMessage.textContent = ''; // Clear previous error message
-    
+
     if (word) {
         checkWordIsExisted(word).then(exists => {
             if (exists) {
@@ -317,7 +320,7 @@ function fillExistedWordToInput() {
 
 // Add event listener for "Add to Saved Word" button
 document.getElementById('addToSavedWordButton').addEventListener('click', function () {
-    
+
     const saveContainer = document.getElementById('save-container');
     // Collapse the save-container only if it's open
     $(saveContainer).collapse('show');
@@ -346,20 +349,219 @@ function saveToSavedWord() {
     });
 
     addLinkedToSavedWord(
-        document.getElementById('rememberButton').dataset.word, 
-        wordInput.value, 
-        ()=> {}
+        document.getElementById('rememberButton').dataset.word,
+        wordInput.value,
+        () => { }
     );
+}
+
+function checkGrammar(word, sentence) {
+    const grammarWebhookUrl = 'http://localhost:5678/webhook/grammar';
+    // const grammarWebhookUrl = 'http://google.com';
+
+    const startTime = performance.now();
+
+    return fetch(`${grammarWebhookUrl}?word=${encodeURIComponent(word)}&sentence=${encodeURIComponent(sentence)}`)
+        .then(response => response.text())
+        .then(text => {
+            const endTime = performance.now();
+            const processingTime = Math.round(endTime - startTime);
+            const responseWithTime = `${text} (Processing time: ${processingTime} ms)`;
+            console.log(responseWithTime);
+            return responseWithTime;
+        })
+        .catch(error => {
+            const endTime = performance.now();
+            const processingTime = Math.round(endTime - startTime);
+            const errorMessage = `Error: ${error} (Processing time: ${processingTime} ms)`;
+            console.error('Grammar check error:', errorMessage);
+            return Promise.reject(errorMessage);
+        });
+}
+
+function markdownToHtml(markdown) {
+    if (typeof markdown !== 'string') {
+        return JSON.stringify(markdown);
+    }
+
+    let html = markdown;
+    const lines = html.split('\n');
+    let processedLines = [];
+    let tableRows = [];
+    let inTable = false;
+
+    // Process tables line by line
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmedLine = line.trim();
+        
+        // Check if this is a table row
+        if (trimmedLine.startsWith('|') && trimmedLine.endsWith('|')) {
+            // Skip separator rows (|---|---|)
+            if (!trimmedLine.match(/^\|[\s\-:]+\|$/)) {
+                if (!inTable) {
+                    inTable = true;
+                    tableRows = [];
+                }
+                const cells = trimmedLine.split('|').slice(1, -1).map(cell => cell.trim());
+                tableRows.push(cells);
+            }
+        } else {
+            // If we were in a table, close it
+            if (inTable && tableRows.length > 0) {
+                let tableHtml = '<table class="table table-bordered table-sm mt-2 mb-2" style="font-size: 0.9em;"><tbody>';
+                tableRows.forEach((row, idx) => {
+                    tableHtml += '<tr>';
+                    row.forEach(cell => {
+                        const tag = idx === 0 ? 'th' : 'td';
+                        const cellContent = markdownToHtmlInline(cell);
+                        tableHtml += `<${tag} style="padding: 8px;">${cellContent}</${tag}>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+                tableHtml += '</tbody></table>';
+                processedLines.push(tableHtml);
+                tableRows = [];
+                inTable = false;
+            }
+            processedLines.push(line);
+        }
+    }
+    
+    // Handle table at end of text
+    if (inTable && tableRows.length > 0) {
+        let tableHtml = '<table class="table table-bordered table-sm mt-2 mb-2" style="font-size: 0.9em;"><tbody>';
+        tableRows.forEach((row, idx) => {
+            tableHtml += '<tr>';
+            row.forEach(cell => {
+                const tag = idx === 0 ? 'th' : 'td';
+                const cellContent = markdownToHtmlInline(cell);
+                tableHtml += `<${tag} style="padding: 8px;">${cellContent}</${tag}>`;
+            });
+            tableHtml += '</tr>';
+        });
+        tableHtml += '</tbody></table>';
+        processedLines.push(tableHtml);
+    }
+    
+    html = processedLines.join('\n');
+
+    // Convert headers (### Header)
+    html = html.replace(/^### (.+)$/gm, '<h3 class="mt-3 mb-2" style="font-size: 1.2em; font-weight: bold;">$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2 class="mt-3 mb-2" style="font-size: 1.3em; font-weight: bold;">$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1 class="mt-3 mb-2" style="font-size: 1.5em; font-weight: bold;">$1</h1>');
+
+    // Convert blockquotes (> text)
+    html = html.replace(/^> (.+)$/gm, '<blockquote class="blockquote border-left pl-3 mb-2" style="border-left: 3px solid #ccc; padding-left: 15px; margin: 10px 0;">$1</blockquote>');
+
+    // Convert bold (**text**) - must be done after other processing
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Convert inline code (`code`)
+    html = html.replace(/`([^`]+)`/g, '<code style="background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px;">$1</code>');
+
+    // Convert line breaks (but preserve existing HTML)
+    html = html.replace(/\n/g, '<br>');
+
+    return html;
+}
+
+function markdownToHtmlInline(text) {
+    if (!text) return '';
+    let html = text;
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    return html;
+}
+
+function clearMemoryGameTextArea() {
+    if (memoryGameTextArea) {
+        memoryGameTextArea.value = '';
+    }
+    if (grammarCheckResult) {
+        grammarCheckResult.innerHTML = '';
+        grammarCheckResult.textContent = '';
+        grammarCheckResult.style.color = '';
+    }
 }
 
 function collapseSaveContainer() {
     const saveContainer = document.getElementById('save-container');
     // Collapse the save-container only if it's open
     // if ($(saveContainer).collapse('show')) {
-        $(saveContainer).collapse('hide');
+    $(saveContainer).collapse('hide');
     // }
 }
 
 $('#memoryGameModal').on('hidden.bs.modal', function () {
     collapseSaveContainer(); // Call collapseSaveContainer when the modal is closed
 });
+
+const checkGrammarButton = document.getElementById('checkGrammarButton');
+const memoryGameTextArea = document.getElementById('memoryGameTextArea');
+const grammarCheckResult = document.getElementById('grammarCheckResult');
+checkGrammarButton.addEventListener('click', function () {
+    // Get the "randomWord" value for word, textarea value for sentence
+    const word = document.getElementById('randomWord').textContent.trim();
+    const sentence = memoryGameTextArea.value.trim();
+
+    if (!word || !sentence) {
+        grammarCheckResult.textContent = 'Please enter a note to check grammar.';
+        grammarCheckResult.style.color = 'red';
+        return;
+    }
+
+    // Call the checkGrammar function defined in JS
+    if (typeof checkGrammar === 'function') {
+        grammarCheckResult.textContent = 'Checking...';
+        grammarCheckResult.style.color = '';
+        checkGrammar(word, sentence)
+            .then(result => {
+                // Convert markdown to HTML for proper display
+                grammarCheckResult.innerHTML = markdownToHtml(result);
+                grammarCheckResult.style.color = 'white';
+            })
+            .catch(err => {
+                grammarCheckResult.textContent = 'Could not check grammar.';
+                grammarCheckResult.style.color = 'red';
+            });
+    } else {
+        grammarCheckResult.textContent = 'Grammar check function not available.';
+        grammarCheckResult.style.color = 'red';
+    }
+});
+
+const addContextButton = document.getElementById('addContextButton');
+addContextButton.addEventListener('click', function () {
+    // Get the word from randomWord and context from textarea
+    const word = document.getElementById('randomWord').textContent.trim();
+    const context = memoryGameTextArea.value.trim();
+
+    if (!word) {
+        alert('Please select a word first.');
+        return;
+    }
+
+    if (!context) {
+        alert('Please enter a context/note to add.');
+        return;
+    }
+
+    // Call the addContextToWordbook function from db.js
+    if (typeof addContextToWordbook === 'function') {
+        addContextToWordbook(word, context)
+            .then(({ text, previousWord }) => {
+                console.log(`Context added to word: ${text}, previous word: ${previousWord}`);
+                // alert('Context added successfully!');
+                // Optionally clear the textarea after successful add
+                memoryGameTextArea.value = '';
+            })
+            .catch(err => {
+                console.error('Error adding context:', err);
+                // alert('Error adding context. Please try again.');
+            });
+    } else {
+        alert('addContextToWordbook function not available.');
+    }
+});
+
