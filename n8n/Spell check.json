@@ -1,0 +1,170 @@
+{
+  "name": "Spell check",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "spell-check",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "0c9153fd-0a42-40e1-a41a-bc12417937e2",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -640,
+        304
+      ],
+      "webhookId": "d8ef78fc-ab33-43c7-84f3-bbff2208d642",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I am learning English. Please check the spelling and grammar of this sentence: \"{{ $json.query.sentence }}\".\nAlso, give me some advice on how to improve it.\nPlease provide a JSON array of sentences.\nEach sentence in the array should be a string.\nReturn the output as plain JSON, without any markdown formatting like triple backticks or code block labels.\nI want the output to be in this JSON array format and without key, fill exactly sentence in right place:\nS1: Fixed spelling and grammar sentences, please bold the wrong\nS2: Refined version for my sentence 1\nS3: Refined version for my sentence 2\n[\"S1\",\"S2\",\"S3\"]",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -384,
+        304
+      ],
+      "id": "76378ec7-d1de-4151-8214-2f4afcbcca8b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1-0528:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        512
+      ],
+      "id": "17508309-05ba-4763-88f3-c391c8ac5db1",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qROHRyKCFNYUMsQ6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ $json.output }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        0
+      ],
+      "id": "69490a3c-a266-4261-9410-87f43e109069",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "jsCode": "function convertMarkdownJsonToJson(markdownJsonString) {\n  // Remove triple backticks and \"json\" label (if present)\n  let cleanedString = markdownJsonString.replace(/^```json\\n/, '').replace(/\\n```$/, '').trim();\n  cleanedString = cleanedString.replace(/```/g, '').trim();\n  cleanedString = cleanedString.replace(/\\n/g, '').replace(/\\s+/g, ' ').trim();;\n  console.log(cleanedString);\n  return cleanedString;\n}\n\n// Example usage:\nconst markdownString = $input.first().json.output;\n\nconst plainJsonObject = convertMarkdownJsonToJson(markdownString);\nlet output = {\"output\": plainJsonObject};\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "65890dfb-f142-438a-b71c-4310a11ecf9a",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ $json.output }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        320
+      ],
+      "id": "456a4557-3420-4071-8ab3-800aac5d2258",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "OpenRouter Chat Model": [
+      {
+        "json": {
+          "output": "```json\n{\n  \"sentences\": [\n    \"The explorers hoped to discover new lands\",\n    \"Scientists are constantly making new discoveries in the field of medicine\",\n    \"It was a great experience to rediscover my love for reading\"\n  ]\n}\n```"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "d49ffa34-a274-49df-8943-bf09856c9d66",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6018e2d2b0055910a386c664271432ca2f0fc1e47b02edcdea47ec94524e39c4"
+  },
+  "id": "3S4IOFOgfNOtvevc",
+  "tags": []
+}

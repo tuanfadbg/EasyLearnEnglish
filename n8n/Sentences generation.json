@@ -1,0 +1,290 @@
+{
+  "name": "Sentences generation",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "word",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "ed6f8199-5ec6-424f-a2b4-962d45a12b50",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        0,
+        288
+      ],
+      "webhookId": "6f7b288e-1efe-4504-a6fd-660931327269",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I am learning English, help me to write 3 sentences using the words \"{{ $json.query.word }}\", {{ $json.query.previousWord }}\" and its variations\nPlease provide a JSON array of sentences.\nEach sentence in the array should be a string.\nReturn the output as plain JSON, without any markdown formatting like triple backticks or code block labels.\nI want the output to be in this JSON array format:\n[\"Sentence 1\",\"Sentence 2\",\"Sentence 3\"]",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        272,
+        288
+      ],
+      "id": "6ac22d79-5384-4df1-9aac-ec39092003e6",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1-0528:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        272,
+        432
+      ],
+      "id": "6fa9e969-0fbb-4fde-b0c1-4d4c2c25ad83",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qROHRyKCFNYUMsQ6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ $json.output }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        288
+      ],
+      "id": "89736257-1844-46db-a801-1ca10c86584c",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "function convertMarkdownJsonToJson(markdownJsonString) {\n  // Remove triple backticks and \"json\" label (if present)\n  let cleanedString = markdownJsonString.replace(/^```json\\n/, '').replace(/\\n```$/, '').trim();\n  cleanedString = cleanedString.replace(/```/g, '').trim();\n  cleanedString = cleanedString.replace(/\\n/g, '').replace(/\\s+/g, ' ').trim();;\n  console.log(cleanedString);\n  return cleanedString;\n}\n\n// Example usage:\nconst markdownString = $input.item.json.output;\n// const markdownString = $input.first().json.output;\n\nif ($input.item.json.error) {\n  return {\n    success: false,\n    output: '\\\"' + $input.item.json.error + '\\\"'\n  };\n}\n\nconst plainJsonObject = convertMarkdownJsonToJson(markdownString);\nlet output = {\"output\": plainJsonObject};\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        288
+      ],
+      "id": "c947d23c-99a8-4bf0-b57f-22ac93f0d1a7",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I am learning English, help me to write 3 sentences using the words \"{{ $json.query.word }}\", {{ $json.query.previousWord }}\" and its variations\nPlease provide a JSON array of sentences.\nEach sentence in the array should be a string.\nReturn the output as plain JSON, without any markdown formatting like triple backticks or code block labels.\nI want the output to be in this JSON array format:\n[\"Sentence 1\",\"Sentence 2\",\"Sentence 3\"]",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        256,
+        -64
+      ],
+      "id": "010726b2-2c0e-4102-a425-6f1597a511cc",
+      "name": "AI Agent1",
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen-2.5-vl-7b-instruct:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        256,
+        112
+      ],
+      "id": "313967c6-5b8f-4caf-b78e-b63b5004cb55",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qROHRyKCFNYUMsQ6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I am learning English, help me to write 3 sentences using the words \"{{ $json.query.word }}\", {{ $json.query.previousWord }}\" and its variations\nPlease provide a JSON array of sentences.\nEach sentence in the array should be a string.\nReturn the output as plain JSON, without any markdown formatting like triple backticks or code block labels.\nI want the output to be in this JSON array format:\n[\"Sentence 1\",\"Sentence 2\",\"Sentence 3\"]",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        272,
+        592
+      ],
+      "id": "25941b1a-5101-4c52-b92a-ab0507c9251d",
+      "name": "AI Agent2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": "xiaomi/mimo-v2-flash:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        272,
+        752
+      ],
+      "id": "3e14414d-13d4-4eb1-bd8c-7c9e85586019",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qROHRyKCFNYUMsQ6",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "OpenRouter Chat Model": [
+      {
+        "json": {
+          "output": "```json\n{\n  \"sentences\": [\n    \"The explorers hoped to discover new lands\",\n    \"Scientists are constantly making new discoveries in the field of medicine\",\n    \"It was a great experience to rediscover my love for reading\"\n  ]\n}\n```"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "7a59d29e-72f2-4017-8aee-c56ee707d851",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6018e2d2b0055910a386c664271432ca2f0fc1e47b02edcdea47ec94524e39c4"
+  },
+  "id": "w7KA6TA0wuIrmoCN",
+  "tags": []
+}

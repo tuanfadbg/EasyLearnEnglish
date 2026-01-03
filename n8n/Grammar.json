@@ -1,0 +1,504 @@
+{
+  "name": "Grammar",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I am learning English.I am trying to write a sentence to learn the word \"{{ $json.query.word }}\" and its variations, my sentence is \"{{ $json.query.sentence }}\". Please check my sentence and give me a better version, tell me what wrong in my sentence and what I need to focus to fix improve my English.",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -432,
+        -256
+      ],
+      "id": "187e6962-befe-4772-8bd9-1d5de4db412a",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1-0528:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        -80
+      ],
+      "id": "f14beb6b-fbdd-4267-9f20-8be2b543bd97",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qROHRyKCFNYUMsQ6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        64
+      ],
+      "id": "fefce0ea-530d-488f-8346-27f82ab09549",
+      "name": "Respond to Webhook1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I am learning English.I am trying to write a sentence to learn the word \"{{ $json.query.word }}\" and its variations, my sentence is \"{{ $json.query.sentence }}\". Please check my sentence and give me a better version, tell me what wrong in my sentence and what I need to focus to fix improve my English.",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -432,
+        64
+      ],
+      "id": "83d9996b-5914-4d8b-af4a-95821544bf9f",
+      "name": "AI Agent1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen-2.5-vl-7b-instruct:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        224
+      ],
+      "id": "e71cb495-8828-4127-9276-9ca938e5b0b6",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qROHRyKCFNYUMsQ6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return $input.item"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        64
+      ],
+      "id": "598aa45f-3dbf-4e1b-a31d-017328328f96",
+      "name": "Code",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return $input.item"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -240
+      ],
+      "id": "7bc96ac0-8857-46ea-9cfb-9e3b62a55b0c",
+      "name": "Code1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        -240
+      ],
+      "id": "ae2bd804-83f1-4996-9c49-5e414c5cd5f0",
+      "name": "Respond to Webhook",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I am learning English.I am trying to write a sentence to learn the word \"{{ $json.query.word }}\" and its variations, my sentence is \"{{ $json.query.sentence }}\". Please check my sentence and give me a better version, tell me what wrong in my sentence and what I need to focus to fix improve my English.",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        560,
+        944
+      ],
+      "id": "041d8c72-2c9d-4266-8f37-e3a5da6f4756",
+      "name": "AI Agent2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": "xiaomi/mimo-v2-flash:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        560,
+        1104
+      ],
+      "id": "30e8a861-bbd5-4899-ac81-047906e3b695",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qROHRyKCFNYUMsQ6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "grammar",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "51790dad-6183-4831-9bcb-a202e3cd594a",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        240,
+        640
+      ],
+      "webhookId": "6f7b288e-1efe-4504-a6fd-660931327269",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I am learning English.I am trying to write a sentence to learn the word \"{{ $json.query.word }}\" and its variations, my sentence is \"{{ $json.query.sentence }}\". Please check my sentence and give me a better version, tell me what wrong in my sentence and what I need to focus to fix improve my English.",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        560,
+        640
+      ],
+      "id": "efd227bc-1fc6-4374-892e-85e8b9359cad",
+      "name": "AI Agent3",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1-0528:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        560,
+        784
+      ],
+      "id": "1ffcb443-a4b6-41a0-a67d-7e689c42d5e7",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qROHRyKCFNYUMsQ6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1184,
+        640
+      ],
+      "id": "e856a6c1-e614-4a1a-a58a-9102b59ce785",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return $input.item"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        640
+      ],
+      "id": "89c80fcc-8727-4a53-97c3-32a657ee43fa",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I am learning English.I am trying to write a sentence to learn the word \"{{ $json.query.word }}\" and its variations, my sentence is \"{{ $json.query.sentence }}\". Please check my sentence and give me a better version, tell me what wrong in my sentence and what I need to focus to fix improve my English.",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        544,
+        304
+      ],
+      "id": "fe29f9b7-a2e5-4f06-9415-7024fb35e544",
+      "name": "AI Agent4",
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen-2.5-vl-7b-instruct:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        544,
+        464
+      ],
+      "id": "c316a607-21a0-490c-9698-6e155f6ae200",
+      "name": "OpenRouter Chat Model4",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qROHRyKCFNYUMsQ6",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "OpenRouter Chat Model": [
+      {
+        "json": {
+          "output": "```json\n{\n  \"sentences\": [\n    \"The explorers hoped to discover new lands\",\n    \"Scientists are constantly making new discoveries in the field of medicine\",\n    \"It was a great experience to rediscover my love for reading\"\n  ]\n}\n```"
+        }
+      }
+    ],
+    "OpenRouter Chat Model3": [
+      {
+        "json": {
+          "output": "```json\n{\n  \"sentences\": [\n    \"The explorers hoped to discover new lands\",\n    \"Scientists are constantly making new discoveries in the field of medicine\",\n    \"It was a great experience to rediscover my love for reading\"\n  ]\n}\n```"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        []
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent4": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "d555eebd-57cb-4e97-91e3-413925c29ccf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6018e2d2b0055910a386c664271432ca2f0fc1e47b02edcdea47ec94524e39c4"
+  },
+  "id": "ThSl44CXEr9LhS9v",
+  "tags": []
+}
