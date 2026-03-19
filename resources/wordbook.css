@@ -49,3 +49,16 @@ body {
     content: '\25BC';
     opacity: 1;
 }
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.typing-cursor {
+    display: inline-block;
+    animation: blink 0.7s step-end infinite;
+    color: inherit;
+    font-weight: 400;
+    margin-left: 1px;
+}

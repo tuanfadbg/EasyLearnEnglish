@@ -355,48 +355,159 @@ function saveToSavedWord() {
     );
 }
 
-function checkGrammar(word, sentence) {
+// function checkGrammar(word, sentence) {
     
-    const grammarWebhookUrl = 'http://localhost:5678/webhook/grammar-model';
+//     const grammarWebhookUrl = 'http://localhost:5678/webhook/grammar-model';
 
+//     const startTime = performance.now();
+
+//     // Fire requests to all models and use the first success response (fastest)
+//     // If all fail, reject with a summary of errors.
+//     return new Promise((resolve, reject) => {
+//         let settled = false;
+//         let errorResults = [];
+//         let numResponses = 0;
+
+//         MODEL_NAMES.forEach(model => {
+//             const url = `${grammarWebhookUrl}?model=${encodeURIComponent(model)}&word=${encodeURIComponent(word)}&sentence=${encodeURIComponent(sentence)}`;
+//             fetch(url)
+//                 .then(response => response.text())
+//                 .then(text => {
+//                     if (!text || text.trim() === "") {
+//                         return; // Do nothing if text is empty
+//                     }
+//                     if (!settled) {
+//                         settled = true;
+//                         const endTime = performance.now();
+//                         const processingTime = Math.round(endTime - startTime);
+//                         const responseWithTime = `${text} (by model: ${model}, Processing time: ${processingTime} ms)`;
+//                         console.log(responseWithTime);
+//                         resolve(responseWithTime); // Return the result instantly on first success
+//                     }
+//                 })
+//                 .catch(error => {
+//                     errorResults.push(`Model: ${model}\nError: ${error}`);
+//                     numResponses++;
+//                     // If all responses are done and none settled, reject
+//                     if (!settled && numResponses === models.length) {
+//                         const endTime = performance.now();
+//                         const processingTime = Math.round(endTime - startTime);
+//                         const errorMessage = errorResults.join('\n\n') + `\n(Processing time: ${processingTime} ms)`;
+//                         console.error('Grammar check error:', errorMessage);
+//                         reject(errorMessage);
+//                     }
+//                 });
+//         });
+//     });
+// }
+
+const OLLAMA_HOST = 'http://localhost:8000';
+
+async function checkGrammar(word, sentence) {
     const startTime = performance.now();
 
-    // Fire requests to all models and use the first success response (fastest)
-    // If all fail, reject with a summary of errors.
+    const messages = [
+        {
+            role: 'system',
+            content: 'You are an English grammar teacher helping a student practice English. Always respond in the exact format requested. Keep explanations short and clear.'
+        },
+        {
+            role: 'user',
+            content: `I am learning English. I wrote a sentence to practice the word "${word}" and its variations.
+    My sentence is:
+    "${sentence}"
+    
+    Please respond exactly in the following format, index only, no other text:
+    1. Fix my sentence and clearly highlight the mistakes.
+       - Show ONLY the fixed sentence (do not repeat the original sentence).
+       - List all corrections made.
+    2. Provide 2–3 better and more natural versions of the sentence and using this word "${word}" and its variations.
+    3. Briefly explain how I can improve my English based on my mistakes.
+    
+    Important:
+    - Always replace the original sentence with the fixed sentence.
+    - Keep explanations short and clear.`
+        }
+    ];
+
     return new Promise((resolve, reject) => {
         let settled = false;
-        let errorResults = [];
-        let numResponses = 0;
+        let errorCount = 0;
 
         MODEL_NAMES.forEach(model => {
-            const url = `${grammarWebhookUrl}?model=${encodeURIComponent(model)}&word=${encodeURIComponent(word)}&sentence=${encodeURIComponent(sentence)}`;
-            fetch(url)
-                .then(response => response.text())
-                .then(text => {
-                    if (!text || text.trim() === "") {
-                        return; // Do nothing if text is empty
-                    }
-                    if (!settled) {
-                        settled = true;
-                        const endTime = performance.now();
-                        const processingTime = Math.round(endTime - startTime);
-                        const responseWithTime = `${text} (by model: ${model}, Processing time: ${processingTime} ms)`;
-                        console.log(responseWithTime);
-                        resolve(responseWithTime); // Return the result instantly on first success
-                    }
-                })
-                .catch(error => {
-                    errorResults.push(`Model: ${model}\nError: ${error}`);
-                    numResponses++;
-                    // If all responses are done and none settled, reject
-                    if (!settled && numResponses === models.length) {
-                        const endTime = performance.now();
-                        const processingTime = Math.round(endTime - startTime);
-                        const errorMessage = errorResults.join('\n\n') + `\n(Processing time: ${processingTime} ms)`;
-                        console.error('Grammar check error:', errorMessage);
-                        reject(errorMessage);
+            fetch(`${OLLAMA_HOST}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model, messages, stream: true })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                if (settled) return; // another model already won the race
+                settled = true;
+
+                const endTime = performance.now();
+                const processingTime = Math.round(endTime - startTime);
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+
+                resolve({
+                    model,
+                    processingTime,
+                    // Call stream(onToken) to consume tokens as they arrive.
+                    // onToken(token, accumulated, meta?) — meta is set on the final frame.
+                    stream: async (onToken) => {
+                        let buffer = '';
+                        let fullText = '';
+                    
+                        while (true) {
+                            const { value, done } = await reader.read();
+                            console.log('reader.read() done:', done, 'value:', value);
+                            if (done) break;
+                    
+                            buffer += decoder.decode(value, { stream: true });
+                            console.log('buffer:', buffer);
+                    
+                            let idx;
+                            while ((idx = buffer.indexOf('\n\n')) !== -1) {
+                                const frame = buffer.slice(0, idx);
+                                buffer = buffer.slice(idx + 2);
+                                console.log('frame:', frame);
+                    
+                                const line = frame.split('\n').find(l => l.startsWith('data: '));
+                                console.log('line:', line);
+                                if (!line) continue;
+                    
+                                try {
+                                    const j = JSON.parse(line.slice(6));
+                                    console.log('parsed:', j);
+                                    const token = j?.message?.content ?? '';
+                    
+                                    if (token) {
+                                        fullText += token;
+                                        onToken(token, fullText);
+                                    }
+                    
+                                    if (j.done) {
+                                        onToken('', fullText, { done: true, usage: j.usage ?? {} });
+                                        return fullText;
+                                    }
+                                } catch (e) {
+                                    console.error('parse error:', e, 'line was:', line);
+                                }
+                            }
+                        }
+                        return fullText;
                     }
                 });
+            })
+            .catch(error => {
+                errorCount++;
+                if (!settled && errorCount === MODEL_NAMES.length) {
+                    const elapsed = Math.round(performance.now() - startTime);
+                    reject(new Error(`All models failed after ${elapsed}ms. Last: ${error.message}`));
+                }
+            });
         });
     });
 }
@@ -548,16 +659,38 @@ checkGrammarButton.addEventListener('click', function () {
     if (typeof checkGrammar === 'function') {
         grammarCheckResult.textContent = 'Checking...';
         grammarCheckResult.style.color = '';
+    
         checkGrammar(word, sentence)
-            .then(result => {
-                // Convert markdown to HTML for proper display
-                grammarCheckResult.innerHTML = markdownToHtml(result);
-                // grammarCheckResult.style.color = 'white';
-            })
-            .catch(err => {
-                grammarCheckResult.textContent = 'Could not check grammar.';
-                grammarCheckResult.style.color = 'red';
+        .then(result => {
+            console.log('checkGrammar resolved, model:', result.model);
+            grammarCheckResult.innerHTML = '';
+            document.getElementById('grammar-stats').style.display = 'none'; // hide previous stats
+
+            return result.stream((token, accumulated, meta) => {
+                if (meta?.done) {
+                    // ✅ Final render — no cursor, show stats
+                    grammarCheckResult.innerHTML = markdownToHtml(accumulated);
+
+                    // show token usage + model + time
+                    const stats = document.getElementById('grammar-stats');
+                    document.getElementById('grammar-model').textContent = `Model: ${result.model}`;
+                    document.getElementById('grammar-tokens').textContent = `Tokens: ${meta.usage.prompt_tokens} prompt · ${meta.usage.completion_tokens} completion · ${meta.usage.total_tokens} total`;
+                    document.getElementById('grammar-time').textContent = `First token: ${result.processingTime}ms`;
+                    stats.style.display = 'block';
+                } else {
+                    // ✅ While streaming — show cursor
+                    grammarCheckResult.innerHTML = markdownToHtml(accumulated) + '<span class="typing-cursor">▌</span>';
+                }
             });
+        })
+        .then(finalText => {
+            console.log('stream fully complete:', finalText);
+        })
+        .catch(err => {
+            console.error('checkGrammar error:', err);
+            grammarCheckResult.textContent = 'Could not check grammar.';
+            grammarCheckResult.style.color = 'red';
+        });
     } else {
         grammarCheckResult.textContent = 'Grammar check function not available.';
         grammarCheckResult.style.color = 'red';

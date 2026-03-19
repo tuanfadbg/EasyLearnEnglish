@@ -66,8 +66,14 @@
                                 <p id="randomContext"></p>
                                 <label for="memoryGameTextArea" class="font-weight-bold">Write your note here:</label>
                                 <textarea id="memoryGameTextArea" class="form-control" rows="3" placeholder="Write your notes here..."></textarea>
-                                <button type="button" id="checkGrammarButton" class="btn btn-outline-secondary mt-2 mb-2">Check Grammar</button>
+                                <button type="button" id="checkGrammarButton" class="btn btn-outline-danger mt-2 mb-2">Check Grammar</button>
                                 <button type="button" id="addContextButton" class="btn btn-outline-info mt-2 mb-2">Add context</button>
+
+                                <div id="grammar-stats" style="display:none; margin-top: 8px; font-size: 11px; opacity: 0.6;">
+                                    <span id="grammar-model"></span> ·
+                                    <span id="grammar-tokens"></span> ·
+                                    <span id="grammar-time"></span>
+                                </div>
                             </td>
                             <td style="width: 50%; padding-left: 10px;">
                                 <div id="grammarCheckResult" style=" max-height: 75vh;overflow-y: auto;"></div>
