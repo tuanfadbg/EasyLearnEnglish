@@ -356,27 +356,49 @@ function saveToSavedWord() {
 }
 
 function checkGrammar(word, sentence) {
-    const grammarWebhookUrl = 'http://localhost:5678/webhook/grammar';
-    // const grammarWebhookUrl = 'http://google.com';
+    
+    const grammarWebhookUrl = 'http://localhost:5678/webhook/grammar-model';
 
     const startTime = performance.now();
 
-    return fetch(`${grammarWebhookUrl}?word=${encodeURIComponent(word)}&sentence=${encodeURIComponent(sentence)}`)
-        .then(response => response.text())
-        .then(text => {
-            const endTime = performance.now();
-            const processingTime = Math.round(endTime - startTime);
-            const responseWithTime = `${text} (Processing time: ${processingTime} ms)`;
-            console.log(responseWithTime);
-            return responseWithTime;
-        })
-        .catch(error => {
-            const endTime = performance.now();
-            const processingTime = Math.round(endTime - startTime);
-            const errorMessage = `Error: ${error} (Processing time: ${processingTime} ms)`;
-            console.error('Grammar check error:', errorMessage);
-            return Promise.reject(errorMessage);
+    // Fire requests to all models and use the first success response (fastest)
+    // If all fail, reject with a summary of errors.
+    return new Promise((resolve, reject) => {
+        let settled = false;
+        let errorResults = [];
+        let numResponses = 0;
+
+        MODEL_NAMES.forEach(model => {
+            const url = `${grammarWebhookUrl}?model=${encodeURIComponent(model)}&word=${encodeURIComponent(word)}&sentence=${encodeURIComponent(sentence)}`;
+            fetch(url)
+                .then(response => response.text())
+                .then(text => {
+                    if (!text || text.trim() === "") {
+                        return; // Do nothing if text is empty
+                    }
+                    if (!settled) {
+                        settled = true;
+                        const endTime = performance.now();
+                        const processingTime = Math.round(endTime - startTime);
+                        const responseWithTime = `${text} (by model: ${model}, Processing time: ${processingTime} ms)`;
+                        console.log(responseWithTime);
+                        resolve(responseWithTime); // Return the result instantly on first success
+                    }
+                })
+                .catch(error => {
+                    errorResults.push(`Model: ${model}\nError: ${error}`);
+                    numResponses++;
+                    // If all responses are done and none settled, reject
+                    if (!settled && numResponses === models.length) {
+                        const endTime = performance.now();
+                        const processingTime = Math.round(endTime - startTime);
+                        const errorMessage = errorResults.join('\n\n') + `\n(Processing time: ${processingTime} ms)`;
+                        console.error('Grammar check error:', errorMessage);
+                        reject(errorMessage);
+                    }
+                });
         });
+    });
 }
 
 function markdownToHtml(markdown) {
@@ -497,6 +519,17 @@ $('#memoryGameModal').on('hidden.bs.modal', function () {
     collapseSaveContainer(); // Call collapseSaveContainer when the modal is closed
 });
 
+// Add event listener for close button to close the modal
+const memoryGameModal = document.getElementById('memoryGameModal');
+if (memoryGameModal) {
+    const closeButton = memoryGameModal.querySelector('button.close[data-dismiss="modal"]');
+    if (closeButton) {
+        closeButton.addEventListener('click', function () {
+            $('#memoryGameModal').modal('hide');
+        });
+    }
+}
+
 const checkGrammarButton = document.getElementById('checkGrammarButton');
 const memoryGameTextArea = document.getElementById('memoryGameTextArea');
 const grammarCheckResult = document.getElementById('grammarCheckResult');
@@ -519,7 +552,7 @@ checkGrammarButton.addEventListener('click', function () {
             .then(result => {
                 // Convert markdown to HTML for proper display
                 grammarCheckResult.innerHTML = markdownToHtml(result);
-                grammarCheckResult.style.color = 'white';
+                // grammarCheckResult.style.color = 'white';
             })
             .catch(err => {
                 grammarCheckResult.textContent = 'Could not check grammar.';

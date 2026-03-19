@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WordBook</title>
     <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="resources/bootstrap.min.css" rel="stylesheet">
     <link href="resources/wordbook.css" rel="stylesheet">
     <!-- <link href="resources/full-screen-modal.css" rel="stylesheet"> -->
     <!-- <style>
@@ -19,7 +19,7 @@
 </head>
 
 <body>
-    <div class="container mt-5">
+    <div class="container-fluid mt-5">
         <h1 class="mb-4" id="title">WordBook</h1>
         <!-- CLEAR ALL DATA -->
         <button id="closeButton" class="btn btn-danger mb-4">Close This Page</button>
@@ -47,24 +47,33 @@
     <!-- Modal for Memory Game -->
     <div class="modal fade" id="memoryGameModal" tabindex="-1" role="dialog" aria-labelledby="memoryGameModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
+        <div class="modal-dialog modal-fullscreen" role="document">
+            <div class="modal-content ">
                 <div class="modal-header">
                     <h5 class="modal-title" id="memoryGameModalLabel">Memory Game</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p id="randomWord"></p>
-                    <p id="randomContext"></p>
+                    
                 <div class="form-group">
-                    <label for="memoryGameTextArea" class="font-weight-bold">Write your note here:</label>
-                    <textarea id="memoryGameTextArea" class="form-control" rows="3" placeholder="Write your notes here..."></textarea>
-                <button type="button" id="checkGrammarButton" class="btn btn-outline-secondary mt-2 mb-2">Check Grammar</button>
-                <button type="button" id="addContextButton" class="btn btn-outline-info mt-2 mb-2">Add context</button>
-                <div id="grammarCheckResult" class="mt-2"></div>
-            
+                    <table style="width: 100%;">
+                        <tr>
+                            
+                            <td style="width: 50%; vertical-align: top; padding-right: 10px; position: sticky; left: 0; z-index: 2;">
+                                <p id="randomWord"></p>
+                                <p id="randomContext"></p>
+                                <label for="memoryGameTextArea" class="font-weight-bold">Write your note here:</label>
+                                <textarea id="memoryGameTextArea" class="form-control" rows="3" placeholder="Write your notes here..."></textarea>
+                                <button type="button" id="checkGrammarButton" class="btn btn-outline-secondary mt-2 mb-2">Check Grammar</button>
+                                <button type="button" id="addContextButton" class="btn btn-outline-info mt-2 mb-2">Add context</button>
+                            </td>
+                            <td style="width: 50%; padding-left: 10px;">
+                                <div id="grammarCheckResult" style=" max-height: 75vh;overflow-y: auto;"></div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
                 </div>
                 <div class="collapse" id="save-container">
@@ -102,7 +111,7 @@
     <!-- Modal for Game Statistics -->
     <div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog" aria-labelledby="statisticsModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-fullscreen" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="statisticsModalLabel">Game Statistics</h5>
@@ -128,6 +137,7 @@
     <script src="resources/bootstrap.min.js"></script>
     <script src="utils.js"></script>
     <script src="modal_edit_text.js"></script>
+    <script src="models.js"></script>
     <script src="wordbook.js"></script>
     <script src="db.js"></script>
 </body>
