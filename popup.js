@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const saveButton = document.getElementById('save');
     const savedWordsList = document.getElementById('savedWords');
     const viewSavedWordsLink = document.getElementById('viewSavedWords');
+    const wordbookLink = document.getElementById('wordbook');
 
     wordInputPopup.value = window.getSelection().toString().trim()
     // Add input event listeners for auto-saving
@@ -19,6 +20,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Open saved_words.html in a new tab
     viewSavedWordsLink.addEventListener('click', function () {
         chrome.tabs.create({ url: chrome.runtime.getURL('saved_words.html') });
+    });
+    
+    wordbookLink.addEventListener('click', function () {
+        chrome.tabs.create({ url: chrome.runtime.getURL('wordbook.html') });
     });
 
     // Send a message to the content script to get the selected text

@@ -379,7 +379,12 @@ function saveToWordbook(text, context) {
         contextsToAdd = context.filter(ctx => ctx && typeof ctx === 'string' && ctx.trim() !== '');
       } else if (typeof context === 'string' && context.trim() !== '') {
         // If context is a string, add it to the array
-        contextsToAdd = [context];
+        // If the context contains newline characters, split into an array; otherwise, wrap in array
+        if (context.includes('\n')) {
+          contextsToAdd = context.split('\n').map(s => s.trim()).filter(Boolean);
+        } else {
+          contextsToAdd = [context];
+        }
       }
 
       const existingEntry = wordbook.find(entry => entry.text === text);
@@ -414,7 +419,6 @@ function saveToWordbook(text, context) {
   });
 }
 
-const webhookUrl = 'http://localhost:5678/webhook/word';
 
 function showFixedBroadOnBottomLeft(text, previousWord) {
   createFixedBroad();
@@ -426,24 +430,25 @@ function showFixedBroadOnBottomLeft(text, previousWord) {
 
   const startTime = performance.now();
 
-  return fetch(`${webhookUrl}?word=${text}&previousWord=${previousWord}`)
-    .then(response => response.json())
-    .then(data => {
-      const endTime = performance.now();
-      const processingTime = endTime - startTime;
-
-      let loadingButton = document.getElementById('loadingButton');
-      if (loadingButton) {
-        loadingButton.style.display = 'none';
-      }
-      fillBroadData(data, processingTime);
-      // Return both data.output and processing time in ms
-      return data.output;
+  // Call Ollama to generate sample sentences for current and previous word.
+  // Returns a promise that resolves with the full accumulated text.
+  return makeSampleSentences([text, previousWord], MODEL_NAME_DEFAULT)
+    .then(result => {
+      const apiProcessingTime = result.processingTime;
+      return result.stream((token, accumulated, meta) => {
+        let loadingButton = document.getElementById('loadingButton');
+        if (loadingButton) {
+          loadingButton.style.display = 'none';
+        }
+        // Show latest accumulated text and processing time (from API if available)
+        fillBroadData(accumulated, apiProcessingTime);
+        return accumulated;
+      });
     })
-    .catch(error => {
+    .catch((error) => {
       const endTime = performance.now();
       const processingTime = endTime - startTime;
-      let errorData = { "output": [error] }
+      const errorData = { output: [error?.message || String(error)] };
       fillBroadData(errorData, processingTime);
       setTimeout(closeFixedBroad, 2000);
       return Promise.reject({ errorData, processingTime });
@@ -456,21 +461,8 @@ function fillBroadData(data, processingTime) {
   outputDiv.innerHTML = "";
   const processingTimeText = `Processing time: ${processingTime} ms`;
   
-  // data = {"output":["The artist hopes to create a beautiful sculpture from this block of marble.","The company's creative team is brainstorming new ideas for the next advertising campaign.","Her innovative creations have earned her recognition in the design world."]}
-  try {
-    data.output.forEach((item) => {
-      const paragraph = document.createElement('p');
-      paragraph.textContent = item;
-      outputDiv.appendChild(paragraph);
-    });
-  } catch (err) {
-    // If there's an error, show the raw data
-    const errorParagraph = document.createElement('p');
-    errorParagraph.textContent = 'Raw data: ' + JSON.stringify(data);
-    outputDiv.appendChild(errorParagraph);
-  }
   const processingTimeParagraph = document.createElement('p');
-  processingTimeParagraph.textContent = processingTimeText;
+  processingTimeParagraph.innerHTML = data.split('\n').join('<br>');
   outputDiv.appendChild(processingTimeParagraph);
 }
 
@@ -651,11 +643,6 @@ function displaySurroundingItems(surroundingItems) {
   } else {
     document.querySelector('.pre-highlight-subtitle').innerHTML = convertRawTextToSubtitleFormat(surroundingItems.before.text);
   }
-  // if (surroundingItems.after == null) {
-  //   document.querySelector('.post-highlight-subtitle').innerHTML = "";
-  // } else {
-  //   document.querySelector('.post-highlight-subtitle').innerHTML = convertRawTextToSubtitleFormat(surroundingItems.after.text);
-  // }
 }
 
 // Function to get 1 item before and 1 item after text inside passage

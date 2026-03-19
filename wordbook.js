@@ -34,6 +34,22 @@ document.addEventListener('DOMContentLoaded', function () {
             sortWordbook(wordbook, sortOrder);
             populateTable(wordbook);
         });
+
+        
+        const modalDialog = document.getElementById('memoryGameModalContent') ||
+            document.querySelector('#memoryGameModal .modal-dialog');
+        const btn = document.getElementById('toggleFullscreenButton');
+        if (!modalDialog || !btn) return;
+
+        btn.addEventListener('click', function () {
+            if (modalDialog.classList.contains('modal-fullscreen')) {
+                modalDialog.classList.remove('modal-fullscreen');
+                modalDialog.classList.add('modal-xl');
+            } else {
+                modalDialog.classList.remove('modal-xl');
+                modalDialog.classList.add('modal-fullscreen');
+            }
+        });
     });
 
     function sortWordbook(wordbook, order) {
@@ -140,8 +156,10 @@ document.getElementById('memoryGame').addEventListener('click', function () {
 });
 
 var randomWordGame;
+var currentPreviousWord;
 // Function to show a random word
 function showRandomWord() {
+    currentPreviousWord = document.getElementById('rememberButton').dataset.word
     // Fetch the wordbook data from chrome.storage.local
     chrome.storage.local.get(['wordbook'], function (data) {
         const wordbook = data.wordbook || []; // Default to an empty array if not found
@@ -153,7 +171,11 @@ function showRandomWord() {
 
         // Select a random word from the wordbook
         const randomIndex = Math.floor(Math.random() * wordbook.length);
+        
         randomWordGame = wordbook[randomIndex];
+
+        displayExampleSentences(randomWordGame.text, currentPreviousWord);
+        displayMeaningInEnglish(randomWordGame.text);
 
         // Display the random word and context in the modal
         document.getElementById('randomWord').textContent = `${randomWordGame.text}`;
@@ -163,9 +185,11 @@ function showRandomWord() {
 
         // Store the current word for remembering/not remembering
         document.getElementById('rememberButton').dataset.word = randomWordGame.text;
+        // currentPreviousWord = randomWordGame.text;
 
         // Show the modal
         $('#memoryGameModal').modal('show');
+
     });
 }
 
@@ -355,258 +379,6 @@ function saveToSavedWord() {
     );
 }
 
-// function checkGrammar(word, sentence) {
-    
-//     const grammarWebhookUrl = 'http://localhost:5678/webhook/grammar-model';
-
-//     const startTime = performance.now();
-
-//     // Fire requests to all models and use the first success response (fastest)
-//     // If all fail, reject with a summary of errors.
-//     return new Promise((resolve, reject) => {
-//         let settled = false;
-//         let errorResults = [];
-//         let numResponses = 0;
-
-//         MODEL_NAMES.forEach(model => {
-//             const url = `${grammarWebhookUrl}?model=${encodeURIComponent(model)}&word=${encodeURIComponent(word)}&sentence=${encodeURIComponent(sentence)}`;
-//             fetch(url)
-//                 .then(response => response.text())
-//                 .then(text => {
-//                     if (!text || text.trim() === "") {
-//                         return; // Do nothing if text is empty
-//                     }
-//                     if (!settled) {
-//                         settled = true;
-//                         const endTime = performance.now();
-//                         const processingTime = Math.round(endTime - startTime);
-//                         const responseWithTime = `${text} (by model: ${model}, Processing time: ${processingTime} ms)`;
-//                         console.log(responseWithTime);
-//                         resolve(responseWithTime); // Return the result instantly on first success
-//                     }
-//                 })
-//                 .catch(error => {
-//                     errorResults.push(`Model: ${model}\nError: ${error}`);
-//                     numResponses++;
-//                     // If all responses are done and none settled, reject
-//                     if (!settled && numResponses === models.length) {
-//                         const endTime = performance.now();
-//                         const processingTime = Math.round(endTime - startTime);
-//                         const errorMessage = errorResults.join('\n\n') + `\n(Processing time: ${processingTime} ms)`;
-//                         console.error('Grammar check error:', errorMessage);
-//                         reject(errorMessage);
-//                     }
-//                 });
-//         });
-//     });
-// }
-
-const OLLAMA_HOST = 'http://localhost:8000';
-
-async function checkGrammar(word, sentence) {
-    const startTime = performance.now();
-
-    const messages = [
-        {
-            role: 'system',
-            content: 'You are an English grammar teacher helping a student practice English. Always respond in the exact format requested. Keep explanations short and clear.'
-        },
-        {
-            role: 'user',
-            content: `I am learning English. I wrote a sentence to practice the word "${word}" and its variations.
-    My sentence is:
-    "${sentence}"
-    
-    Please respond exactly in the following format, index only, no other text:
-    1. Fix my sentence and clearly highlight the mistakes.
-       - Show ONLY the fixed sentence (do not repeat the original sentence).
-       - List all corrections made.
-    2. Provide 2–3 better and more natural versions of the sentence and using this word "${word}" and its variations.
-    3. Briefly explain how I can improve my English based on my mistakes.
-    
-    Important:
-    - Always replace the original sentence with the fixed sentence.
-    - Keep explanations short and clear.`
-        }
-    ];
-
-    return new Promise((resolve, reject) => {
-        let settled = false;
-        let errorCount = 0;
-
-        MODEL_NAMES.forEach(model => {
-            fetch(`${OLLAMA_HOST}/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model, messages, stream: true })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                if (settled) return; // another model already won the race
-                settled = true;
-
-                const endTime = performance.now();
-                const processingTime = Math.round(endTime - startTime);
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder('utf-8');
-
-                resolve({
-                    model,
-                    processingTime,
-                    // Call stream(onToken) to consume tokens as they arrive.
-                    // onToken(token, accumulated, meta?) — meta is set on the final frame.
-                    stream: async (onToken) => {
-                        let buffer = '';
-                        let fullText = '';
-                    
-                        while (true) {
-                            const { value, done } = await reader.read();
-                            console.log('reader.read() done:', done, 'value:', value);
-                            if (done) break;
-                    
-                            buffer += decoder.decode(value, { stream: true });
-                            console.log('buffer:', buffer);
-                    
-                            let idx;
-                            while ((idx = buffer.indexOf('\n\n')) !== -1) {
-                                const frame = buffer.slice(0, idx);
-                                buffer = buffer.slice(idx + 2);
-                                console.log('frame:', frame);
-                    
-                                const line = frame.split('\n').find(l => l.startsWith('data: '));
-                                console.log('line:', line);
-                                if (!line) continue;
-                    
-                                try {
-                                    const j = JSON.parse(line.slice(6));
-                                    console.log('parsed:', j);
-                                    const token = j?.message?.content ?? '';
-                    
-                                    if (token) {
-                                        fullText += token;
-                                        onToken(token, fullText);
-                                    }
-                    
-                                    if (j.done) {
-                                        onToken('', fullText, { done: true, usage: j.usage ?? {} });
-                                        return fullText;
-                                    }
-                                } catch (e) {
-                                    console.error('parse error:', e, 'line was:', line);
-                                }
-                            }
-                        }
-                        return fullText;
-                    }
-                });
-            })
-            .catch(error => {
-                errorCount++;
-                if (!settled && errorCount === MODEL_NAMES.length) {
-                    const elapsed = Math.round(performance.now() - startTime);
-                    reject(new Error(`All models failed after ${elapsed}ms. Last: ${error.message}`));
-                }
-            });
-        });
-    });
-}
-
-function markdownToHtml(markdown) {
-    if (typeof markdown !== 'string') {
-        return JSON.stringify(markdown);
-    }
-
-    let html = markdown;
-    const lines = html.split('\n');
-    let processedLines = [];
-    let tableRows = [];
-    let inTable = false;
-
-    // Process tables line by line
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmedLine = line.trim();
-        
-        // Check if this is a table row
-        if (trimmedLine.startsWith('|') && trimmedLine.endsWith('|')) {
-            // Skip separator rows (|---|---|)
-            if (!trimmedLine.match(/^\|[\s\-:]+\|$/)) {
-                if (!inTable) {
-                    inTable = true;
-                    tableRows = [];
-                }
-                const cells = trimmedLine.split('|').slice(1, -1).map(cell => cell.trim());
-                tableRows.push(cells);
-            }
-        } else {
-            // If we were in a table, close it
-            if (inTable && tableRows.length > 0) {
-                let tableHtml = '<table class="table table-bordered table-sm mt-2 mb-2" style="font-size: 0.9em;"><tbody>';
-                tableRows.forEach((row, idx) => {
-                    tableHtml += '<tr>';
-                    row.forEach(cell => {
-                        const tag = idx === 0 ? 'th' : 'td';
-                        const cellContent = markdownToHtmlInline(cell);
-                        tableHtml += `<${tag} style="padding: 8px;">${cellContent}</${tag}>`;
-                    });
-                    tableHtml += '</tr>';
-                });
-                tableHtml += '</tbody></table>';
-                processedLines.push(tableHtml);
-                tableRows = [];
-                inTable = false;
-            }
-            processedLines.push(line);
-        }
-    }
-    
-    // Handle table at end of text
-    if (inTable && tableRows.length > 0) {
-        let tableHtml = '<table class="table table-bordered table-sm mt-2 mb-2" style="font-size: 0.9em;"><tbody>';
-        tableRows.forEach((row, idx) => {
-            tableHtml += '<tr>';
-            row.forEach(cell => {
-                const tag = idx === 0 ? 'th' : 'td';
-                const cellContent = markdownToHtmlInline(cell);
-                tableHtml += `<${tag} style="padding: 8px;">${cellContent}</${tag}>`;
-            });
-            tableHtml += '</tr>';
-        });
-        tableHtml += '</tbody></table>';
-        processedLines.push(tableHtml);
-    }
-    
-    html = processedLines.join('\n');
-
-    // Convert headers (### Header)
-    html = html.replace(/^### (.+)$/gm, '<h3 class="mt-3 mb-2" style="font-size: 1.2em; font-weight: bold;">$1</h3>');
-    html = html.replace(/^## (.+)$/gm, '<h2 class="mt-3 mb-2" style="font-size: 1.3em; font-weight: bold;">$1</h2>');
-    html = html.replace(/^# (.+)$/gm, '<h1 class="mt-3 mb-2" style="font-size: 1.5em; font-weight: bold;">$1</h1>');
-
-    // Convert blockquotes (> text)
-    html = html.replace(/^> (.+)$/gm, '<blockquote class="blockquote border-left pl-3 mb-2" style="border-left: 3px solid #ccc; padding-left: 15px; margin: 10px 0;">$1</blockquote>');
-
-    // Convert bold (**text**) - must be done after other processing
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-    // Convert inline code (`code`)
-    html = html.replace(/`([^`]+)`/g, '<code style="background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px;">$1</code>');
-
-    // Convert line breaks (but preserve existing HTML)
-    html = html.replace(/\n/g, '<br>');
-
-    return html;
-}
-
-function markdownToHtmlInline(text) {
-    if (!text) return '';
-    let html = text;
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    return html;
-}
-
 function clearMemoryGameTextArea() {
     if (memoryGameTextArea) {
         memoryGameTextArea.value = '';
@@ -625,109 +397,4 @@ function collapseSaveContainer() {
     $(saveContainer).collapse('hide');
     // }
 }
-
-$('#memoryGameModal').on('hidden.bs.modal', function () {
-    collapseSaveContainer(); // Call collapseSaveContainer when the modal is closed
-});
-
-// Add event listener for close button to close the modal
-const memoryGameModal = document.getElementById('memoryGameModal');
-if (memoryGameModal) {
-    const closeButton = memoryGameModal.querySelector('button.close[data-dismiss="modal"]');
-    if (closeButton) {
-        closeButton.addEventListener('click', function () {
-            $('#memoryGameModal').modal('hide');
-        });
-    }
-}
-
-const checkGrammarButton = document.getElementById('checkGrammarButton');
-const memoryGameTextArea = document.getElementById('memoryGameTextArea');
-const grammarCheckResult = document.getElementById('grammarCheckResult');
-checkGrammarButton.addEventListener('click', function () {
-    // Get the "randomWord" value for word, textarea value for sentence
-    const word = document.getElementById('randomWord').textContent.trim();
-    const sentence = memoryGameTextArea.value.trim();
-
-    if (!word || !sentence) {
-        grammarCheckResult.textContent = 'Please enter a note to check grammar.';
-        grammarCheckResult.style.color = 'red';
-        return;
-    }
-
-    // Call the checkGrammar function defined in JS
-    if (typeof checkGrammar === 'function') {
-        grammarCheckResult.textContent = 'Checking...';
-        grammarCheckResult.style.color = '';
-    
-        checkGrammar(word, sentence)
-        .then(result => {
-            console.log('checkGrammar resolved, model:', result.model);
-            grammarCheckResult.innerHTML = '';
-            document.getElementById('grammar-stats').style.display = 'none'; // hide previous stats
-
-            return result.stream((token, accumulated, meta) => {
-                if (meta?.done) {
-                    // ✅ Final render — no cursor, show stats
-                    grammarCheckResult.innerHTML = markdownToHtml(accumulated);
-
-                    // show token usage + model + time
-                    const stats = document.getElementById('grammar-stats');
-                    document.getElementById('grammar-model').textContent = `Model: ${result.model}`;
-                    document.getElementById('grammar-tokens').textContent = `Tokens: ${meta.usage.prompt_tokens} prompt · ${meta.usage.completion_tokens} completion · ${meta.usage.total_tokens} total`;
-                    document.getElementById('grammar-time').textContent = `First token: ${result.processingTime}ms`;
-                    stats.style.display = 'block';
-                } else {
-                    // ✅ While streaming — show cursor
-                    grammarCheckResult.innerHTML = markdownToHtml(accumulated) + '<span class="typing-cursor">▌</span>';
-                }
-            });
-        })
-        .then(finalText => {
-            console.log('stream fully complete:', finalText);
-        })
-        .catch(err => {
-            console.error('checkGrammar error:', err);
-            grammarCheckResult.textContent = 'Could not check grammar.';
-            grammarCheckResult.style.color = 'red';
-        });
-    } else {
-        grammarCheckResult.textContent = 'Grammar check function not available.';
-        grammarCheckResult.style.color = 'red';
-    }
-});
-
-const addContextButton = document.getElementById('addContextButton');
-addContextButton.addEventListener('click', function () {
-    // Get the word from randomWord and context from textarea
-    const word = document.getElementById('randomWord').textContent.trim();
-    const context = memoryGameTextArea.value.trim();
-
-    if (!word) {
-        alert('Please select a word first.');
-        return;
-    }
-
-    if (!context) {
-        alert('Please enter a context/note to add.');
-        return;
-    }
-
-    // Call the addContextToWordbook function from db.js
-    if (typeof addContextToWordbook === 'function') {
-        addContextToWordbook(word, context)
-            .then(({ text, previousWord }) => {
-                console.log(`Context added to word: ${text}, previous word: ${previousWord}`);
-                // alert('Context added successfully!');
-                // Optionally clear the textarea after successful add
-                memoryGameTextArea.value = '';
-            })
-            .catch(err => {
-                console.error('Error adding context:', err);
-                // alert('Error adding context. Please try again.');
-            });
-    } else {
-        alert('addContextToWordbook function not available.');
-    }
-});
 
