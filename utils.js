@@ -285,7 +285,7 @@ function markCorrectionWords(input, correctedInput) {
     return correctedWords
         .map((t, j) => {
             const raw = t.raw;
-            return correctedInLcs.has(j) ? escapeHtml(raw) : `<mark>${escapeHtml(raw)}</mark>`;
+            return correctedInLcs.has(j) ? escapeHtml(raw) : `<p class="openTranslate"><mark>${escapeHtml(raw)}</mark></p>`;
         })
         .join(' ');
 }

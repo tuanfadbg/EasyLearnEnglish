@@ -33,18 +33,21 @@ memoryGameTextArea.addEventListener('input', function () {
     if (word && sentence && correctedVersionParagraph) {
         checkRealtimeFixEnglish(word, sentence, MODEL_NAME_DEFAULT)
             .then(result => {
-                return result.stream((token, accumulated, meta) => {
-                    if (meta?.done) {
-                        // Show the corrected/checked grammar result in the paragraph
-                        console.log(markdownToHtml(accumulated));
-                        correctedVersionParagraph.innerHTML = markCorrectionWords(sentence, accumulated);
-                        correctedVersionParagraph.style.display = 'block';
-                    } else {
-                        // Partial content as it's streaming in (optional)
-                        correctedVersionParagraph.innerHTML = markCorrectionWords(sentence, accumulated) + '<span class="typing-cursor">▌</span>';
-                        correctedVersionParagraph.style.display = 'block';
-                    }
-                });
+                return result.stream({
+                    onToken: (token, accumulated, meta) => {
+                        if (meta?.done) {
+                            // Show the corrected/checked grammar result in the paragraph
+                            console.log(markdownToHtml(accumulated));
+                            correctedVersionParagraph.innerHTML = markCorrectionWords(sentence, accumulated);
+                            correctedVersionParagraph.style.display = 'block';
+                        } else {
+                            // Partial content as it's streaming in (optional)
+                            correctedVersionParagraph.innerHTML = markCorrectionWords(sentence, accumulated) + '<span class="typing-cursor">▌</span>';
+                            correctedVersionParagraph.style.display = 'block';
+                        }
+                    },
+                    onThinking: (token, accumulated) => console.debug('[thinking]', token)
+                  });
             })
             .catch(() => {
                 correctedVersionParagraph.textContent = 'Could not check grammar.';
@@ -80,24 +83,28 @@ checkGrammarButton.addEventListener('click', function () {
                   console.log('checkGrammar resolved, model:', result.model);
                   grammarCheckResult.innerHTML = '';
                   document.getElementById('grammar-stats').style.display = 'none'; // hide previous stats
-      
-                  return result.stream((token, accumulated, meta) => {
-                      if (meta?.done) {
-                          // ✅ Final render — no cursor, show stats
-                          grammarCheckResult.innerHTML = markdownToHtml(accumulated, true);
-      
-                          // show token usage + model + time
-                          const stats = document.getElementById('grammar-stats');
-                          document.getElementById('grammar-model').textContent = `Model: ${result.model}`;
-                          document.getElementById('grammar-tokens').textContent = `Tokens: ${meta.usage.prompt_tokens} prompt · ${meta.usage.completion_tokens} completion · ${meta.usage.total_tokens} total`;
-                          document.getElementById('grammar-time').textContent = `First token: ${result.processingTime}ms`;
-                          stats.style.display = 'block';
-                      } else {
-                          // ✅ While streaming — show cursor
-                          grammarCheckResult.innerHTML = markdownToHtml(accumulated) + '<span class="typing-cursor">▌</span>';
-                      }
+                  return result.stream({
+                    onToken: (token, accumulated, meta) => {
+                        if (meta?.done) {
+                            // ✅ Final render — no cursor, show stats
+                            grammarCheckResult.innerHTML = markdownToHtml(accumulated, true);
+        
+                            // show token usage + model + time
+                            const stats = document.getElementById('grammar-stats');
+                            document.getElementById('grammar-model').textContent = `Model: ${result.model}`;
+                            document.getElementById('grammar-tokens').textContent = `Tokens: ${meta.usage.prompt_tokens} prompt · ${meta.usage.completion_tokens} completion · ${meta.usage.total_tokens} total`;
+                            document.getElementById('grammar-time').textContent = `First token: ${result.processingTime}ms`;
+                            stats.style.display = 'block';
+                        } else {
+                            // ✅ While streaming — show cursor
+                            grammarCheckResult.innerHTML = markdownToHtml(accumulated, true) + '<span class="typing-cursor">▌</span>';
+                        }
+                    },
+                    onThinking: (token, accumulated) => console.debug('[thinking]', token)
                   });
               })
+
+              
               .then(finalText => {
                   console.log('stream fully complete:', finalText);
               })
@@ -157,10 +164,14 @@ function displayExampleSentences(word, previousWord = null) {
         contentDiv.innerHTML = "<span style='opacity:0.6;'>Loading example sentences...</span>";
         makeSampleSentences([word, previousWord ?? ''], MODEL_NAME_DEFAULT)
             .then(result => {``
-                // Accumulate output and update contentDiv as it streams
-                return result.stream((token, accumulated, meta) => {
-                    contentDiv.innerHTML = markdownToHtml(accumulated, true);
-                });
+                
+                return result.stream({
+                    onToken: (token, accumulated, meta) => {
+                        contentDiv.innerHTML = markdownToHtml(accumulated, true);
+                    },
+                    onThinking: (token, accumulated) => console.debug('[thinking]', token)
+                  });
+
             })
             .catch(err => {
                 contentDiv.innerHTML = "<span style='color:red'>Could not fetch example sentences.</span>";
@@ -179,10 +190,14 @@ function displayMeaningInEnglish(word) {
         contentDiv.innerHTML = "<span style='opacity:0.6;'>Loading meaning in English...</span>";
         getMeaningInEnglish(word, MODEL_NAME_DEFAULT)
             .then(result => {
-                // Accumulate output and update contentDiv as it streams
-                return result.stream((token, accumulated, meta) => {
-                    contentDiv.innerHTML = markdownToHtml(accumulated, true);
-                });
+
+
+                return result.stream({
+                    onToken: (token, accumulated, meta) => {
+                        contentDiv.innerHTML = markdownToHtml(accumulated, true);
+                    },
+                    onThinking: (token, accumulated) => console.debug('[thinking]', token)
+                  });
             })
             .catch(err => {
                 contentDiv.innerHTML = "<span style='color:red'>Could not fetch meaning.</span>";

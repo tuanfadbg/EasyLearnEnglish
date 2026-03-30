@@ -1,4 +1,4 @@
-const OLLAMA_HOST = 'http://localhost:8000';
+const OLLAMA_HOST = 'https://82c7-183-81-81-123.ngrok-free.app';
 
 function buildGrammarMessages(word, sentence) {
     return [
@@ -69,12 +69,12 @@ Rules:
     ];
 }
 
-async function createOllamaChatStream({ modelName, messages, startTime }) {
-    const response = await fetch(`${OLLAMA_HOST}/chat`, {
+async function createOllamaChatStream({ modelName, messages, startTime, think = false }) {
+    const response = await fetch(`${OLLAMA_HOST}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // Most Ollama-compatible APIs expect `model`, not `modelName`
-        body: JSON.stringify({ model: modelName, messages, stream: true })
+        body: JSON.stringify({ model: modelName, messages, stream: true, think })
     });
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -83,17 +83,15 @@ async function createOllamaChatStream({ modelName, messages, startTime }) {
     const processingTime = Math.round(performance.now() - startTime);
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
-
-    return {
-        modelName,
-        processingTime,
-        // Call stream(onToken) to consume tokens as they arrive.
-        // onToken(token, accumulated, meta?) — meta is set on the final frame.
-        stream: async (onToken) => consumeSseStream({ reader, decoder, onToken })
-    };
+        return {
+            modelName,
+            processingTime,
+            stream: ({ onToken, onThinking } = {}) =>
+                consumeOllamaStreamQwenModel({ reader, decoder, onToken, onThinking })
+        };    
 }
 
-async function consumeSseStream({ reader, decoder, onToken }) {
+async function consumeOllamaStreamGemmaModel({ reader, decoder, onToken }) {
     let buffer = '';
     let fullText = '';
 
@@ -133,6 +131,106 @@ async function consumeSseStream({ reader, decoder, onToken }) {
     return fullText;
 }
 
+// async function consumeOllamaStreamQwenModel({ reader, decoder, onToken }) {
+//     let buffer = '';
+//     let fullText = '';
+
+//     while (true) {
+//         const { value, done } = await reader.read();
+//         if (done) break;
+
+//         buffer += decoder.decode(value, { stream: true });
+
+//         let idx;
+//         while ((idx = buffer.indexOf('\n')) !== -1) {
+//             const line = buffer.slice(0, idx).trim();
+//             buffer = buffer.slice(idx + 1);
+
+//             if (!line) continue;
+
+//             try {
+//                 const j = JSON.parse(line);
+//                 const token = j?.message?.content ?? '';
+
+//                 if (token) {
+//                     fullText += token;
+//                     onToken(token, fullText);
+//                 }
+
+//                 if (j.done) {
+//                     onToken('', fullText, {
+//                         done: true,
+//                         usage: {
+//                             prompt_tokens: j.prompt_eval_count ?? 0,
+//                             completion_tokens: j.eval_count ?? 0,
+//                             total_tokens: (j.prompt_eval_count ?? 0) + (j.eval_count ?? 0),
+//                         }
+//                     });
+//                     return fullText;
+//                 }
+//             } catch (e) {
+//                 console.error('parse error:', e, 'line was:', line);
+//             }
+//         }
+//     }
+
+//     return fullText;
+// }
+
+async function consumeOllamaStreamQwenModel({ reader, decoder, onToken, onThinking }) {
+    let buffer = '';
+    let fullText = '';
+    let fullThinking = '';
+
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        let idx;
+        while ((idx = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.slice(0, idx).trim();
+            buffer = buffer.slice(idx + 1);
+
+            if (!line) continue;
+
+            try {
+                const j = JSON.parse(line);
+                const token = j?.message?.content ?? '';
+                const thinking = j?.message?.thinking ?? '';
+
+                if (thinking) {
+                    fullThinking += thinking;
+                    onThinking?.(thinking, fullThinking);
+                }
+
+                if (token) {
+                    fullText += token;
+                    onToken(token, fullText);
+                }
+
+                if (j.done) {
+                    onToken('', fullText, {
+                        done: true,
+                        thinking: fullThinking,
+                        usage: {
+                            prompt_tokens: j.prompt_eval_count ?? 0,
+                            completion_tokens: j.eval_count ?? 0,
+                            total_tokens: (j.prompt_eval_count ?? 0) + (j.eval_count ?? 0),
+                        }
+                    });
+                    return { fullText, fullThinking };
+                }
+            } catch (e) {
+                console.error('parse error:', e, 'line was:', line);
+            }
+        }
+    }
+
+    return { fullText, fullThinking };
+}
+
 async function checkGrammar(word, sentence, modelName) {
     const startTime = performance.now();
     const messages = buildGrammarMessages(word, sentence);
@@ -159,18 +257,15 @@ async function checkRealtimeFixEnglish(word, sentence, modelName) {
     }
 }
 
-// Generate sample sentences for the given word list.
-// Shape matches checkGrammar(): { modelName, processingTime, stream(onToken) }.
 async function makeSampleSentences(words, modelName) {
     const startTime = performance.now();
     const messages = buildSampleSentenceMessages(words);
 
     try {
-        const result = await createOllamaChatStream({ modelName, messages, startTime });
+        const result = await createOllamaChatStream({ modelName, messages, startTime, think: false });
         return result;
     } catch (error) {
         const elapsed = Math.round(performance.now() - startTime);
-       
         throw new Error(`Sample sentence generation failed after ${elapsed}ms. Last: ${error.message}`);
     }
 }

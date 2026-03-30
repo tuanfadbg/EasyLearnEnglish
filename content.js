@@ -435,14 +435,17 @@ function showFixedBroadOnBottomLeft(text, previousWord) {
   return makeSampleSentences([text, previousWord], MODEL_NAME_DEFAULT)
     .then(result => {
       const apiProcessingTime = result.processingTime;
-      return result.stream((token, accumulated, meta) => {
-        let loadingButton = document.getElementById('loadingButton');
-        if (loadingButton) {
-          loadingButton.style.display = 'none';
-        }
-        // Show latest accumulated text and processing time (from API if available)
-        fillBroadData(accumulated, apiProcessingTime);
-        return accumulated;
+      return result.stream({
+        onToken: (token, accumulated, meta) => {
+            let loadingButton = document.getElementById('loadingButton');
+            if (loadingButton) {
+                loadingButton.style.display = 'none';
+            }
+            console.log('onToken:', { token, accumulated, meta });
+            fillBroadData(accumulated, apiProcessingTime);
+            return accumulated;
+        },
+        onThinking: (token, accumulated) => console.debug('[thinking]', token)
       });
     })
     .catch((error) => {
