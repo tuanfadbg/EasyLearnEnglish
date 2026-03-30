@@ -174,8 +174,14 @@ function showRandomWord() {
         
         randomWordGame = wordbook[randomIndex];
 
-        displayExampleSentences(randomWordGame.text, currentPreviousWord);
-        displayMeaningInEnglish(randomWordGame.text);
+        // Run both functions in parallel (true promises, no async wrappers)
+        Promise.all([
+            displayExampleSentences(randomWordGame.text, currentPreviousWord),
+            displayMeaningInEnglish(randomWordGame.text)
+        ]).catch(err => {
+            // Keep UI responsive; individual functions already render error text
+            console.error('Parallel requests failed:', err);
+        });
 
         // Display the random word and context in the modal
         document.getElementById('randomWord').textContent = `${randomWordGame.text}`;

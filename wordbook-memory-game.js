@@ -162,25 +162,26 @@ function displayExampleSentences(word, previousWord = null) {
     const contentDiv = document.getElementById('exampleSentencesContent');
     if (contentDiv) {
         contentDiv.innerHTML = "<span style='opacity:0.6;'>Loading example sentences...</span>";
-        makeSampleSentences([word, previousWord ?? ''], MODEL_NAME_DEFAULT)
-            .then(result => {``
-                
+        return makeSampleSentences([word, previousWord ?? ''], MODEL_NAME_DEFAULT)
+            .then(result => {
                 return result.stream({
                     onToken: (token, accumulated, meta) => {
                         contentDiv.innerHTML = markdownToHtml(accumulated, true);
                     },
                     onThinking: (token, accumulated) => console.debug('[thinking]', token)
-                  });
-
+                });
             })
             .catch(err => {
                 contentDiv.innerHTML = "<span style='color:red'>Could not fetch example sentences.</span>";
                 console.error('displayExampleSentences error:', err);
+                throw err;
             });
     }
+    return Promise.resolve();
 }
 
 function displayMeaningInEnglish(word) {
+    console.log('displayMeaningInEnglish', word);
     // Show the meaning in English box if hidden
     const meaningBox = document.getElementById('meaningEnglishBox');
     if (meaningBox) meaningBox.style.display = '';
@@ -188,20 +189,20 @@ function displayMeaningInEnglish(word) {
     const contentDiv = document.getElementById('meaningEnglishContent');
     if (contentDiv) {
         contentDiv.innerHTML = "<span style='opacity:0.6;'>Loading meaning in English...</span>";
-        getMeaningInEnglish(word, MODEL_NAME_DEFAULT)
+        return getMeaningInEnglish(word, MODEL_NAME_DEFAULT)
             .then(result => {
-
-
                 return result.stream({
                     onToken: (token, accumulated, meta) => {
                         contentDiv.innerHTML = markdownToHtml(accumulated, true);
                     },
                     onThinking: (token, accumulated) => console.debug('[thinking]', token)
-                  });
+                });
             })
             .catch(err => {
                 contentDiv.innerHTML = "<span style='color:red'>Could not fetch meaning.</span>";
                 console.error('displayMeaningInEnglish error:', err);
+                throw err;
             });
     }
+    return Promise.resolve();
 }

@@ -70,6 +70,9 @@ Rules:
 }
 
 async function createOllamaChatStream({ modelName, messages, startTime, think = false }) {
+    const requestId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    console.log('[ollama] fetch start', { requestId, modelName, think, t: Date.now() });
+
     const response = await fetch(`${OLLAMA_HOST}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -87,7 +90,7 @@ async function createOllamaChatStream({ modelName, messages, startTime, think = 
             modelName,
             processingTime,
             stream: ({ onToken, onThinking } = {}) =>
-                consumeOllamaStreamQwenModel({ reader, decoder, onToken, onThinking })
+                consumeOllamaStreamQwenModel({ reader, decoder, onToken, onThinking, requestId })
         };    
 }
 
@@ -177,10 +180,11 @@ async function consumeOllamaStreamGemmaModel({ reader, decoder, onToken }) {
 //     return fullText;
 // }
 
-async function consumeOllamaStreamQwenModel({ reader, decoder, onToken, onThinking }) {
+async function consumeOllamaStreamQwenModel({ reader, decoder, onToken, onThinking, requestId }) {
     let buffer = '';
     let fullText = '';
     let fullThinking = '';
+    let firstTokenLogged = false;
 
     while (true) {
         const { value, done } = await reader.read();
@@ -207,6 +211,10 @@ async function consumeOllamaStreamQwenModel({ reader, decoder, onToken, onThinki
 
                 if (token) {
                     fullText += token;
+                    if (!firstTokenLogged) {
+                        firstTokenLogged = true;
+                        console.log('[ollama] first token', { requestId, modelName: j?.model, t: Date.now() });
+                    }
                     onToken(token, fullText);
                 }
 

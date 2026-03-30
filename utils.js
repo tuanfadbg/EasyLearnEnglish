@@ -282,12 +282,12 @@ function markCorrectionWords(input, correctedInput) {
     const lcsPairs = lcsWordPairs(inputWords, correctedWords);
     const correctedInLcs = new Set(lcsPairs.map(([, j]) => j));
 
-    return correctedWords
+    return `<p class="openTranslate">` + correctedWords
         .map((t, j) => {
             const raw = t.raw;
-            return correctedInLcs.has(j) ? escapeHtml(raw) : `<p class="openTranslate"><mark>${escapeHtml(raw)}</mark></p>`;
+            return correctedInLcs.has(j) ? escapeHtml(raw) : `<mark>${escapeHtml(raw)}</mark>`;
         })
-        .join(' ');
+        .join(' ') + `</p>`;
 }
 
 function tokenizeWords(text) {
