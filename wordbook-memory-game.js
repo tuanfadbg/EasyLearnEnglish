@@ -18,18 +18,30 @@ const memoryGameTextArea = document.getElementById('memoryGameTextArea');
 const grammarCheckResult = document.getElementById('grammarCheckResult');
 
 let debounceTimeout;
-
+let checkRealtimeFixEnglishDone = true
 memoryGameTextArea.addEventListener('input', function () {
-    if (debounceTimeout) clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(() => {
-        console.log('Debounced input:', memoryGameTextArea.value);
+    const sentence = getMemoryGameInput();
+    if (!sentence || sentence.length <= 10) return;
+
+    if (checkRealtimeFixEnglishDone == false) 
+        return;
+    
+    // if (debounceTimeout) clearTimeout(debounceTimeout);
+    // debounceTimeout = setTimeout(() => {
+    console.log('checkRealtimeFixEnglishDone:', checkRealtimeFixEnglishDone);
+    checkRealtimeFixEnglishDone = false
+    callAPIcheckRealtimeFixEnglish()
+    // }, 300);
+});
+
+function callAPIcheckRealtimeFixEnglish() {
+    console.log('Debounced input:', memoryGameTextArea.value);
     // Get the "randomWord" value for word, textarea value for sentence
     const word = document.getElementById('randomWord').textContent.trim();
-    const sentence = memoryGameTextArea.value.trim();
+    const sentence = getMemoryGameInput();
 
     const correctedVersionParagraph = document.getElementById('realtimeCorrectedVersion');
-
-    // Only attempt if both exist
+    
     if (word && sentence && correctedVersionParagraph) {
         checkRealtimeFixEnglish(word, sentence, MODEL_NAME_DEFAULT)
             .then(result => {
@@ -37,17 +49,21 @@ memoryGameTextArea.addEventListener('input', function () {
                     onToken: (token, accumulated, meta) => {
                         if (meta?.done) {
                             // Show the corrected/checked grammar result in the paragraph
+                            console.log(meta);
                             console.log(markdownToHtml(accumulated));
-                            correctedVersionParagraph.innerHTML = markCorrectionWords(sentence, accumulated);
+                            correctedVersionParagraph.innerHTML = markCorrectionWords(getMemoryGameInput(), accumulated);
                             correctedVersionParagraph.style.display = 'block';
+                            checkRealtimeFixEnglishDone = true
                         } else {
+                            console.log(meta);
+                            console.log(markdownToHtml(accumulated));
                             // Partial content as it's streaming in (optional)
-                            correctedVersionParagraph.innerHTML = markCorrectionWords(sentence, accumulated) + '<span class="typing-cursor">▌</span>';
+                            correctedVersionParagraph.innerHTML = markCorrectionWords(getMemoryGameInput(), accumulated) + '<span class="typing-cursor">▌</span>';
                             correctedVersionParagraph.style.display = 'block';
                         }
                     },
                     onThinking: (token, accumulated) => console.debug('[thinking]', token)
-                  });
+                });
             })
             .catch(() => {
                 correctedVersionParagraph.textContent = 'Could not check grammar.';
@@ -58,9 +74,11 @@ memoryGameTextArea.addEventListener('input', function () {
         // If input is empty, hide the correction display
         correctedVersionParagraph.style.display = 'none';
     }
-    }, 500);
-});
+}
 
+function getMemoryGameInput() {
+    return memoryGameTextArea.value.trim();
+}
 
 checkGrammarButton.addEventListener('click', function () {
           // Get the "randomWord" value for word, textarea value for sentence

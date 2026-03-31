@@ -1,4 +1,4 @@
-const OLLAMA_HOST = 'https://82c7-183-81-81-123.ngrok-free.app';
+const OLLAMA_HOST = 'https://efb4-2405-4802-1c86-5a54-00-1001.ngrok-free.app';
 
 function buildGrammarMessages(word, sentence) {
     return [
@@ -12,13 +12,17 @@ function buildGrammarMessages(word, sentence) {
 My sentence is:
 "${sentence}"
 
-Please respond exactly in the following format, index only, no other text:
+Please respond exactly in the following format, no other text, without repeating the instruction titles, index only:
 1. Fix my sentence and clearly highlight the mistakes.
    - Show ONLY the fixed sentence (do not repeat the original sentence).
    - List all corrections made.
 2. Provide 2–3 better and more natural versions of the sentence and using this word "${word}" and its variations.
 3. Briefly explain how I can improve my English based on my mistakes.
 
+Format 
+1.
+2.
+3.
 Important:
 - Always replace the original sentence with the fixed sentence.
 - Keep explanations short and clear.`
@@ -30,11 +34,27 @@ function buildRealtimeFixEnglishMessages(word, sentence) {
     return [
         {
             role: 'system',
-            content: `You are an English grammar corrector. Return ONLY the corrected sentence. No explanations, no preamble, no extra text. If you add anything else, you have failed. Example:
+            content: `You are an English grammar corrector. Your output must be strictly limited to the corrected text.
+
+Rules:
+
+No Metadata: No explanations, no preamble, and no labels (e.g., do not include "Output:" or "Fixed sentence:").
+
+Sentence Completion: If the input is an incomplete fragment, complete it into a full, logical sentence based on the provided words. Avoid adding nonsensical or unrelated details.
+
+Correctness: If the sentence is already correct, return it exactly as-is.
+
+Punctuation: Ignore trailing punctuation; do not add or remove periods or commas at the end of the sentence unless necessary for grammar.
+
+Failure Condition: If you add any conversational text or formatting headers, you have failed the task.
+
+Example 1:
 Input: "She are good"
 Output: She is good
-- If the sentence is already correct: return it as-is, no marks, no comments.
-- Ignore trailing punctuation — do not add or remove periods, commas, etc.`
+
+Example 2 (Completion):
+Input: "went to market"
+Output: I went to the market`
         },
         {
             role: 'user',
