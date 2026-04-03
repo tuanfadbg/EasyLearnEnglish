@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const meaningInput = document.getElementById('meaning');
     const noteInput = document.getElementById('note');
     const saveButton = document.getElementById('save');
+    const captureAreaButton = document.getElementById('captureArea');
     const savedWordsList = document.getElementById('savedWords');
     const viewSavedWordsLink = document.getElementById('viewSavedWords');
     const wordbookLink = document.getElementById('wordbook');
@@ -33,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
             //     wordInputPopup.value = response.word;
             // }
         });
-        chrome.tabs.sendMessage(tab.id, { action: "findElement" });
+        chrome.tabs.sendMessage(tabs[0].id, { action: "findElement" });
     });
 
 
@@ -42,6 +43,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         });
     });
+
+    if (captureAreaButton) {
+        captureAreaButton.addEventListener('click', function () {
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                if (!tabs || !tabs[0]) return;
+                chrome.tabs.sendMessage(
+                    tabs[0].id,
+                    { type: 'START_CAPTURE_SELECTION' },
+                    () => {
+                        // If the content script isn't ready, Chrome will surface lastError in console.
+                        window.close();
+                    }
+                );
+            });
+        });
+    }
 
     // Restore saved values from chrome.storage.local
     function restoreTempData() {

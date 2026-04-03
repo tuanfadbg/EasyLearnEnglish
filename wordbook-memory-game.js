@@ -30,9 +30,12 @@ memoryGameTextArea.addEventListener('input', function () {
     // debounceTimeout = setTimeout(() => {
     console.log('checkRealtimeFixEnglishDone:', checkRealtimeFixEnglishDone);
     checkRealtimeFixEnglishDone = false
+    // Show the realtimeSpinner when starting grammar check
+    showRealtimeSpinner()
     callAPIcheckRealtimeFixEnglish()
     // }, 300);
 });
+
 
 function callAPIcheckRealtimeFixEnglish() {
     console.log('Debounced input:', memoryGameTextArea.value);
@@ -51,15 +54,21 @@ function callAPIcheckRealtimeFixEnglish() {
                             // Show the corrected/checked grammar result in the paragraph
                             console.log(meta);
                             console.log(markdownToHtml(accumulated));
-                            correctedVersionParagraph.innerHTML = markCorrectionWords(getMemoryGameInput(), accumulated);
-                            correctedVersionParagraph.style.display = 'block';
+                            if (accumulated.trim() === 'ok') {
+                                correctedVersionParagraph.innerHTML = markCorrectionWords(sentence, sentence);
+                            } else {
+                                correctedVersionParagraph.innerHTML = markCorrectionWords(getMemoryGameInput(), accumulated);
+                            }
+                            
                             checkRealtimeFixEnglishDone = true
+                        // Hide the realtimeSpinner when finished
+                        hideRealtimeSpinner()
                         } else {
                             console.log(meta);
                             console.log(markdownToHtml(accumulated));
                             // Partial content as it's streaming in (optional)
                             correctedVersionParagraph.innerHTML = markCorrectionWords(getMemoryGameInput(), accumulated) + '<span class="typing-cursor">▌</span>';
-                            correctedVersionParagraph.style.display = 'block';
+                            
                         }
                     },
                     onThinking: (token, accumulated) => console.debug('[thinking]', token)
@@ -67,12 +76,9 @@ function callAPIcheckRealtimeFixEnglish() {
             })
             .catch(() => {
                 correctedVersionParagraph.textContent = 'Could not check grammar.';
-                correctedVersionParagraph.style.display = 'block';
+                
                 correctedVersionParagraph.style.color = 'red';
             });
-    } else if (correctedVersionParagraph) {
-        // If input is empty, hide the correction display
-        correctedVersionParagraph.style.display = 'none';
     }
 }
 
@@ -223,4 +229,19 @@ function displayMeaningInEnglish(word) {
             });
     }
     return Promise.resolve();
+}
+
+
+function showRealtimeSpinner() {
+    const realtimeSpinner = document.getElementById('realtimeSpinner');
+    if (realtimeSpinner) {
+        realtimeSpinner.style.display = 'block';
+    }
+}
+
+function hideRealtimeSpinner() {
+    const realtimeSpinner = document.getElementById('realtimeSpinner');
+    if (realtimeSpinner) {
+        realtimeSpinner.style.display = 'none';
+    }
 }

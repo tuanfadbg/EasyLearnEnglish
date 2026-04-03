@@ -69,6 +69,24 @@
             background-color: #2980b9;
         }
 
+        #captureArea {
+            background-color: #2ecc71;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        #captureArea:hover {
+            background-color: #27ae60;
+        }
+
         ul {
             list-style-type: none;
             padding: 0;
@@ -130,6 +148,7 @@
         <textarea id="note" placeholder="Enter note" rows="3"></textarea>
 
         <button id="save">Save</button>
+        <button id="captureArea" title="Drag on the page to select an area, then confirm to capture">Capture Area</button>
 
         <ul id="savedWords"></ul>
 

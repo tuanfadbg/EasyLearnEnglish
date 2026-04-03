@@ -18,6 +18,17 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log(request);
+    if (request && request.type === 'CAPTURE_VISIBLE_TAB') {
+        const windowId = sender?.tab?.windowId ?? null;
+        chrome.tabs.captureVisibleTab(windowId, { format: 'png' }, (dataUrl) => {
+            if (chrome.runtime.lastError) {
+                sendResponse({ error: chrome.runtime.lastError.message });
+                return;
+            }
+            sendResponse({ dataUrl });
+        });
+        return true; // Keep the message channel open for async sendResponse
+    }
     if (request.action === "openGoogleTranslate") {
         openGoogleTranslate(request.data);
     }

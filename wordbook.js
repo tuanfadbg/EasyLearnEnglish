@@ -184,8 +184,10 @@ function showRandomWord() {
         });
 
         // Display the random word and context in the modal
-        document.getElementById('randomWord').textContent = `${randomWordGame.text}`;
-        document.getElementById('randomContext').innerHTML = `${randomWordGame.context.join('<br/>')}`;
+        document.getElementById('randomWord').innerHTML = `<p class="openTranslate">${randomWordGame.text}</p>`;
+        document.getElementById('randomContext').innerHTML = randomWordGame.context
+            .map(line => `<p class="openTranslate">${line}</p>`)
+            .join('');
 
 
 
@@ -199,13 +201,13 @@ function showRandomWord() {
     });
 }
 
-document.getElementById('randomWord').addEventListener('click', function () {
-    openGoogleTranslate(randomWordGame.text);
-});
+// document.getElementById('randomWord').addEventListener('click', function () {
+//     openGoogleTranslate(randomWordGame.text);
+// });
 
-document.getElementById('randomContext').addEventListener('click', function () {
-    openGoogleTranslate(randomWordGame.context.join('\n'));
-});
+// document.getElementById('randomContext').addEventListener('click', function () {
+//     openGoogleTranslate(randomWordGame.context.join('\n'));
+// });
 
 // Handle Remember button click
 document.getElementById('rememberButton').addEventListener('click', function () {

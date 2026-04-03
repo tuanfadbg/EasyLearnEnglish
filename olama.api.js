@@ -1,4 +1,4 @@
-const OLLAMA_HOST = 'https://efb4-2405-4802-1c86-5a54-00-1001.ngrok-free.app';
+const OLLAMA_HOST = 'https://8adf-2405-4802-1c86-5a54-00-1001.ngrok-free.app';
 
 function buildGrammarMessages(word, sentence) {
     return [
@@ -42,7 +42,7 @@ No Metadata: No explanations, no preamble, and no labels (e.g., do not include "
 
 Sentence Completion: If the input is an incomplete fragment, complete it into a full, logical sentence based on the provided words. Avoid adding nonsensical or unrelated details.
 
-Correctness: If the sentence is already correct, return it exactly as-is.
+Correctness: If the sentence is already correct, return ok.
 
 Punctuation: Ignore trailing punctuation; do not add or remove periods or commas at the end of the sentence unless necessary for grammar.
 
@@ -52,9 +52,14 @@ Example 1:
 Input: "She are good"
 Output: She is good
 
-Example 2 (Completion):
+Example 2 :
 Input: "went to market"
-Output: I went to the market`
+Output: I went to the market
+
+Example 3:
+Input: "I am the only one"
+Output: ok`
+
         },
         {
             role: 'user',
@@ -86,6 +91,16 @@ Rules:
 - Each sentence is only in one line.
 `
         }
+    ];
+}
+
+function buildDescribeImageFromBase64(base64Image) {
+    return [
+        {
+            role: 'user',
+            content: 'Describe this image',
+            images: [base64Image]
+        },
     ];
 }
 
@@ -282,6 +297,18 @@ async function checkRealtimeFixEnglish(word, sentence, modelName) {
     } catch (error) {
         const elapsed = Math.round(performance.now() - startTime);
         throw new Error(`Realtime fix failed after ${elapsed}ms. Last: ${error.message}`);
+    }
+}
+
+async function describeImage(base64Image, modelName) {
+    const startTime = performance.now();
+    const messages = buildDescribeImageFromBase64(base64Image);
+
+    try {
+        return await createOllamaChatStream({ modelName, messages, startTime });
+    } catch (error) {
+        const elapsed = Math.round(performance.now() - startTime);
+        throw new Error(`describeImage ${elapsed}ms. Last: ${error.message}`);
     }
 }
 

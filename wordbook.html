@@ -59,8 +59,14 @@
                                 <p id="randomContext"></p>
                                 <label for="memoryGameTextArea" class="font-weight-bold">Write your note here:</label>
                                 <textarea id="memoryGameTextArea" class="form-control" rows="3" placeholder="Write your notes here..."></textarea>
-                                <div>
-                                    <p id="realtimeCorrectedVersion" style="display: none;"></p>
+                                <div style="position: relative;">
+                                    <!-- Loading spinner (hidden by default, show via JS when loading) -->
+                                    <div id="realtimeSpinner" style="position: absolute; top: 5px; right: 5px; z-index: 10; display: none;">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            
+                                        </div>
+                                    </div>
+                                    <p id="realtimeCorrectedVersion" style="min-height: 2.7em;"></p>
                                 </div>
                                 <button type="button" id="checkGrammarButton" class="btn btn-outline-danger mt-2 mb-2">Check Grammar</button>
                                 <button type="button" id="addContextButton" class="btn btn-outline-info mt-2 mb-2">Add context</button>
