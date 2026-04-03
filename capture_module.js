@@ -246,13 +246,6 @@ function startCaptureSelection() {
             // This is the correct base64 string to send to the describeImage function
             callDescribeImage(base64);
 
-            // For preview, also save the cropped image as data url
-            chrome.storage.local.set(
-                { lastCaptureDataUrl: croppedDataUrl, lastCaptureMeta: croppedMeta, lastCaptureBase64: base64 },
-                () => {
-                    chrome.tabs.create({ url: chrome.runtime.getURL('capture_preview.html') });
-                }
-            );
         } catch (e) {
             console.error('Capture failed:', e);
             // Quick feedback on failure.
