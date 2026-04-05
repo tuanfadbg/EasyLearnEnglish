@@ -128,21 +128,45 @@ document.addEventListener('keydown', function (event) {
   }
 });
 
+//option + c to hide/show sideboard
 document.addEventListener('keydown', function (event) {
   // Listen for Option (Alt) + C for both Mac and Windows
   console.log('keydown event detected:', event);
   if (event.key === 'ç') {
-    
-      const sideboardEl = document.getElementById('__describeImageSideboard');
-      let sideboardIsVisible = !!(sideboardEl && sideboardEl.style.display !== 'none');
-    
-    if (sideboardIsVisible) {
+    if (isSideboardVisible()) {
       if (typeof hideSideboardPanel === 'function') hideSideboardPanel();
       // window.sideboardIsVisible = false;
     } else {
       if (typeof showSideboardPanel === 'function') showSideboardPanel();
       // window.sideboardIsVisible = true;
     }
+  }
+});
+
+//option + √ to expand/collapse sideboard
+document.addEventListener('keydown', function (event) {
+  // Listen for Option (Alt) + C for both Mac and Windows
+  console.log('keydown event detected:', event);
+  if (event.key === '√') {
+    if (isSideboardExpanded()) {
+      if (typeof collapseSideboardPanel === 'function') collapseSideboardPanel();
+    } else {
+      if (typeof expandSideboardPanel === 'function') expandSideboardPanel();
+    }
+  }
+});
+
+//option + b to enlarge image
+document.addEventListener('keydown', function (event) {
+  console.log('keydown event detected:', event);
+  if (event.key === '∫') {
+
+    if (isImageDisplayHalfScreenLeftVisible()) {
+      hideImageDisplayHalfScreenLeft();
+    } else {
+      showImageDisplayHalfScreenLeft();
+    }
+
   }
 });
 
@@ -306,7 +330,7 @@ function findTextAndAddToWordbook(request) {
         showAlert("Element not found")
       }
     } else {
-      saveToWordbook(selectedText, context).then(({text, previousWord}) => {
+      saveToWordbook(selectedText, context).then(({ text, previousWord }) => {
         showFixedBroadOnBottomLeft(text, previousWord).then((data) => {
           console.log(data);
           saveToWordbook(text, data);
@@ -315,7 +339,7 @@ function findTextAndAddToWordbook(request) {
     }
   } else {
     const context = getEjoySelectedContext();
-    saveToWordbook(ejoySelectedText, context).then(({text, previousWord}) => {
+    saveToWordbook(ejoySelectedText, context).then(({ text, previousWord }) => {
       showFixedBroadOnBottomLeft(text, previousWord).then((data) => {
         console.log(data);
         saveToWordbook(text, data);
@@ -435,7 +459,7 @@ function saveToWordbook(text, context) {
       chrome.storage.local.set({ wordbook: wordbook }, function () {
         console.log('added to wordbook: ', wordbook);
         showAlert("Saved to wordbook");
-        resolve({text, previousWord});
+        resolve({ text, previousWord });
       });
     });
   });
@@ -459,13 +483,13 @@ function showFixedBroadOnBottomLeft(text, previousWord) {
       const apiProcessingTime = result.processingTime;
       return result.stream({
         onToken: (token, accumulated, meta) => {
-            let loadingButton = document.getElementById('loadingButton');
-            if (loadingButton) {
-                loadingButton.style.display = 'none';
-            }
-            console.log('onToken:', { token, accumulated, meta });
-            fillBroadData(accumulated, apiProcessingTime);
-            return accumulated;
+          let loadingButton = document.getElementById('loadingButton');
+          if (loadingButton) {
+            loadingButton.style.display = 'none';
+          }
+          console.log('onToken:', { token, accumulated, meta });
+          fillBroadData(accumulated, apiProcessingTime);
+          return accumulated;
         },
         onThinking: (token, accumulated) => console.debug('[thinking]', token)
       });
@@ -485,7 +509,7 @@ function fillBroadData(data, processingTime) {
   let outputDiv = document.getElementById('outputDiv');
   outputDiv.innerHTML = "";
   const processingTimeText = `Processing time: ${processingTime} ms`;
-  
+
   const processingTimeParagraph = document.createElement('p');
   processingTimeParagraph.innerHTML = data.split('\n').join('<br>');
   outputDiv.appendChild(processingTimeParagraph);

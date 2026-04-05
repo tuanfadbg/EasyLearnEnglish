@@ -1,6 +1,6 @@
 
 // Extracted Hide and Show functions outside of startCaptureSelection and ensureSideboard
-let hideSideboardPanel, showSideboardPanel;
+let hideSideboardPanel, showSideboardPanel, expandSideboardPanel, collapseSideboardPanel;
 
 function startCaptureSelection() {
     // Prevent multiple overlays at once.
@@ -365,9 +365,9 @@ function startCaptureSelection() {
 
 function callDescribeImage(base64Image) {
     ensureSideboard();
-    const imgEl = document.getElementById('__describeImageSideboardImg');
-    const metaEl = document.getElementById('__describeImageSideboardMeta');
-    const textEl = document.getElementById('__describeImageSideboardText');
+    const imgEl = document.getElementById(SIDEBOARD_ID + 'Img');
+    const metaEl = document.getElementById(SIDEBOARD_ID +'Meta');
+    const textEl = document.getElementById(SIDEBOARD_ID +'Text');
 
     console.log('callDescribeImage() got base64:', {
         isEmpty: !base64Image,
@@ -389,6 +389,9 @@ function callDescribeImage(base64Image) {
         console.warn('Failed to render base64 image in sideboard:', e);
     }
 
+    createImageDisplayHalfScreenLeft();
+    updateImageDisplayHalfScreenLeft(base64Image);
+
     describeImage(base64Image, MODEL_NAME_DEFAULT)
         .then(result => {
             console.log('describeImage resolved, model:', result.modelName);
@@ -396,6 +399,22 @@ function callDescribeImage(base64Image) {
                 onToken: (token, accumulated, meta) => {
                     console.log('onToken:', { token, accumulated, meta });
                     if (textEl) textEl.innerHTML = markdownToHtml(accumulated ?? '', true);
+                    // INSERT_YOUR_CODE
+                    // If meta and meta.usage exists, display duration and token count in the meta sideboard element
+                    if (meta && meta.usage && meta.usage.total_duration !== undefined) {
+                        // Duration may be in nanoseconds, so convert to ms 
+                        const durationMs = Math.round((meta.usage.total_duration ?? 0) / 1e6);
+                        const promptTokens = meta.usage.prompt_eval_count ?? meta.usage.prompt_tokens ?? 0;
+                        const completionTokens = meta.usage.eval_count ?? meta.usage.completion_tokens ?? 0;
+                        const totalTokens = meta.usage.total_tokens ?? (promptTokens + completionTokens);
+
+                        if (metaEl) {
+                            metaEl.textContent =
+                                `base64 length: ${base64Image.length} | ` +
+                                `duration: ${durationMs}ms | ` +
+                                `tokens: ${totalTokens} (prompt_eval_count: ${promptTokens}, eval_count: ${completionTokens})`;
+                        }
+                    }
                     return accumulated;
                 },
                 onThinking: (token, accumulated) => {
@@ -461,6 +480,14 @@ function ensureSideboard() {
             opacity: 0;
             pointer-events: none;
         }
+        #${SIDEBOARD_ID}.halfscreen {
+            width: 50vw;
+            right: 0;
+            transform: translateX(0%);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
         #__sideboardShowBtn, #__sideboardHideBtn {
             position: fixed;
             right: 10px;
@@ -513,7 +540,7 @@ function ensureSideboard() {
 
     // Panel content
     const header = document.createElement('div');
-    header.textContent = 'Option + C to hide/show';
+    header.textContent = 'Option + C to hide/show, Option + V to expand/collapse, Option + B to enlarge image';
     header.style.fontWeight = '700';
     header.style.fontSize = '14px';
 
@@ -561,6 +588,7 @@ function ensureSideboard() {
     text.style.overflow = 'auto';
     text.style.margin = '0';
     text.style.padding = '10px';
+    text.style.paddingBottom = '200px';
     text.style.borderRadius = '8px';
     text.style.background = '#f6f7f9';
     text.style.border = '1px solid rgba(0,0,0,0.08)';
@@ -600,6 +628,16 @@ function ensureSideboard() {
         showBtn.classList.add('sideboardShowBtn-hidden');
     };
 
+    expandSideboardPanel = function() {
+        if (!el) return;
+        el.classList.add('halfscreen');
+    };
+
+    collapseSideboardPanel = function() {
+        if (!el) return;
+        el.classList.remove('halfscreen');
+    };
+
     hideBtn.addEventListener('click', hideSideboardPanel);
     showBtn.onclick = showSideboardPanel;
 
@@ -635,4 +673,171 @@ function ensureSideboard() {
     });
 
     return el;
+}
+
+function isSideboardVisible() {
+    let el = document.getElementById(SIDEBOARD_ID);
+    return el && el.style.display !== 'none';
+}
+
+function isSideboardExpanded() {
+    let el = document.getElementById(SIDEBOARD_ID);
+    return el && el.classList.contains('halfscreen');
+}
+// Adds a function to show an "image display" half screen on the left.
+
+// Left Panel constants and setup (styles added once)
+const LEFT_IMAGE_PANEL_ID = '__leftHalfScreenImagePanel';
+
+(function setupLeftImagePanelStyles() {
+    if (!document.getElementById('__leftHalfScreenImagePanel_style')) {
+        const style = document.createElement('style');
+        style.id = '__leftHalfScreenImagePanel_style';
+        style.textContent = `
+            #${LEFT_IMAGE_PANEL_ID} {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 40vw;
+                background: rgba(250,250,250,0.97);
+                z-index: 9995;
+                box-shadow: 2px 0 18px rgba(0,0,0,0.09);
+                display: none;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 12px 14px 12px;
+                gap: 18px;
+                border-radius: 8px;
+                transition: transform 350ms cubic-bezier(.3,1.2,.4,1),
+                            opacity 350ms cubic-bezier(.3,1.2,.4,1);
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            #${LEFT_IMAGE_PANEL_ID}.show {
+                display: flex;
+                transform: translateX(0%);
+                opacity: 1;
+            }
+            #${LEFT_IMAGE_PANEL_ID} .image-panel-header {
+                font-size: 1.05rem;
+                font-weight: bold;
+                margin-bottom: 6px;
+                color: #232323;
+                text-align: left;
+                width: 100%;
+            }
+            #${LEFT_IMAGE_PANEL_ID} img {
+                max-width: 100%;
+                max-height: 100vh;
+                border-radius: 8px;
+                box-shadow: 0 2px 12px #0002;
+            }
+            #${LEFT_IMAGE_PANEL_ID} .close-btn {
+                position: absolute;
+                right: 18px;
+                top: 14px;
+                background: #e44;
+                color: #fff;
+                border: none;
+                border-radius: 7px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 1.07rem;
+                z-index: 1;
+                transition: background 0.18s;
+            }
+            #${LEFT_IMAGE_PANEL_ID} .close-btn:hover {
+                background: #b11;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+})();
+
+// Create (once, hidden by default) left panel DOM node
+function createImageDisplayHalfScreenLeft() {
+    let panel = document.getElementById(LEFT_IMAGE_PANEL_ID);
+    if (panel)  {  // already exists
+        return panel;
+     }
+    
+    panel = document.createElement('div');
+    panel.id = LEFT_IMAGE_PANEL_ID;
+    panel.style.display = 'none';
+
+    // Header, image, closeBtn elements (populated later by show function)
+    const header = document.createElement('div');
+    header.className = 'image-panel-header';
+    panel.appendChild(header);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.textContent = '✕';
+    closeBtn.onclick = () => {
+        panel.classList.remove('show');
+        setTimeout(() => {
+            panel.style.display = 'none';
+            panel.tabIndex = -1;
+        }, 350);
+    };
+    panel.appendChild(closeBtn);
+
+    const img = document.createElement('img');
+    img.id = LEFT_IMAGE_PANEL_ID + 'Img';
+    panel.appendChild(img);
+
+    // Remove panel from view on Escape
+    function onEsc(e) {
+        if (e.key === 'Escape') closeBtn.click();
+    }
+    panel.addEventListener('keydown', onEsc);
+
+    panel.tabIndex = -1;
+    document.body.appendChild(panel);
+
+    return panel;
+}
+
+function updateImageDisplayHalfScreenLeft(base64Image) {
+    const img = document.getElementById(LEFT_IMAGE_PANEL_ID + 'Img');
+    if (img) {
+        img.src = base64Image.startsWith('data:') ? base64Image : `data:image/png;base64,${base64Image}`;
+        img.alt = "Image Preview";
+    }
+}
+
+
+// API: Show the image preview in the left halfscreen panel
+function showImageDisplayHalfScreenLeft() {
+    // Either create or reuse the same panel
+    let panel = document.getElementById(LEFT_IMAGE_PANEL_ID);
+    if (!panel) panel = createImageDisplayHalfScreenLeft();
+
+    // Reset panel position and display
+    panel.style.display = 'flex';
+    const imgEl = document.getElementById(SIDEBOARD_ID + 'Img');    
+    imgEl.style.display = 'none';
+    setTimeout(() => {
+        panel.classList.add('show');
+        panel.tabIndex = 0;
+        panel.focus();
+    }, 5);
+}
+
+function hideImageDisplayHalfScreenLeft() {
+    let panel = document.getElementById(LEFT_IMAGE_PANEL_ID);
+    if (panel) {
+        panel.classList.remove('show');
+        const imgEl = document.getElementById(SIDEBOARD_ID + 'Img');    
+        imgEl.style.display = '';
+        setTimeout(() => {
+            panel.style.display = 'none';
+            panel.tabIndex = -1;
+        }, 350);
+    }
+}
+
+function isImageDisplayHalfScreenLeftVisible() {
+    let panel = document.getElementById(LEFT_IMAGE_PANEL_ID);
+    return panel && panel.style.display === 'flex';
 }

@@ -258,9 +258,12 @@ async function consumeOllamaStreamQwenModel({ reader, decoder, onToken, onThinki
                         done: true,
                         thinking: fullThinking,
                         usage: {
-                            prompt_tokens: j.prompt_eval_count ?? 0,
-                            completion_tokens: j.eval_count ?? 0,
-                            total_tokens: (j.prompt_eval_count ?? 0) + (j.eval_count ?? 0),
+                            total_duration: j.total_duration,
+                            load_duration: j.load_duration,
+                            prompt_eval_count: j.prompt_eval_count,
+                            prompt_eval_duration: j.prompt_eval_duration,
+                            eval_count: j.eval_count,
+                            eval_duration: j.eval_duration
                         }
                     });
                     return { fullText, fullThinking };
