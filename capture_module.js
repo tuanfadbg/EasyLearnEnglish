@@ -212,17 +212,36 @@ function startCaptureSelection() {
             const sw = rect.width * scaleX;
             const sh = rect.height * scaleY;
 
-            // Canvas size should match the size of the region in image pixels
-            canvas.width = Math.max(1, Math.round(sw));
-            canvas.height = Math.max(1, Math.round(sh));
+            // Reduce the canvas size by half
+            reduceFactor = 1;
+            const size = sw*sh;
+            if (size > 5000000) {
+                reduceFactor = 5;
+            } else if (size > 3000000) {
+                reduceFactor = 4;
+            } else if (size > 1000000) {
+                reduceFactor = 3;
+            } else if (size > 300000) {
+                reduceFactor = 2;
+            }
+            console.log('size:', size); 
+            console.log('reduceFactor:', reduceFactor);
+            canvas.width = Math.max(1, Math.round(sw / reduceFactor));
+            canvas.height = Math.max(1, Math.round(sh / reduceFactor));
 
             const ctx = canvas.getContext('2d');
             ctx.drawImage(
                 img,
                 sx, sy, sw, sh, // source rect in image coordinates
-                0, 0, canvas.width, canvas.height // dest rect
+                0, 0, canvas.width, canvas.height // dest rect (now half size) // 
             );
 
+// base64 length: 134124 | first token time: 4787ms
+// base64 length: 553508 | first token time: 8720ms
+// base64 length: 1966488 | first token time: 13521ms (reduceFactor = 2)
+// base64 length: 7311860 | first token time: 33725ms (reduceFactor = 1)
+// base64 length: 1004428 | first token time: 7388ms (reduceFactor = 3)
+// base64 length: 396984 | first token time: 5438ms (reduceFactor = 5)
             // Extract its base64 using getCanvasBase64Strict so it matches the visible cropped area
             // const croppedDataUrl = canvas.toDataURL('image/png');
             const base64 = await getCanvasBase64Strict(canvas);
@@ -394,7 +413,7 @@ function callDescribeImage(base64Image) {
                         firstTokenTime = Date.now() - callTime;
                         metaEl.textContent =
                             `base64 length: ${base64Image.length} | ` +
-                            `first token time: ${firstTokenTime}ms`;
+                            `first token time: ${firstTokenTime}ms | reduceFactor: ${reduceFactor}`;
                     }
                     console.log('onToken:', { token, accumulated, meta });
                     if (textEl) textEl.innerHTML = markdownToHtml(accumulated ?? '', true);
@@ -405,15 +424,15 @@ function callDescribeImage(base64Image) {
                     if (meta && meta.usage && meta.usage.total_duration !== undefined) {
                         // Duration may be in nanoseconds, so convert to ms 
                         const durationMs = Math.round((meta.usage.total_duration ?? 0) / 1e9);
-                        const load_duration = meta.usage.load_duration/ 1e9 ?? 0;
-                        const eval_duration = meta.usage.eval_duration/ 1e9 ?? 0;
+                        const load_duration = Math.round(meta.usage.load_duration/ 1e9) ?? 0;
+                        const eval_duration = Math.round(meta.usage.eval_duration/ 1e9) ?? 0;
                         const promptTokens = meta.usage.prompt_eval_count ?? meta.usage.prompt_tokens ?? 0;
                         const completionTokens = meta.usage.eval_count ?? meta.usage.completion_tokens ?? 0;
                         const totalTokens = meta.usage.total_tokens ?? (promptTokens + completionTokens);
 
                         if (metaEl) {
                             metaEl.textContent =
-                                `base64 length: ${base64Image.length} | first token time: ${firstTokenTime}ms | ` +
+                                `base64 length: ${base64Image.length} | first token time: ${firstTokenTime}ms | reduceFactor: ${reduceFactor} | ` +
                                 `duration: ${durationMs}s (load: ${load_duration}s, eval: ${eval_duration}s) | ` +
                                 `tokens: ${totalTokens} (prompt_eval_count: ${promptTokens}, eval_count: ${completionTokens})`;
                         }
@@ -433,6 +452,7 @@ function callDescribeImage(base64Image) {
 }
 let firstTokenTime = 0;
 let callTime = 0;
+let reduceFactor = 1;
 const SIDEBOARD_ID = '__describeImageSideboard';
 function ensureSideboard() {
     const ANIMATION_DURATION = 0;
