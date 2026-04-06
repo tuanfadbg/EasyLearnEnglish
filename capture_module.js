@@ -160,6 +160,9 @@ function startCaptureSelection() {
     }
 
     const captureAndPreview = async () => {
+        firstTokenTime = 0;
+        callTime = Date.now();
+        
         if (mode) {
             console.warn('captureAndPreview ignored: selection interaction still in progress:', mode);
             return;
@@ -221,7 +224,7 @@ function startCaptureSelection() {
             );
 
             // Extract its base64 using getCanvasBase64Strict so it matches the visible cropped area
-            const croppedDataUrl = canvas.toDataURL('image/png');
+            // const croppedDataUrl = canvas.toDataURL('image/png');
             const base64 = await getCanvasBase64Strict(canvas);
 
             // Store cropping metadata in both CSS and device pixels
@@ -239,11 +242,6 @@ function startCaptureSelection() {
             };
             console.log('croppedMeta:', croppedMeta);
 
-            // For verification, log first bytes for debug
-            console.log('base64 (first 48 chars):', base64 ? base64.substring(0, 48) : '[empty]');
-            console.log('base64 length:', base64 ? base64.length : 0);
-
-            // This is the correct base64 string to send to the describeImage function
             callDescribeImage(base64);
 
         } catch (e) {
@@ -369,11 +367,6 @@ function callDescribeImage(base64Image) {
     const metaEl = document.getElementById(SIDEBOARD_ID +'Meta');
     const textEl = document.getElementById(SIDEBOARD_ID +'Text');
 
-    console.log('callDescribeImage() got base64:', {
-        isEmpty: !base64Image,
-        length: base64Image?.length ?? 0,
-        first48: base64Image ? base64Image.substring(0, 48) : '[empty]'
-    });
     if (!base64Image) {
         console.warn('callDescribeImage(): base64Image is empty; aborting describeImage call.');
         return;
@@ -391,27 +384,37 @@ function callDescribeImage(base64Image) {
 
     createImageDisplayHalfScreenLeft();
     updateImageDisplayHalfScreenLeft(base64Image);
-
     describeImage(base64Image, MODEL_NAME_DEFAULT)
         .then(result => {
             console.log('describeImage resolved, model:', result.modelName);
             return result.stream({
                 onToken: (token, accumulated, meta) => {
+                    if (firstTokenTime === 0) {
+                        firstTokenTime = Date.now();
+                        firstTokenTime = Date.now() - callTime;
+                        metaEl.textContent =
+                            `base64 length: ${base64Image.length} | ` +
+                            `first token time: ${firstTokenTime}ms`;
+                    }
                     console.log('onToken:', { token, accumulated, meta });
                     if (textEl) textEl.innerHTML = markdownToHtml(accumulated ?? '', true);
                     // INSERT_YOUR_CODE
                     // If meta and meta.usage exists, display duration and token count in the meta sideboard element
+                    
+
                     if (meta && meta.usage && meta.usage.total_duration !== undefined) {
                         // Duration may be in nanoseconds, so convert to ms 
-                        const durationMs = Math.round((meta.usage.total_duration ?? 0) / 1e6);
+                        const durationMs = Math.round((meta.usage.total_duration ?? 0) / 1e9);
+                        const load_duration = meta.usage.load_duration/ 1e9 ?? 0;
+                        const eval_duration = meta.usage.eval_duration/ 1e9 ?? 0;
                         const promptTokens = meta.usage.prompt_eval_count ?? meta.usage.prompt_tokens ?? 0;
                         const completionTokens = meta.usage.eval_count ?? meta.usage.completion_tokens ?? 0;
                         const totalTokens = meta.usage.total_tokens ?? (promptTokens + completionTokens);
 
                         if (metaEl) {
                             metaEl.textContent =
-                                `base64 length: ${base64Image.length} | ` +
-                                `duration: ${durationMs}ms | ` +
+                                `base64 length: ${base64Image.length} | first token time: ${firstTokenTime}ms | ` +
+                                `duration: ${durationMs}s (load: ${load_duration}s, eval: ${eval_duration}s) | ` +
                                 `tokens: ${totalTokens} (prompt_eval_count: ${promptTokens}, eval_count: ${completionTokens})`;
                         }
                     }
@@ -428,10 +431,11 @@ function callDescribeImage(base64Image) {
             return Promise.reject(err);
         });
 }
-
+let firstTokenTime = 0;
+let callTime = 0;
 const SIDEBOARD_ID = '__describeImageSideboard';
 function ensureSideboard() {
-    const ANIMATION_DURATION = 350;
+    const ANIMATION_DURATION = 0;
     let el = document.getElementById(SIDEBOARD_ID);
 
     // If element already exists, only make sure it's visible
@@ -579,6 +583,7 @@ function ensureSideboard() {
     captureBtn.addEventListener('click', () => {
         if (typeof startCaptureSelection === 'function') startCaptureSelection();
         if (typeof hideSideboardPanel === 'function') hideSideboardPanel();
+        if (typeof hideImageDisplayHalfScreenLeft === 'function') hideImageDisplayHalfScreenLeft();
     });
     
     const text = document.createElement('pre');
@@ -728,7 +733,7 @@ const LEFT_IMAGE_PANEL_ID = '__leftHalfScreenImagePanel';
             }
             #${LEFT_IMAGE_PANEL_ID} img {
                 max-width: 100%;
-                max-height: 100vh;
+                max-height: 80vh;
                 border-radius: 8px;
                 box-shadow: 0 2px 12px #0002;
             }

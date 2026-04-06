@@ -98,7 +98,7 @@ function buildDescribeImageFromBase64(base64Image) {
     return [
         {
             role: 'user',
-            content: 'Describe this image',
+            content: 'Describe this image in 50 words or less',
             images: [base64Image]
         },
     ];

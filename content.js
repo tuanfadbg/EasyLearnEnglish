@@ -135,9 +135,12 @@ document.addEventListener('keydown', function (event) {
   if (event.key === 'ç') {
     if (isSideboardVisible()) {
       if (typeof hideSideboardPanel === 'function') hideSideboardPanel();
-      // window.sideboardIsVisible = false;
+      if (isImageDisplayHalfScreenLeftVisible()) {
+        hideImageDisplayHalfScreenLeft();
+      }
     } else {
       if (typeof showSideboardPanel === 'function') showSideboardPanel();
+      if (typeof showImageDisplayHalfScreenLeft === 'function') showImageDisplayHalfScreenLeft();
       // window.sideboardIsVisible = true;
     }
   }
