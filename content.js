@@ -128,6 +128,15 @@ document.addEventListener('keydown', function (event) {
   }
 });
 
+
+document.addEventListener('keydown', function (event) {
+  // Listen for Option (Alt) + X for both Mac and Windows
+  console.log('keydown event detected:', event);
+  if (event.key === '≈') {
+    startCaptureSelection();
+  }
+});
+
 //option + c to hide/show sideboard
 document.addEventListener('keydown', function (event) {
   // Listen for Option (Alt) + C for both Mac and Windows
@@ -406,6 +415,11 @@ function getEjoySelectedText() {
 }
 
 function saveToWordbook(text, context) {
+  if (context && context.fullText && typeof context.fullText == 'string') {
+    context = context.fullText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  }
+
+  console.log('saveToWordbook called with:', { text, context });
   text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
   text = text.toLowerCase();
   return new Promise((resolve, reject) => {
@@ -492,6 +506,7 @@ function showFixedBroadOnBottomLeft(text, previousWord) {
           }
           console.log('onToken:', { token, accumulated, meta });
           fillBroadData(accumulated, apiProcessingTime);
+          console.log('accumulated:', accumulated);
           return accumulated;
         },
         onThinking: (token, accumulated) => console.debug('[thinking]', token)

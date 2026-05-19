@@ -1,4 +1,7 @@
-const OLLAMA_HOST = 'https://8adf-2405-4802-1c86-5a54-00-1001.ngrok-free.app';
+// const OLLAMA_HOST = 'https://8adf-2405-4802-1c86-5a54-00-1001.ngrok-free.app';
+// const OLLAMA_HOST = 'http://127.0.0.1:11434';
+const OLLAMA_HOST = 'http://localhost:11434';
+
 
 function buildGrammarMessages(word, sentence) {
     return [
@@ -98,7 +101,7 @@ function buildDescribeImageFromBase64(base64Image) {
     return [
         {
             role: 'user',
-            content: 'Describe this image in 50 words or less',
+            content: 'Tell me what you see in 50 words or less',
             images: [base64Image]
         },
     ];

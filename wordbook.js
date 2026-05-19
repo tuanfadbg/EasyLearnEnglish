@@ -71,17 +71,13 @@ document.addEventListener('DOMContentLoaded', function () {
             row.appendChild(timeCell);
 
             const wordCell = document.createElement('td');
-            wordCell.textContent = entry.text;
-            wordCell.addEventListener('click', function () {
-                openGoogleTranslate(entry.text);
-            });
+            wordCell.innerHTML = `<p class="openTranslate">${entry.text}</p>`;
+       
             row.appendChild(wordCell);
 
             const contextCell = document.createElement('td');
-            contextCell.innerHTML = entry.context.join('<br\/>');
-            contextCell.addEventListener('click', function () {
-                openGoogleTranslate(entry.context);
-            });
+            contextCell.innerHTML = entry.context.map(ctx => `<p class="openTranslate">${ctx}</p>`).join('');
+       
             row.appendChild(contextCell);
 
             const action1Cell = document.createElement('td');
@@ -177,7 +173,7 @@ function showRandomWord() {
         // Run both functions in parallel (true promises, no async wrappers)
         Promise.all([
             displayExampleSentences(randomWordGame.text, currentPreviousWord),
-            displayMeaningInEnglish(randomWordGame.text)
+            // displayMeaningInEnglish(randomWordGame.text)
         ]).catch(err => {
             // Keep UI responsive; individual functions already render error text
             console.error('Parallel requests failed:', err);

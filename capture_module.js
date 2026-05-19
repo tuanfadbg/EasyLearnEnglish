@@ -15,7 +15,7 @@ function startCaptureSelection() {
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
     overlay.style.zIndex = '2147483647';
-    overlay.style.background = 'rgba(0,0,0,0.15)';
+    // overlay.style.background = 'rgba(0,0,0,0.15)';
     overlay.style.cursor = 'crosshair';
     overlay.tabIndex = 0;
 
@@ -35,7 +35,7 @@ function startCaptureSelection() {
     const rectEl = document.createElement('div');
     rectEl.style.position = 'fixed';
     rectEl.style.border = '2px solid #00aaff';
-    rectEl.style.background = 'rgba(0,170,255,0.12)';
+    // rectEl.style.background = 'rgba(0,170,255,0.12)';
     rectEl.style.boxSizing = 'border-box';
     rectEl.style.display = 'none';
     overlay.appendChild(rectEl);
@@ -135,6 +135,10 @@ function startCaptureSelection() {
         if (el) el.remove();
     };
 
+    const cleanupRectUI = () => {
+        if (rectEl) rectEl.style.display = 'none';
+    };
+
     // This function receives a canvas and returns a promise of its PNG base64 (without the data URL prefix)
     function getCanvasBase64Strict(canvas) {
         return new Promise((resolve, reject) => {
@@ -173,9 +177,7 @@ function startCaptureSelection() {
             return;
         }
 
-        // Remove overlay so it won't appear in the screenshot.
-        cleanup();
-
+        cleanupRectUI();
         try {
             // Step 1: Capture the full visible tab as a data URL
             const data = await new Promise((resolve, reject) => {
@@ -215,13 +217,13 @@ function startCaptureSelection() {
             // Reduce the canvas size by half
             reduceFactor = 1;
             const size = sw*sh;
-            if (size > 5000000) {
+            if (size > 3000000) {
                 reduceFactor = 5;
-            } else if (size > 3000000) {
+            } else if (size > 1500000) {
                 reduceFactor = 4;
-            } else if (size > 1000000) {
+            } else if (size > 800000) {
                 reduceFactor = 3;
-            } else if (size > 300000) {
+            } else if (size > 200000) {
                 reduceFactor = 2;
             }
             console.log('size:', size); 
@@ -270,6 +272,7 @@ function startCaptureSelection() {
                 chrome.storage.local.set({ lastCaptureDataUrl: null, lastCaptureMeta: null });
             } catch (err) { }
         }
+        cleanup();
     };
 
     overlay.addEventListener('keydown', (e) => {
@@ -376,6 +379,7 @@ function startCaptureSelection() {
         }
         if (rect && rect.width >= 1 && rect.height >= 1) {
             confirmBtn.style.display = 'block';
+            captureAndPreview();
         }
     });
 }
@@ -395,7 +399,8 @@ function callDescribeImage(base64Image) {
     try {
         if (imgEl) imgEl.src = `data:image/png;base64,${base64Image}`;
         if (metaEl)
-            metaEl.textContent = `base64 length: ${base64Image.length}`;
+            metaEl.innerHTML = `base64 length: ${base64Image.length} ` + loadingIcon;
+       
         if (textEl) textEl.textContent = '';
     } catch (e) {
         console.warn('Failed to render base64 image in sideboard:', e);

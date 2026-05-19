@@ -353,3 +353,17 @@ function lcsWordPairs(aWords, bWords) {
     pairs.reverse();
     return pairs;
 }
+
+const loadingIcon = `<span style="display:inline-block;width:28px;height:16px;vertical-align:middle;margin-right:5px;">
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="16" viewBox="0 0 28 16">
+    <circle cx="4" cy="8" r="3" fill="#00aaff">
+      <animate attributeName="cy" values="8;3;8" dur="0.7s" begin="0s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+    </circle>
+    <circle cx="14" cy="8" r="3" fill="#00aaff">
+      <animate attributeName="cy" values="8;3;8" dur="0.7s" begin="0.12s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+    </circle>
+    <circle cx="24" cy="8" r="3" fill="#00aaff">
+      <animate attributeName="cy" values="8;3;8" dur="0.7s" begin="0.24s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+    </circle>
+  </svg>
+</span>`;
