@@ -55,9 +55,9 @@ function callAPIcheckRealtimeFixEnglish() {
                             console.log(meta);
                             console.log(markdownToHtml(accumulated));
                             if (accumulated.trim() === 'ok') {
-                                correctedVersionParagraph.innerHTML = markCorrectionWords(sentence, sentence);
+                                correctedVersionParagraph.innerHTML = markCorrectionWords(sentence, sentence, true);
                             } else {
-                                correctedVersionParagraph.innerHTML = markCorrectionWords(getMemoryGameInput(), accumulated);
+                                correctedVersionParagraph.innerHTML = markCorrectionWords(getMemoryGameInput(), accumulated, true);
                             }
                             
                             checkRealtimeFixEnglishDone = true
@@ -67,7 +67,7 @@ function callAPIcheckRealtimeFixEnglish() {
                             console.log(meta);
                             console.log(markdownToHtml(accumulated));
                             // Partial content as it's streaming in (optional)
-                            correctedVersionParagraph.innerHTML = markCorrectionWords(getMemoryGameInput(), accumulated) + '<span class="typing-cursor">▌</span>';
+                            correctedVersionParagraph.innerHTML = markCorrectionWords(getMemoryGameInput(), accumulated, false) + '<span class="typing-cursor">▌</span>';
                             
                         }
                     },

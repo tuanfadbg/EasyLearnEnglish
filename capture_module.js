@@ -425,7 +425,7 @@ function appendSideboardChatMessage(role, text) {
 
 function updateSideboardAssistantBubble(bubble, accumulated, streaming) {
     if (!bubble) return;
-    bubble.innerHTML = markdownToHtml(accumulated ?? '', true);
+    bubble.innerHTML = markdownToHtml(accumulated ?? '', false);
     if (streaming) {
         bubble.dataset.streaming = 'true';
     } else {
@@ -756,6 +756,7 @@ function bounceSideboardCorrection() {
 }
 
 function showSideboardCorrectionResult({ state, html, showApply, correctedPlain }) {
+    // console.log('[sideboard] showSideboardCorrectionResult', { state, html, showApply, correctedPlain });
     const { panel, textEl, applyBtn } = getSideboardCorrectionEls();
     if (!panel || !textEl) return;
 
@@ -832,15 +833,18 @@ function callAPIcheckRealtimeFixEnglish(sentenceOverride) {
                             } else {
                                 showSideboardCorrectionResult({
                                     state: 'suggestion',
-                                    html: markCorrectionWords(sentence, raw),
+                                    html: markCorrectionWords(sentence, raw, true),
                                     showApply: true,
                                     correctedPlain: raw
                                 });
                             }
                         } else if (raw) {
-                            textEl.innerHTML =
-                                markCorrectionWords(sentence, raw) +
-                                '<span class="typing-cursor">▌</span>';
+                            showSideboardCorrectionResult({
+                                state: 'suggestion',
+                                html: markCorrectionWords(sentence, raw, false),
+                                showApply: false,
+                                correctedPlain: raw
+                            });
                         }
                         return accumulated;
                     },

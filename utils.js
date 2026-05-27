@@ -273,21 +273,46 @@ function markdownToHtmlInline(text) {
     return html;
 }
 
-function markCorrectionWords(input, correctedInput) {
+function markCorrectionWords(input, correctedInput, isLoadingDone = true) {
+    console.log('[utils] markCorrectionWords', { input, correctedInput, isLoadingDone });
     const inputWords = tokenizeWords(input);
     const correctedWords = tokenizeWords(correctedInput);
-
-    // Compute LCS indices between input and corrected (case-insensitive),
-    // then mark corrected words that are NOT part of the LCS.
     const lcsPairs = lcsWordPairs(inputWords, correctedWords);
-    const correctedInLcs = new Set(lcsPairs.map(([, j]) => j));
+    const chunks = [];
+    let i = 0; // input pointer
+    let j = 0; // corrected pointer
 
-    return `<p class="openTranslate">` + correctedWords
-        .map((t, j) => {
-            const raw = t.raw;
-            return correctedInLcs.has(j) ? escapeHtml(raw) : `<mark>${escapeHtml(raw)}</mark>`;
-        })
-        .join(' ') + `</p>`;
+    for (const [matchI, matchJ] of lcsPairs) {
+        // Removed words (exist in input but not in corrected).
+        while (i < matchI) {
+            chunks.push(`<mark><del>${escapeHtml(inputWords[i].raw)}</del></mark>`);
+            i++;
+        }
+        // Added/changed words (exist in corrected but not in input).
+        while (j < matchJ) {
+            chunks.push(`<mark>${escapeHtml(correctedWords[j].raw)}</mark>`);
+            j++;
+        }
+        // Unchanged word.
+        chunks.push(escapeHtml(correctedWords[matchJ].raw));
+        i = matchI + 1;
+        j = matchJ + 1;
+    }
+
+    // Tail: deletions and additions after the last match.
+    // Only render tail when stream is done to avoid noisy partial highlights.
+    if (isLoadingDone) {
+        while (i < inputWords.length) {
+            chunks.push(`<mark><del>${escapeHtml(inputWords[i].raw)}</del></mark>`);
+            i++;
+        }
+        while (j < correctedWords.length) {
+            chunks.push(`<mark>${escapeHtml(correctedWords[j].raw)}</mark>`);
+            j++;
+        }
+    }
+
+    return `<p class="openTranslate">${chunks.join(' ')}</p>`;
 }
 
 function tokenizeWords(text) {
