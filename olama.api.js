@@ -3,6 +3,31 @@
 const OLLAMA_HOST = 'http://localhost:11434';
 
 
+function buildStoryMessages(words) {
+    const list = Array.isArray(words) ? words.filter(Boolean).map(String) : [String(words ?? '')];
+    const cleaned = list.map(w => w.trim()).filter(Boolean);
+    const wordsLine = cleaned.join(', ');
+
+    return [
+        {
+            role: 'system',
+            content: 'You are an English story writer. Your task is to help the learner understand and remember new words by writing a creative story that naturally uses the provided words and their variations.'
+        },
+        {
+            role: 'user',
+            content: `Please write a story to help me learn these words:
+${wordsLine}
+
+Guidelines:
+- Make sure the story uses each word (and their variations) several times naturally.
+- Use different tenses and sentence structures.
+- Each sentence should be on its own line.
+- The story should help me understand and remember the meaning and usage of these words.
+`
+        }
+    ];
+}
+
 function buildGrammarMessages(word, sentence) {
     return [
         {
@@ -97,14 +122,18 @@ Rules:
     ];
 }
 
-function buildDescribeImageFromBase64(base64Image) {
+function buildDescribeImageFromBase64(base64Image, content) {
     return [
         {
             role: 'user',
-            content: 'Tell me what you see in 50 words or less',
+            content: (typeof content === 'string' && content.trim() !== '') ? content : 'Describe what you see in the image like casual conversation in 50 words.',
+       
+    //    content: 'Describe what you see in the image like a friend talking to another friend in 50 words.',
+            // content: 'Tell me what you see in 50 words or less',
             images: [base64Image]
         },
     ];
+    
 }
 
 async function createOllamaChatStream({ modelName, messages, startTime, think = false }) {
@@ -306,9 +335,9 @@ async function checkRealtimeFixEnglish(word, sentence, modelName) {
     }
 }
 
-async function describeImage(base64Image, modelName) {
+async function describeImage(base64Image, content, modelName) {
     const startTime = performance.now();
-    const messages = buildDescribeImageFromBase64(base64Image);
+    const messages = buildDescribeImageFromBase64(base64Image, content);
 
     try {
         return await createOllamaChatStream({ modelName, messages, startTime });
@@ -378,5 +407,18 @@ async function getMeaningInEnglish(words, modelName) {
     } catch (error) {
         const elapsed = Math.round(performance.now() - startTime);
         throw new Error(`Meaning generation failed after ${elapsed}ms. Last: ${error.message}`);
+    }
+}
+
+async function writeStory(words, modelName) {
+    const startTime = performance.now();
+    const messages = buildStoryMessages(words);
+
+    try {
+        const result = await createOllamaChatStream({ modelName, messages, startTime });
+        return result;
+    } catch (error) {
+        const elapsed = Math.round(performance.now() - startTime);
+        throw new Error(`Story generation failed after ${elapsed}ms. Last: ${error.message}`);
     }
 }

@@ -27,7 +27,7 @@
     },
     "web_accessible_resources": [
       {
-        "resources": ["saved_words.html"],
+        "resources": ["saved_words.html", "sideboard.html", "resources/sideboard.css"],
         "matches": ["<all_urls>"]
       }
     ],

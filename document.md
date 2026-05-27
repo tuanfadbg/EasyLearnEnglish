@@ -9,8 +9,11 @@
 ├── manifest.json
 ├── background.js
 ├── content.js
+├── capture_module.js
+├── sideboard.html
 ├── popup.html
 ├── popup.js
+├── sideboard.html
 ├── capture_preview.html
 ├── capture_preview.js
 ├── db.js
@@ -47,6 +50,7 @@
 │   ├── styles.css
 │   ├── full-screen-modal.css
 │   ├── wordbook.css
+│   ├── sideboard.css
 │   ├── jquery-3.5.1.slim.min.js
 │   ├── popper.min.js
 │   └── voicerss-tts.min.js
@@ -67,6 +71,8 @@
 - `content.js`: Main content script injected into pages; includes selection overlay UI and message handler for `START_CAPTURE_SELECTION`, plus crop/preview flow.
 - `popup.html`: Extension popup UI (word/meaning/note inputs, list links, and the `Capture Area` button).
 - `popup.js`: Popup logic for saving words and messaging the active tab (sends `START_CAPTURE_SELECTION` when the capture button is clicked).
+- `sideboard.html`: HTML fragment for the image-describe side panel (injected into the page by `capture_module.js`).
+- `capture_module.js`: Screen capture overlay, crop/describe flow, and sideboard panel wiring.
 - `capture_preview.html`: Preview page that displays the cropped screenshot after capture.
 - `capture_preview.js`: Reads `lastCaptureDataUrl/lastCaptureMeta` from storage and renders the preview image.
 - `db.js`: Data/storage helpers shared by multiple UI pages.
@@ -101,6 +107,7 @@
 - `resources/styles.css`: Shared styling for multiple pages.
 - `resources/full-screen-modal.css`: Full-screen modal styling.
 - `resources/wordbook.css`: Styling for wordbook pages.
+- `resources/sideboard.css`: Styles for the image-describe side panel injected on web pages.
 - `resources/jquery-3.5.1.slim.min.js`: jQuery slim dependency.
 - `resources/popper.min.js`: Popper.js dependency.
 - `resources/voicerss-tts.min.js`: Voicerss TTS library.

@@ -263,7 +263,10 @@ function startCaptureSelection() {
             };
             console.log('croppedMeta:', croppedMeta);
 
-            callDescribeImage(base64);
+            const promptContent = document.getElementById('promt-content')?.value || '';
+            callDescribeImage(base64, promptContent);
+
+       
 
         } catch (e) {
             console.error('Capture failed:', e);
@@ -384,8 +387,11 @@ function startCaptureSelection() {
     });
 }
 
-function callDescribeImage(base64Image) {
-    ensureSideboard();
+const describeImageContent = 'Describe what you see in the image like casual conversation in 50 words.';
+
+async function callDescribeImage(base64Image, content) {
+    content = (typeof content === 'string' && content.trim() !== '') ? content : describeImageContent;
+    await ensureSideboard();
     const imgEl = document.getElementById(SIDEBOARD_ID + 'Img');
     const metaEl = document.getElementById(SIDEBOARD_ID +'Meta');
     const textEl = document.getElementById(SIDEBOARD_ID +'Text');
@@ -408,7 +414,7 @@ function callDescribeImage(base64Image) {
 
     createImageDisplayHalfScreenLeft();
     updateImageDisplayHalfScreenLeft(base64Image);
-    describeImage(base64Image, MODEL_NAME_DEFAULT)
+    describeImage(base64Image, content, MODEL_NAME_DEFAULT)
         .then(result => {
             console.log('describeImage resolved, model:', result.modelName);
             return result.stream({
@@ -459,240 +465,80 @@ let firstTokenTime = 0;
 let callTime = 0;
 let reduceFactor = 1;
 const SIDEBOARD_ID = '__describeImageSideboard';
-function ensureSideboard() {
-    const ANIMATION_DURATION = 0;
-    let el = document.getElementById(SIDEBOARD_ID);
+const SIDEBOARD_ANIMATION_DURATION = 0;
+let sideboardHtmlPromise = null;
 
-    // If element already exists, only make sure it's visible
-    if (el) {
-        el.classList.remove('sideboard-hide');
-        void el.offsetWidth; // Force reflow
-        el.classList.add('sideboard-show');
-        // Always make sure the show button is hidden when showing the panel
-        const showBtn = document.getElementById('__sideboardShowBtn');
-        if (showBtn) showBtn.style.display = 'none';
-        el.style.display = '';
-        return el;
+function loadSideboardHtml() {
+    if (!sideboardHtmlPromise) {
+        sideboardHtmlPromise = fetch(chrome.runtime.getURL('sideboard.html'))
+            .then((r) => r.text())
+            .catch((err) => {
+                console.warn('Failed to load sideboard.html:', err);
+                return '';
+            });
     }
+    return sideboardHtmlPromise;
+}
 
-    // Add sideboard styles for animation once (idempotent ok)
-    if (!document.getElementById('__sideboard_css')) {
-        const style = document.createElement('style');
-        style.id = '__sideboard_css';
-        style.textContent = `
-        #${SIDEBOARD_ID} {
-            position: fixed;
-            top: 0;
-            right: 0;
-            height: 100vh;
-            width: 360px;
-            z-index: 9997!important;
-            background: rgba(255,255,255,0.98);
-            border-left: 1px solid rgba(0,0,0,0.15);
-            box-shadow: 0 0 16px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 12px;
-            font-family: Arial, sans-serif;
-            transition: transform ${ANIMATION_DURATION}ms cubic-bezier(.3,1.2,.4,1),
-                        opacity ${ANIMATION_DURATION}ms cubic-bezier(.3,1.2,.4,1);
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        #${SIDEBOARD_ID}.sideboard-show {
-            transform: translateX(0%);
-            opacity: 1;
-        }
-        #${SIDEBOARD_ID}.sideboard-hide {
-            transform: translateX(100%);
-            opacity: 0;
-            pointer-events: none;
-        }
-        #${SIDEBOARD_ID}.halfscreen {
-            width: 50vw;
-            right: 0;
-            transform: translateX(0%);
-            opacity: 1;
-            pointer-events: auto;
-        }
-        
-        #__sideboardShowBtn, #__sideboardHideBtn {
-            position: fixed;
-            right: 10px;
-            top: 50%;
-            z-index: 2147483648;
-            transform: translateY(-50%);
-            border: none;
-            background: #3578e5;
-            color: #fff;
-            border-radius: 6px;
-            padding: 8px 12px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            transition: opacity 0.2s;
-        }
-        /* Remove display: none from #__sideboardShowBtn to allow positioning when hidden; hide with opacity+pointer-events */
-        #__sideboardShowBtn {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        #__sideboardShowBtn.sideboardShowBtn-hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        `;
-        document.head.appendChild(style);
-    }
+// Preload markup so the first capture does not wait on fetch.
+loadSideboardHtml();
 
-    // "Hide" Button (inside panel)
-    const hideBtn = document.createElement('button');
-    hideBtn.id = '__sideboardHideBtn';
-    hideBtn.type = 'button';
-    hideBtn.textContent = 'Hide';
-    hideBtn.style.position = 'absolute';
-    hideBtn.style.top = '10px';
-    hideBtn.style.right = '10px';
-    hideBtn.style.background = '#6c757d';
-    hideBtn.style.color = '#fff';
-    hideBtn.style.border = '0';
-    hideBtn.style.borderRadius = '6px';
-    hideBtn.style.padding = '6px 10px';
-    hideBtn.style.cursor = 'pointer';
-    hideBtn.style.fontSize = '14px';
+function ensureSideboardStyles() {
+    if (document.getElementById('__sideboard_css')) return;
+    const link = document.createElement('link');
+    link.id = '__sideboard_css';
+    link.rel = 'stylesheet';
+    link.href = chrome.runtime.getURL('resources/sideboard.css');
+    document.head.appendChild(link);
+}
 
-    // Sideboard panel itself
-    el = document.createElement('div');
-    el.id = SIDEBOARD_ID;
+function wireSideboard(el) {
+    const showBtn = document.getElementById('__sideboardShowBtn');
+    const hideBtn = document.getElementById('__sideboardHideBtn');
+    const captureBtn = document.getElementById('__sideboardCaptureBtn');
 
-    // Panel content
-    const header = document.createElement('div');
-    header.textContent = 'Option + C to hide/show, Option + V to expand/collapse, Option + B to enlarge image';
-    header.style.fontWeight = '700';
-    header.style.fontSize = '14px';
-
-    const img = document.createElement('img');
-    img.id = '__describeImageSideboardImg';
-    img.alt = 'Cropped capture preview';
-    img.style.width = '100%';
-    img.style.maxHeight = '220px';
-    img.style.objectFit = 'contain';
-    img.style.borderRadius = '8px';
-    img.style.background = '#f6f7f9';
-    img.style.border = '1px solid rgba(0,0,0,0.08)';
-
-    const base64Meta = document.createElement('div');
-    base64Meta.id = '__describeImageSideboardMeta';
-    base64Meta.style.fontSize = '12px';
-    base64Meta.style.color = '#555';
-    base64Meta.style.wordBreak = 'break-word';
-
-    const textTitle = document.createElement('div');
-    textTitle.textContent = 'Accumulated text';
-    textTitle.style.fontWeight = '700';
-    textTitle.style.fontSize = '13px';
-    textTitle.style.marginTop = '4px';
-
-    const captureBtn = document.createElement('button');
-    captureBtn.id = '__sideboardCaptureBtn';
-    captureBtn.type = 'button';
-    captureBtn.textContent = 'Capture';
-    captureBtn.style.background = '#3498db';
-    captureBtn.style.color = 'white';
-    captureBtn.style.border = 'none';
-    captureBtn.style.borderRadius = '5px';
-    captureBtn.style.padding = '3px 10px';
-
-    captureBtn.addEventListener('click', () => {
-        if (typeof startCaptureSelection === 'function') startCaptureSelection();
-        if (typeof hideSideboardPanel === 'function') hideSideboardPanel();
-        if (typeof hideImageDisplayHalfScreenLeft === 'function') hideImageDisplayHalfScreenLeft();
-    });
-    
-    const text = document.createElement('pre');
-    text.id = '__describeImageSideboardText';
-    text.style.flex = '1';
-    text.style.whiteSpace = 'pre-wrap';
-    text.style.overflow = 'auto';
-    text.style.margin = '0';
-    text.style.padding = '10px';
-    text.style.paddingBottom = '200px';
-    text.style.borderRadius = '8px';
-    text.style.background = '#f6f7f9';
-    text.style.border = '1px solid rgba(0,0,0,0.08)';
-    text.textContent = '';
-
-    // "Show" Button, outside sideboard, to appear when it's hidden
-    let showBtn = document.getElementById('__sideboardShowBtn');
-    if (!showBtn) {
-        showBtn = document.createElement('button');
-        showBtn.id = '__sideboardShowBtn';
-        showBtn.type = 'button';
-        showBtn.textContent = 'Show Panel';
-        document.body.appendChild(showBtn);
-    }
-    // Use CSS class to hide/show showBtn instead of display:none for correct positioning
-    showBtn.classList.add('sideboardShowBtn-hidden');
-
-    // Hide and show sideboard logic using the extracted functions (which are now outside)
-    hideSideboardPanel = function() {
+    hideSideboardPanel = function () {
         if (!el) return;
         el.classList.remove('sideboard-show');
         el.classList.add('sideboard-hide');
         setTimeout(() => {
             el.style.display = 'none';
-            // Show the "Show" button by removing the "hidden" class
-            showBtn.classList.remove('sideboardShowBtn-hidden');
-        }, ANIMATION_DURATION);
+            if (showBtn) showBtn.classList.remove('sideboardShowBtn-hidden');
+        }, SIDEBOARD_ANIMATION_DURATION);
     };
 
-    showSideboardPanel = function() {
+    showSideboardPanel = function () {
         if (!el) return;
         el.style.display = '';
-        // Force reflow to properly run the animation
         void el.offsetWidth;
         el.classList.remove('sideboard-hide');
         el.classList.add('sideboard-show');
-        showBtn.classList.add('sideboardShowBtn-hidden');
+        if (showBtn) showBtn.classList.add('sideboardShowBtn-hidden');
     };
 
-    expandSideboardPanel = function() {
+    expandSideboardPanel = function () {
         if (!el) return;
         el.classList.add('halfscreen');
     };
 
-    collapseSideboardPanel = function() {
+    collapseSideboardPanel = function () {
         if (!el) return;
         el.classList.remove('halfscreen');
     };
 
-    hideBtn.addEventListener('click', hideSideboardPanel);
-    showBtn.onclick = showSideboardPanel;
+    if (hideBtn) hideBtn.addEventListener('click', hideSideboardPanel);
+    if (showBtn) showBtn.onclick = showSideboardPanel;
+    if (captureBtn) {
+        captureBtn.addEventListener('click', () => {
+            if (typeof startCaptureSelection === 'function') startCaptureSelection();
+            if (typeof hideSideboardPanel === 'function') hideSideboardPanel();
+            if (typeof hideImageDisplayHalfScreenLeft === 'function') hideImageDisplayHalfScreenLeft();
+        });
+    }
 
-    // Optionally export or attach these functions to window for outside usage
     window.hideSideboardPanel = hideSideboardPanel;
     window.showSideboardPanel = showSideboardPanel;
 
-    // Append elements to sideboard
-    el.style.position = 'fixed';
-    el.style.overflow = 'hidden';
-    el.appendChild(hideBtn);
-    el.appendChild(header);
-    el.appendChild(img);
-    el.appendChild(base64Meta);
-    el.appendChild(textTitle);
-    el.appendChild(captureBtn);
-    el.appendChild(text);
-
-    // Enter-from-right animation trigger
-    el.classList.add('sideboard-show');
-
-    // Add sideboard panel to DOM
-    document.body.appendChild(el);
-
-    // Hide on exit animation end (clean up classes/inline display)
     el.addEventListener('transitionend', function (e) {
         if (
             el.classList.contains('sideboard-hide') &&
@@ -701,7 +547,42 @@ function ensureSideboard() {
             el.style.display = 'none';
         }
     });
+}
 
+async function ensureSideboard() {
+    let el = document.getElementById(SIDEBOARD_ID);
+
+    if (el) {
+        el.classList.remove('sideboard-hide');
+        void el.offsetWidth;
+        el.classList.add('sideboard-show');
+        const showBtn = document.getElementById('__sideboardShowBtn');
+        if (showBtn) showBtn.classList.add('sideboardShowBtn-hidden');
+        el.style.display = '';
+        return el;
+    }
+
+    ensureSideboardStyles();
+    const html = await loadSideboardHtml();
+    if (!html) {
+        console.error('Sideboard HTML not available');
+        return null;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html.trim();
+    while (wrapper.firstChild) {
+        document.body.appendChild(wrapper.firstChild);
+    }
+
+    el = document.getElementById(SIDEBOARD_ID);
+    if (!el) {
+        console.error('Sideboard panel element missing after HTML injection');
+        return null;
+    }
+
+    wireSideboard(el);
+    el.classList.add('sideboard-show');
     return el;
 }
 
