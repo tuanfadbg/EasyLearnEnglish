@@ -58,35 +58,33 @@ Important:
     ];
 }
 
-function buildRealtimeFixEnglishMessages(word, sentence) {
+function buildRealtimeFixEnglishMessages(sentence) {
     return [
         {
             role: 'system',
             content: `You are an English grammar corrector. Your output must be strictly limited to the corrected text.
 
 Rules:
-
-No Metadata: No explanations, no preamble, and no labels (e.g., do not include "Output:" or "Fixed sentence:").
-
-Sentence Completion: If the input is an incomplete fragment, complete it into a full, logical sentence based on the provided words. Avoid adding nonsensical or unrelated details.
-
-Correctness: If the sentence is already correct, return ok.
-
-Punctuation: Ignore trailing punctuation; do not add or remove periods or commas at the end of the sentence unless necessary for grammar.
-
-Failure Condition: If you add any conversational text or formatting headers, you have failed the task.
+1. No Metadata: No explanations, no preamble, and no labels (e.g., do not include "Output:" or "Fixed sentence:").
+2. Correct and Preserve: Fix any grammatical, structural, or natural phrasing errors. Keep the original intent and format (e.g., if the input is a question, the output must remain a question).
+3. If Already Correct: If the sentence is already correct and natural, return "ok".
+4. Failure Condition: If you add any conversational text, explanations, or formatting headers, you have failed the task.
 
 Example 1:
 Input: "She are good"
 Output: She is good
 
-Example 2 :
-Input: "went to market"
-Output: I went to the market
+Example 2:
+Input: "who is you"
+Output: Who are you
 
 Example 3:
 Input: "I am the only one"
-Output: ok`
+Output: ok
+
+Example 4:
+Input: "what type of these bricks?"
+Output: What type of bricks are these?`
 
         },
         {
@@ -323,9 +321,9 @@ async function checkGrammar(word, sentence, modelName) {
 
 // Streams a quick correction + highlighted version for UI display.
 // Returns the same shape as checkGrammar(): { modelName, processingTime, stream(onToken) }.
-async function checkRealtimeFixEnglish(word, sentence, modelName) {
+async function checkRealtimeFixEnglish(sentence, modelName) {
     const startTime = performance.now();
-    const messages = buildRealtimeFixEnglishMessages(word, sentence);
+    const messages = buildRealtimeFixEnglishMessages(sentence);
 
     try {
         return await createOllamaChatStream({ modelName, messages, startTime });
@@ -344,6 +342,40 @@ async function describeImage(base64Image, content, modelName) {
     } catch (error) {
         const elapsed = Math.round(performance.now() - startTime);
         throw new Error(`describeImage ${elapsed}ms. Last: ${error.message}`);
+    }
+}
+
+// Runs an existing chat message array and streams callbacks.
+// Returns { modelName, accumulated } when streaming completes.
+async function streamChatMessages({
+    modelName,
+    messages,
+    onToken,
+    onThinking
+}) {
+    const startTime = performance.now();
+    let accumulated = '';
+
+    try {
+        const result = await createOllamaChatStream({ modelName, messages, startTime });
+        console.log('streamChatMessages resolved, model:', result.modelName);
+
+        await result.stream({
+            onToken: (token, acc, meta) => {
+                accumulated = acc ?? '';
+                if (typeof onToken === 'function') onToken(token, accumulated, meta);
+                return accumulated;
+            },
+            onThinking: (token, acc) => {
+                accumulated = acc ?? '';
+                if (typeof onThinking === 'function') onThinking(token, accumulated);
+            }
+        });
+
+        return { modelName: result.modelName, accumulated };
+    } catch (error) {
+        const elapsed = Math.round(performance.now() - startTime);
+        throw new Error(`stream chat failed after ${elapsed}ms. Last: ${error.message}`);
     }
 }
 

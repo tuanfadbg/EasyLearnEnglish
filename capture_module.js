@@ -389,79 +389,190 @@ function startCaptureSelection() {
 
 const describeImageContent = 'Describe what you see in the image like casual conversation in 50 words.';
 
+let firstTokenTime = 0;
+let lastSideboardBase64 = null;
+let sideboardConversation = [];
+let sideboardStreamInFlight = false;
+
+function getSideboardChatMessagesEl() {
+    return document.getElementById(SIDEBOARD_ID + 'Text');
+}
+
+function clearSideboardChat() {
+    const el = getSideboardChatMessagesEl();
+    if (el) el.innerHTML = '';
+}
+
+function scrollSideboardChatToBottom() {
+    const el = getSideboardChatMessagesEl();
+    if (el) el.scrollTop = el.scrollHeight;
+}
+
+function appendSideboardChatMessage(role, text) {
+    const container = getSideboardChatMessagesEl();
+    if (!container) return null;
+    const bubble = document.createElement('div');
+    bubble.className = `sideboard-chat-bubble sideboard-chat-bubble--${role}`;
+    if (role === 'user') {
+        bubble.textContent = text ?? '';
+    } else {
+        bubble.innerHTML = text ?? '';
+    }
+    container.appendChild(bubble);
+    scrollSideboardChatToBottom();
+    return bubble;
+}
+
+function updateSideboardAssistantBubble(bubble, accumulated, streaming) {
+    if (!bubble) return;
+    bubble.innerHTML = markdownToHtml(accumulated ?? '', true);
+    if (streaming) {
+        bubble.dataset.streaming = 'true';
+    } else {
+        delete bubble.dataset.streaming;
+    }
+    scrollSideboardChatToBottom();
+}
+
+function updateSideboardMetaFromStream(meta, base64Image, metaEl) {
+    if (!metaEl || !base64Image) return;
+    if (firstTokenTime === 0 && meta) {
+        firstTokenTime = Date.now() - callTime;
+        metaEl.textContent =
+            `base64 length: ${base64Image.length} | ` +
+            `first token time: ${firstTokenTime}ms | reduceFactor: ${reduceFactor}`;
+    }
+    if (meta && meta.usage && meta.usage.total_duration !== undefined) {
+        const durationMs = Math.round((meta.usage.total_duration ?? 0) / 1e9);
+        const load_duration = Math.round(meta.usage.load_duration / 1e9) ?? 0;
+        const eval_duration = Math.round(meta.usage.eval_duration / 1e9) ?? 0;
+        const promptTokens = meta.usage.prompt_eval_count ?? meta.usage.prompt_tokens ?? 0;
+        const completionTokens = meta.usage.eval_count ?? meta.usage.completion_tokens ?? 0;
+        const totalTokens = meta.usage.total_tokens ?? (promptTokens + completionTokens);
+        metaEl.textContent =
+            `base64 length: ${base64Image.length} | first token time: ${firstTokenTime}ms | reduceFactor: ${reduceFactor} | ` +
+            `duration: ${durationMs}s (load: ${load_duration}s, eval: ${eval_duration}s) | ` +
+            `tokens: ${totalTokens} (prompt_eval_count: ${promptTokens}, eval_count: ${completionTokens})`;
+    }
+}
+
+function setSideboardChatBusy(busy) {
+    sideboardStreamInFlight = busy;
+    const sendBtn = document.getElementById('__sideboardChatSend');
+    const input = document.getElementById('__sideboardChatInput');
+    if (sendBtn) sendBtn.disabled = busy;
+    if (input) input.disabled = busy;
+}
+
+async function runSideboardChat(userContent, base64Image, { resetConversation = false } = {}) {
+    const metaEl = document.getElementById(SIDEBOARD_ID + 'Meta');
+    const trimmed = (userContent ?? '').trim();
+    if (!trimmed || !base64Image) return;
+
+    if (resetConversation) {
+        sideboardConversation = [];
+        clearSideboardChat();
+        firstTokenTime = 0;
+    }
+
+    appendSideboardChatMessage('user', trimmed);
+    const assistantBubble = appendSideboardChatMessage('assistant', '');
+    assistantBubble.dataset.streaming = 'true';
+
+    let messages;
+    if (sideboardConversation.length === 0) {
+        messages = buildDescribeImageFromBase64(base64Image, trimmed);
+    } else {
+        messages = [...sideboardConversation, { role: 'user', content: trimmed }];
+    }
+
+    setSideboardChatBusy(true);
+    let accumulated = '';
+
+    try {
+        const streamResult = await streamChatMessages({
+            modelName: MODEL_NAME_DEFAULT,
+            messages,
+            onToken: (token, acc, meta) => {
+                accumulated = acc ?? '';
+                updateSideboardAssistantBubble(assistantBubble, accumulated, true);
+                updateSideboardMetaFromStream(meta, base64Image, metaEl);
+                return accumulated;
+            },
+            onThinking: (token, acc) => {
+                console.debug('[thinking]', token);
+                accumulated = acc ?? '';
+                updateSideboardAssistantBubble(assistantBubble, accumulated, true);
+            }
+        });
+        accumulated = streamResult?.accumulated ?? accumulated;
+
+        updateSideboardAssistantBubble(assistantBubble, accumulated, false);
+
+        if (sideboardConversation.length === 0) {
+            sideboardConversation.push(messages[0]);
+        } else {
+            sideboardConversation.push({ role: 'user', content: trimmed });
+        }
+        sideboardConversation.push({ role: 'assistant', content: accumulated });
+    } catch (err) {
+        console.error('sideboard chat error:', err);
+        updateSideboardAssistantBubble(
+            assistantBubble,
+            `Error: ${err?.message ?? String(err)}`,
+            false
+        );
+        throw err;
+    } finally {
+        setSideboardChatBusy(false);
+    }
+}
+
+async function sendSideboardChatMessage() {
+    const input = document.getElementById('__sideboardChatInput');
+    const text = input?.value?.trim() ?? '';
+    if (!text || sideboardStreamInFlight) return;
+    if (!lastSideboardBase64) {
+        appendSideboardChatMessage('assistant', 'Capture an image first, then ask a question.');
+        if (input) input.value = '';
+        return;
+    }
+    if (input) input.value = '';
+    cancelSideboardGrammarCheck();
+    hideSideboardCorrection();
+    await runSideboardChat(text, lastSideboardBase64, { resetConversation: false });
+}
+
 async function callDescribeImage(base64Image, content) {
     content = (typeof content === 'string' && content.trim() !== '') ? content : describeImageContent;
     await ensureSideboard();
     const imgEl = document.getElementById(SIDEBOARD_ID + 'Img');
-    const metaEl = document.getElementById(SIDEBOARD_ID +'Meta');
-    const textEl = document.getElementById(SIDEBOARD_ID +'Text');
+    const metaEl = document.getElementById(SIDEBOARD_ID + 'Meta');
 
     if (!base64Image) {
         console.warn('callDescribeImage(): base64Image is empty; aborting describeImage call.');
         return;
     }
 
-    // Update side board UI for this request.
+    lastSideboardBase64 = base64Image;
+
     try {
         if (imgEl) imgEl.src = `data:image/png;base64,${base64Image}`;
-        if (metaEl)
-            metaEl.innerHTML = `base64 length: ${base64Image.length} ` + loadingIcon;
-       
-        if (textEl) textEl.textContent = '';
+        if (metaEl) metaEl.innerHTML = `base64 length: ${base64Image.length} ` + loadingIcon;
     } catch (e) {
         console.warn('Failed to render base64 image in sideboard:', e);
     }
 
     createImageDisplayHalfScreenLeft();
     updateImageDisplayHalfScreenLeft(base64Image);
-    describeImage(base64Image, content, MODEL_NAME_DEFAULT)
-        .then(result => {
-            console.log('describeImage resolved, model:', result.modelName);
-            return result.stream({
-                onToken: (token, accumulated, meta) => {
-                    if (firstTokenTime === 0) {
-                        firstTokenTime = Date.now();
-                        firstTokenTime = Date.now() - callTime;
-                        metaEl.textContent =
-                            `base64 length: ${base64Image.length} | ` +
-                            `first token time: ${firstTokenTime}ms | reduceFactor: ${reduceFactor}`;
-                    }
-                    console.log('onToken:', { token, accumulated, meta });
-                    if (textEl) textEl.innerHTML = markdownToHtml(accumulated ?? '', true);
-                    // INSERT_YOUR_CODE
-                    // If meta and meta.usage exists, display duration and token count in the meta sideboard element
-                    
 
-                    if (meta && meta.usage && meta.usage.total_duration !== undefined) {
-                        // Duration may be in nanoseconds, so convert to ms 
-                        const durationMs = Math.round((meta.usage.total_duration ?? 0) / 1e9);
-                        const load_duration = Math.round(meta.usage.load_duration/ 1e9) ?? 0;
-                        const eval_duration = Math.round(meta.usage.eval_duration/ 1e9) ?? 0;
-                        const promptTokens = meta.usage.prompt_eval_count ?? meta.usage.prompt_tokens ?? 0;
-                        const completionTokens = meta.usage.eval_count ?? meta.usage.completion_tokens ?? 0;
-                        const totalTokens = meta.usage.total_tokens ?? (promptTokens + completionTokens);
-
-                        if (metaEl) {
-                            metaEl.textContent =
-                                `base64 length: ${base64Image.length} | first token time: ${firstTokenTime}ms | reduceFactor: ${reduceFactor} | ` +
-                                `duration: ${durationMs}s (load: ${load_duration}s, eval: ${eval_duration}s) | ` +
-                                `tokens: ${totalTokens} (prompt_eval_count: ${promptTokens}, eval_count: ${completionTokens})`;
-                        }
-                    }
-                    return accumulated;
-                },
-                onThinking: (token, accumulated) => {
-                    console.debug('[thinking]', token);
-                    if (textEl) textEl.innerHTML = markdownToHtml(accumulated ?? '', true);
-                }
-            });
-        })
-        .catch(err => {
-            console.error('describeImage error:', err);
-            return Promise.reject(err);
-        });
+    try {
+        await runSideboardChat(content, base64Image, { resetConversation: true });
+    } catch (err) {
+        console.error('describeImage error:', err);
+        return Promise.reject(err);
+    }
 }
-let firstTokenTime = 0;
 let callTime = 0;
 let reduceFactor = 1;
 const SIDEBOARD_ID = '__describeImageSideboard';
@@ -496,6 +607,8 @@ function wireSideboard(el) {
     const showBtn = document.getElementById('__sideboardShowBtn');
     const hideBtn = document.getElementById('__sideboardHideBtn');
     const captureBtn = document.getElementById('__sideboardCaptureBtn');
+    const chatSend = document.getElementById('__sideboardChatSend');
+    const chatInput = document.getElementById('__sideboardChatInput');
 
     hideSideboardPanel = function () {
         if (!el) return;
@@ -536,6 +649,37 @@ function wireSideboard(el) {
         });
     }
 
+    if (chatSend) {
+        chatSend.addEventListener('click', () => {
+            sendSideboardChatMessage().catch((err) => console.error('send chat failed:', err));
+        });
+    }
+    const applyCorrectionBtn = document.getElementById('__sideboardApplyCorrection');
+    if (applyCorrectionBtn) {
+        applyCorrectionBtn.addEventListener('click', applySideboardGrammarSuggestion);
+    }
+
+    if (chatInput) {
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendSideboardChatMessage().catch((err) => console.error('send chat failed:', err));
+            }
+        });
+        chatInput.addEventListener('input', () => {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = `${Math.min(chatInput.scrollHeight, 120)}px`;
+
+            const sentence = chatInput.value.trim();
+            if (!sentence || sentence.length <= SIDEBOARD_GRAMMAR_MIN_LEN) {
+                cancelSideboardGrammarCheck();
+                hideSideboardCorrection();
+                return;
+            }
+            scheduleSideboardGrammarCheck();
+        });
+    }
+
     window.hideSideboardPanel = hideSideboardPanel;
     window.showSideboardPanel = showSideboardPanel;
 
@@ -547,6 +691,194 @@ function wireSideboard(el) {
             el.style.display = 'none';
         }
     });
+}
+
+let sideboardGrammarDebounce = null;
+let sideboardGrammarRequestId = 0;
+let sideboardGrammarApiInFlight = false;
+let lastSideboardGrammarRequestedSentence = '';
+let lastSideboardCorrectedText = '';
+
+const SIDEBOARD_GRAMMAR_MIN_LEN = 10;
+const SIDEBOARD_GRAMMAR_DEBOUNCE_MS = 400;
+
+function getSideboardCorrectionEls() {
+    const panel = document.getElementById('correction-version');
+    return {
+        panel,
+        textEl: panel?.querySelector('.sideboard-correction-text') ?? null,
+        applyBtn: document.getElementById('__sideboardApplyCorrection'),
+        statusEl: document.getElementById('__sideboardGrammarStatus')
+    };
+}
+
+function hideSideboardCorrection() {
+    cancelSideboardGrammarCheck();
+    const { panel, applyBtn } = getSideboardCorrectionEls();
+    if (panel) {
+        panel.hidden = true;
+        panel.classList.remove('is-checking', 'is-ok', 'is-suggestion', 'is-error', 'sideboard-correction-bounce');
+    }
+    if (applyBtn) applyBtn.hidden = true;
+    lastSideboardCorrectedText = '';
+}
+
+function setSideboardGrammarChecking(checking) {
+    sideboardGrammarApiInFlight = checking;
+    const { statusEl } = getSideboardCorrectionEls();
+    if (statusEl) statusEl.hidden = !checking;
+}
+
+function cancelSideboardGrammarInFlight() {
+    if (!sideboardGrammarApiInFlight) return;
+    sideboardGrammarRequestId++;
+    sideboardGrammarApiInFlight = false;
+    setSideboardGrammarChecking(false);
+}
+
+function cancelSideboardGrammarCheck() {
+    clearTimeout(sideboardGrammarDebounce);
+    sideboardGrammarDebounce = null;
+}
+
+function finishSideboardGrammarRequest(requestId) {
+    if (requestId !== sideboardGrammarRequestId) return;
+    sideboardGrammarApiInFlight = false;
+    setSideboardGrammarChecking(false);
+}
+
+function bounceSideboardCorrection() {
+    const { panel } = getSideboardCorrectionEls();
+    if (!panel) return;
+    panel.classList.remove('sideboard-correction-bounce');
+    void panel.offsetWidth;
+    panel.classList.add('sideboard-correction-bounce');
+}
+
+function showSideboardCorrectionResult({ state, html, showApply, correctedPlain }) {
+    const { panel, textEl, applyBtn } = getSideboardCorrectionEls();
+    if (!panel || !textEl) return;
+
+    panel.hidden = false;
+    panel.classList.remove('is-checking', 'is-ok', 'is-suggestion', 'is-error');
+    panel.classList.add(state === 'ok' ? 'is-ok' : state === 'error' ? 'is-error' : 'is-suggestion');
+    textEl.innerHTML = html;
+    lastSideboardCorrectedText = correctedPlain ?? '';
+
+    if (applyBtn) {
+        applyBtn.hidden = !showApply;
+    }
+
+    bounceSideboardCorrection();
+}
+
+function applySideboardGrammarSuggestion() {
+    const chatInput = document.getElementById('__sideboardChatInput');
+    if (!chatInput || !lastSideboardCorrectedText) return;
+    chatInput.value = lastSideboardCorrectedText;
+    chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+    hideSideboardCorrection();
+}
+
+function scheduleSideboardGrammarCheck() {
+    clearTimeout(sideboardGrammarDebounce);
+    sideboardGrammarDebounce = setTimeout(() => {
+        sideboardGrammarDebounce = null;
+        callAPIcheckRealtimeFixEnglish();
+    }, SIDEBOARD_GRAMMAR_DEBOUNCE_MS);
+}
+
+function callAPIcheckRealtimeFixEnglish(sentenceOverride) {
+    const chatInput = document.getElementById('__sideboardChatInput');
+    const { panel, textEl } = getSideboardCorrectionEls();
+    const sentenceFromInput = chatInput?.value?.trim() ?? '';
+    const sentence = (sentenceOverride ?? sentenceFromInput).trim();
+
+    // Enforce "single request at a time" - if a request is already streaming,
+    // do nothing; we'll re-check the current input when the request finishes.
+    if (sideboardGrammarApiInFlight) {
+        return;
+    }
+
+    if (!sentence || sentence.length <= SIDEBOARD_GRAMMAR_MIN_LEN || !panel || !textEl) {
+        cancelSideboardGrammarCheck();
+        hideSideboardCorrection();
+        return;
+    }
+
+    lastSideboardGrammarRequestedSentence = sentence;
+    const requestId = ++sideboardGrammarRequestId;
+    setSideboardGrammarChecking(true);
+    panel.hidden = false;
+    panel.classList.remove('is-ok', 'is-suggestion', 'is-error');
+    panel.classList.add('is-checking');
+    textEl.innerHTML = '';
+
+    checkRealtimeFixEnglish(sentence, MODEL_NAME_DEFAULT)
+        .then(async (result) => {
+            try {
+                await result.stream({
+                    onToken: (token, accumulated, meta) => {
+                        if (requestId !== sideboardGrammarRequestId) return accumulated;
+
+                        const raw = (accumulated ?? '').trim();
+                        if (meta?.done) {
+                            if (raw === 'ok' || normalizeToken(raw) === normalizeToken(sentence)) {
+                                showSideboardCorrectionResult({
+                                    state: 'ok',
+                                    html: '<p>Looks good — no changes needed.</p>',
+                                    showApply: false
+                                });
+                            } else {
+                                showSideboardCorrectionResult({
+                                    state: 'suggestion',
+                                    html: markCorrectionWords(sentence, raw),
+                                    showApply: true,
+                                    correctedPlain: raw
+                                });
+                            }
+                        } else if (raw) {
+                            textEl.innerHTML =
+                                markCorrectionWords(sentence, raw) +
+                                '<span class="typing-cursor">▌</span>';
+                        }
+                        return accumulated;
+                    },
+                    onThinking: (token) => console.debug('[thinking]', token)
+                });
+            } finally {
+                finishSideboardGrammarRequest(requestId);
+                // If user kept typing while request was in-flight, check the CURRENT input.
+                const current = (document.getElementById('__sideboardChatInput')?.value ?? '').trim();
+                const lastRequested = (lastSideboardGrammarRequestedSentence ?? '').trim();
+                if (
+                    current &&
+                    current.length > SIDEBOARD_GRAMMAR_MIN_LEN &&
+                    normalizeToken(current) !== normalizeToken(lastRequested)
+                ) {
+                    scheduleSideboardGrammarCheck();
+                }
+            }
+        })
+        .catch(() => {
+            if (requestId !== sideboardGrammarRequestId) return;
+            finishSideboardGrammarRequest(requestId);
+            showSideboardCorrectionResult({
+                state: 'error',
+                html: '<p>Could not check grammar. Try again in a moment.</p>',
+                showApply: false
+            });
+            // If user kept typing, debounce-check the CURRENT input (not queued text).
+            const current = (document.getElementById('__sideboardChatInput')?.value ?? '').trim();
+            const lastRequested = (lastSideboardGrammarRequestedSentence ?? '').trim();
+            if (
+                current &&
+                current.length > SIDEBOARD_GRAMMAR_MIN_LEN &&
+                normalizeToken(current) !== normalizeToken(lastRequested)
+            ) {
+                scheduleSideboardGrammarCheck();
+            }
+        });
 }
 
 async function ensureSideboard() {

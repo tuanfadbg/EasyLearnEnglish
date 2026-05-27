@@ -15,11 +15,67 @@
 
     <div id="__describeImageSideboardMeta"></div>
 
-    <div class="sideboard-text-title">Accumulated text</div>
-
     <button type="button" id="__sideboardCaptureBtn">Capture</button>
 
-    <pre id="__describeImageSideboardText"></pre>
+    <section class="sideboard-chat" aria-label="Image chat">
+        <div class="sideboard-chat-title">Chat</div>
+        <div id="__describeImageSideboardText" class="sideboard-chat-messages" role="log"></div>
+
+        <div class="sideboard-chat-compose">
+            <div class="sideboard-compose-main">
+                <label class="sideboard-compose-label" for="__sideboardChatInput">Your message</label>
+
+                <div class="sideboard-input-shell">
+                    <textarea
+                        id="__sideboardChatInput"
+                        class="sideboard-chat-input"
+                        rows="1"
+                        placeholder="Ask about the image…"
+                        aria-describedby="correction-version"
+                    ></textarea>
+                    <div
+                        id="__sideboardGrammarStatus"
+                        class="sideboard-grammar-status"
+                        hidden
+                        aria-live="polite"
+                    >
+                        <span class="sideboard-grammar-spinner" aria-hidden="true"></span>
+                        <span class="sideboard-grammar-status-text">Checking grammar…</span>
+                    </div>
+                </div>
+
+                <div
+                    id="correction-version"
+                    class="sideboard-correction"
+                    hidden
+                    role="region"
+                    aria-label="Grammar suggestion"
+                >
+                    <div class="sideboard-correction-header">
+                        <span class="sideboard-correction-badge">Grammar</span>
+                        <button
+                            type="button"
+                            id="__sideboardApplyCorrection"
+                            class="sideboard-correction-apply"
+                            hidden
+                        >
+                            Use suggestion
+                        </button>
+                    </div>
+                    <div class="sideboard-correction-text"></div>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                id="__sideboardChatSend"
+                class="sideboard-chat-send"
+                title="Send (Enter)"
+            >
+                Send
+            </button>
+        </div>
+    </section>
 </div>
 
 <button type="button" id="__sideboardShowBtn" class="sideboardShowBtn-hidden">Show Panel</button>

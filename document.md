@@ -71,7 +71,7 @@
 - `content.js`: Main content script injected into pages; includes selection overlay UI and message handler for `START_CAPTURE_SELECTION`, plus crop/preview flow.
 - `popup.html`: Extension popup UI (word/meaning/note inputs, list links, and the `Capture Area` button).
 - `popup.js`: Popup logic for saving words and messaging the active tab (sends `START_CAPTURE_SELECTION` when the capture button is clicked).
-- `sideboard.html`: HTML fragment for the image-describe side panel (injected into the page by `capture_module.js`).
+- `sideboard.html`: HTML fragment for the image-describe side panel with chat messages, compose input, and send button (injected by `capture_module.js`).
 - `capture_module.js`: Screen capture overlay, crop/describe flow, and sideboard panel wiring.
 - `capture_preview.html`: Preview page that displays the cropped screenshot after capture.
 - `capture_preview.js`: Reads `lastCaptureDataUrl/lastCaptureMeta` from storage and renders the preview image.

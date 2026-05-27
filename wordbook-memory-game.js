@@ -40,13 +40,13 @@ memoryGameTextArea.addEventListener('input', function () {
 function callAPIcheckRealtimeFixEnglish() {
     console.log('Debounced input:', memoryGameTextArea.value);
     // Get the "randomWord" value for word, textarea value for sentence
-    const word = document.getElementById('randomWord').textContent.trim();
+    // const word = document.getElementById('randomWord').textContent.trim();
     const sentence = getMemoryGameInput();
 
     const correctedVersionParagraph = document.getElementById('realtimeCorrectedVersion');
     
     if (word && sentence && correctedVersionParagraph) {
-        checkRealtimeFixEnglish(word, sentence, MODEL_NAME_DEFAULT)
+        checkRealtimeFixEnglish(sentence, MODEL_NAME_DEFAULT)
             .then(result => {
                 return result.stream({
                     onToken: (token, accumulated, meta) => {
