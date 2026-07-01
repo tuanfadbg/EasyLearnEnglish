@@ -71,6 +71,7 @@ function addDynamicCSS() {
   const css = `
       .pre-highlight {
           color: #90EE90;
+ 
       }    
       .highlight {
           background-color: #198e8e;
@@ -84,6 +85,10 @@ function addDynamicCSS() {
           font-family: "Roboto", "Arial", sans-serif;
           font-size: 2rem;
       }    
+
+      #simple-translate .simple-translate-panel {
+        z-index: 9997!important;
+      }
   `;
 
   // Add the CSS rules to the <style> element
@@ -219,15 +224,38 @@ function shouldAddTextInput() {
   return true;
 }
 
-const inputElement = document.createElement('textarea');
-const clearButton = document.createElement('button');
 const transcriptDivElement = document.createElement('div');
-const switchButton = createSwitchButton();
-const switchButtonLabel = createSwitchButtonLabel();
+transcriptDivElement.id = 'tuanfadbg-transcript';
+const switchAutoScrollButton = createSwitchButton('autoscrollTranscriptButton', 'Auto Scroll', false);
+const switchHideCCButton = createSwitchButton('hideCCButton', 'Hide CC', true);
 const switchButtonDiv = createSwitchButtonDiv();
 
-initButtonAndTextArea();
+handelHideCCButton();
 
+function handelHideCCButton() {
+  if (document.getElementById('hideCCButton') && document.getElementById('hideCCButton').checked) {
+    hideCC();
+  } else {
+    showCC();
+  }
+}
+
+function hideCC() {
+  // Hide the ejoy-subtitles element by adding 'hidden' and removing 'visible'
+  const ejoySubtitles = document.querySelector('.ejoy-subtitles');
+  if (ejoySubtitles) {
+    ejoySubtitles.classList.add('hidden');
+    ejoySubtitles.classList.remove('visible');
+  }
+}
+
+function showCC() {
+  const ejoySubtitles = document.querySelector('.ejoy-subtitles');
+  if (ejoySubtitles) {
+    ejoySubtitles.classList.remove('hidden');
+    ejoySubtitles.classList.add('visible');
+  }
+}
 
 // Check if the current URL is YouTube
 function handleYouTubeContent() {
@@ -238,10 +266,6 @@ function handleYouTubeContent() {
   // Check if the div exists
   if (titleDiv) {
     console.log(titleDiv)
-
-    // Add the input element at the beginning of the div
-    titleDiv.insertBefore(clearButton, titleDiv.firstChild);
-    titleDiv.insertBefore(inputElement, titleDiv.firstChild);
 
     const scrollContainerDiv = document.querySelector('div.style-scope ytd-watch-next-secondary-results-renderer');
     if (scrollContainerDiv) {
@@ -265,26 +289,6 @@ function handleYouTubeContent() {
     console.log("Div with ID 'title' not found.");
     return false;
   }
-}
-
-function handleDailyDictationContent() {
-  setTimeout(() => {
-    console.log("DOMContentLoaded");
-    // Find the div with the ID 'app-dictation'
-    var dictationDiv;
-    dictationDiv = document.getElementById('app-dictation');
-
-    // Check if the div exists
-    if (dictationDiv) {
-      console.log("Dictation div found");
-      // Append the input element and clear button to the div
-      dictationDiv.appendChild(inputElement);
-      dictationDiv.appendChild(clearButton);
-    } else {
-      console.log("Div with ID 'app-dictation' not found.");
-    }
-
-  }, 2000);
 }
 
 if (window.location.hostname === "www.youtube.com") {
@@ -682,6 +686,7 @@ function processPassage(text, timeInSeconds) {
   if (document.getElementById('autoscrollTranscriptButton').checked) {
     scrollToHighlightedText();
   }
+  handelHideCCButton()
 }
 
 function formatPassage(passage, text, preHighlight) {
@@ -767,64 +772,55 @@ function scrollToHighlightedText() {
   highlightedElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-
-
-function initButtonAndTextArea() {
-  inputElement.id = 'dictationInputTuanFadbg';
-  inputElement.placeholder = 'Type your dictation here';
-  inputElement.style.width = '100%';
-  // inputElement.style.backgroundColor = 'white';
-  inputElement.style.borderRadius = '12px';
-  inputElement.style.marginTop = '10px';
-  inputElement.style.border = 'none';
-  inputElement.rows = 2;
-  inputElement.style.fontSize = '2rem';
-  inputElement.style.boxSizing = 'border-box';
-  inputElement.style.padding = '12px';
-  inputElement.addEventListener('dblclick', () => {
-    inputElement.value = '';
-  });
-
-  clearButton.textContent = 'Clear';
-  clearButton.style.marginTop = '10px';
-  clearButton.style.fontSize = '1.5rem';
-  clearButton.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
-  clearButton.style.color = 'white';
-  clearButton.style.padding = '8px';
-  clearButton.style.borderRadius = '12px';
-
-  // Add event listener to the clear button
-  clearButton.addEventListener('click', () => {
-    inputElement.value = ''; // Clear the input field
-  });
-
-  transcriptDivElement.id = 'tuanfadbg-transcript';
-}
-
 // Function to create and configure the switch button
-function createSwitchButton() {
+function createSwitchButton(id, labelText, checked) {
+  // Create a container for the switch and label
+  const container = document.createElement('span');
+  container.style.display = 'inline-flex';
+  container.style.alignItems = 'center';
+
+  // Create the input (checkbox)
   const switchButton = document.createElement('input');
+  switchButton.id = id;
   switchButton.type = 'checkbox';
-  switchButton.id = 'autoscrollTranscriptButton';
-  switchButton.checked = false;
+  switchButton.checked = checked;
   switchButton.style.fontSize = 'larger';
   switchButton.style.textAlign = 'left';
   switchButton.style.marginLeft = '0px';
   switchButton.style.display = 'inline-block';
-  return switchButton;
+
+  // Create and add a label for accessibility
+  const label = document.createElement('label');
+  label.htmlFor = id;
+  label.textContent = labelText || id;
+  label.style.marginLeft = '6px';
+  label.style.color = 'white';
+  label.style.fontSize = '2rem';
+
+  // Optional: attach label to button object for external use
+  switchButton.labelElement = label; 
+
+  // Append checkbox and label to container
+  container.appendChild(switchButton);
+  container.appendChild(label);
+
+  // Attach container on switchButton for easy insertion if needed
+  switchButton.containerElement = container;
+
+  return container;
 }
 
-// Function to create and configure the switch button label
-function createSwitchButtonLabel() {
-  const switchButtonLabel = document.createElement('label');
-  switchButtonLabel.htmlFor = 'autoscrollTranscriptButton';
-  switchButtonLabel.style.fontSize = 'larger';
-  switchButtonLabel.style.marginLeft = '5px';
-  switchButtonLabel.style.color = 'white';
-  switchButtonLabel.textContent = 'Auto Scroll';
-  switchButtonLabel.style.display = 'inline-block';
-  return switchButtonLabel;
-}
+// // Function to create and configure the switch button label
+// function createSwitchButtonLabel(id, labelText) {
+//   const switchButtonLabel = document.createElement('label');
+//   switchButtonLabel.htmlFor = id;
+//   switchButtonLabel.style.fontSize = 'larger';
+//   switchButtonLabel.style.marginLeft = '5px';
+//   switchButtonLabel.style.color = 'white';
+//   switchButtonLabel.textContent = labelText;
+//   switchButtonLabel.style.display = 'inline-block';
+//   return switchButtonLabel;
+// }
 
 // Function to create and configure the switch button container
 function createSwitchButtonDiv() {
@@ -832,8 +828,11 @@ function createSwitchButtonDiv() {
   switchButtonDiv.style.display = 'flex';
   switchButtonDiv.style.alignItems = 'center';
   switchButtonDiv.style.justifyContent = 'center';
-  switchButtonDiv.appendChild(switchButton);
-  switchButtonDiv.appendChild(switchButtonLabel);
+  switchButtonDiv.style.gap = '20px'; 
+
+  switchButtonDiv.appendChild(switchAutoScrollButton);
+  switchButtonDiv.appendChild(switchHideCCButton);
+
   return switchButtonDiv;
 }
 

@@ -65,10 +65,14 @@ function buildRealtimeFixEnglishMessages(sentence) {
             content: `You are an English grammar corrector. Your output must be strictly limited to the corrected text.
 
 Rules:
-1. No Metadata: No explanations, no preamble, and no labels (e.g., do not include "Output:" or "Fixed sentence:").
-2. Correct and Preserve: Fix any grammatical, structural, or natural phrasing errors. Keep the original intent and format (e.g., if the input is a question, the output must remain a question).
-3. If Already Correct: If the sentence is already correct and natural, return "ok".
-4. Failure Condition: If you add any conversational text, explanations, or formatting headers, you have failed the task.
+
+No Metadata: No explanations, no preamble, and no labels (e.g., do not include "Output:" or "Fixed sentence:").
+
+Correct and Preserve: Fix any grammatical, structural, or natural phrasing errors. Keep the original intent and format (e.g., if the input is a question, the output must remain a question).
+
+If Already Correct: If the sentence is already correct and natural, return "ok".
+
+Failure Condition: If you add any conversational text, explanations, or formatting headers, you have failed the task.
 
 Example 1:
 Input: "She are good"
@@ -84,13 +88,31 @@ Output: ok
 
 Example 4:
 Input: "what type of these bricks?"
-Output: What type of bricks are these?`
+Output: What type of bricks are these?
+
+If the sentence is already correct, don't rephrase the sentence—just check the grammar.`
 
         },
         {
             role: 'user',
             content: sentence
           }
+    ];
+}
+
+function buildSynonymMessages(word) {
+    return [
+        {
+            role: 'system',
+            content: 'You are an English language assistant.'
+        },
+        {
+            role: 'user',
+            content: `Provide a list of 5-10 synonyms for the following English word. List only English words, separated by commas. Do not include any extra explanation or text.
+
+Word: ${word}
+`
+        }
     ];
 }
 
@@ -454,3 +476,17 @@ async function writeStory(words, modelName) {
         throw new Error(`Story generation failed after ${elapsed}ms. Last: ${error.message}`);
     }
 }
+
+async function getSynonumWords(word, modelName) {
+    const startTime = performance.now();
+    const messages = buildSynonymMessages(word);
+
+    try {
+        const result = await createOllamaChatStream({ modelName, messages, startTime });
+        return result;
+    } catch (error) {
+        const elapsed = Math.round(performance.now() - startTime);
+        throw new Error(`Synonym generation failed after ${elapsed}ms. Last: ${error.message}`);
+    }
+}
+

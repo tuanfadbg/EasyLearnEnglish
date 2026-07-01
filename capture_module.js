@@ -486,7 +486,7 @@ async function runSideboardChat(userContent, base64Image, { resetConversation = 
         messages = [...sideboardConversation, { role: 'user', content: trimmed }];
     }
 
-    setSideboardChatBusy(true);
+    // setSideboardChatBusy(true);
     let accumulated = '';
 
     try {
@@ -524,7 +524,7 @@ async function runSideboardChat(userContent, base64Image, { resetConversation = 
         );
         throw err;
     } finally {
-        setSideboardChatBusy(false);
+        // setSideboardChatBusy(false);
     }
 }
 
@@ -747,35 +747,29 @@ function finishSideboardGrammarRequest(requestId) {
     setSideboardGrammarChecking(false);
 }
 
-function bounceSideboardCorrection() {
-    const { panel } = getSideboardCorrectionEls();
-    if (!panel) return;
-    panel.classList.remove('sideboard-correction-bounce');
-    void panel.offsetWidth;
-    panel.classList.add('sideboard-correction-bounce');
-}
-
 function showSideboardCorrectionResult({ state, html, showApply, correctedPlain }) {
     // console.log('[sideboard] showSideboardCorrectionResult', { state, html, showApply, correctedPlain });
     const { panel, textEl, applyBtn } = getSideboardCorrectionEls();
     if (!panel || !textEl) return;
 
     panel.hidden = false;
-    panel.classList.remove('is-checking', 'is-ok', 'is-suggestion', 'is-error');
-    panel.classList.add(state === 'ok' ? 'is-ok' : state === 'error' ? 'is-error' : 'is-suggestion');
+    const classes = ['is-checking', 'is-ok', 'is-suggestion', 'is-error'];
+    let newClass = state === 'ok' ? 'is-ok' : state === 'error' ? 'is-error' : 'is-suggestion';
+    if (!panel.classList.contains(newClass) || classes.some(cls => cls !== newClass && panel.classList.contains(cls))) {
+        panel.classList.remove(...classes);
+        panel.classList.add(newClass);
+    }
     textEl.innerHTML = html;
     lastSideboardCorrectedText = correctedPlain ?? '';
 
     if (applyBtn) {
         applyBtn.hidden = !showApply;
     }
-
-    bounceSideboardCorrection();
 }
 
 function applySideboardGrammarSuggestion() {
     const chatInput = document.getElementById('__sideboardChatInput');
-    if (!chatInput || !lastSideboardCorrectedText) return;
+    if (!chatInput || !currectedText) return;
     chatInput.value = lastSideboardCorrectedText;
     chatInput.dispatchEvent(new Event('input', { bubbles: true }));
     hideSideboardCorrection();
@@ -787,8 +781,22 @@ function scheduleSideboardGrammarCheck() {
         sideboardGrammarDebounce = null;
         callAPIcheckRealtimeFixEnglish();
     }, SIDEBOARD_GRAMMAR_DEBOUNCE_MS);
+
+    const chatInput = document.getElementById('__sideboardChatInput');
+    if (chatInput) {
+        chatInput.addEventListener('input', function () {
+            const sentenceFromInput = chatInput?.value?.trim() ?? '';
+            showSideboardCorrectionResult({
+                                state: 'suggestion',
+                                html: markCorrectionWords(sentenceFromInput, currentFixedSentence, false),
+                                showApply: false,
+                                correctedPlain: raw
+                            });
+        });
+    }
 }
 
+var currentFixedSentence = '';
 function callAPIcheckRealtimeFixEnglish(sentenceOverride) {
     const chatInput = document.getElementById('__sideboardChatInput');
     const { panel, textEl } = getSideboardCorrectionEls();
@@ -810,10 +818,6 @@ function callAPIcheckRealtimeFixEnglish(sentenceOverride) {
     lastSideboardGrammarRequestedSentence = sentence;
     const requestId = ++sideboardGrammarRequestId;
     setSideboardGrammarChecking(true);
-    panel.hidden = false;
-    panel.classList.remove('is-ok', 'is-suggestion', 'is-error');
-    panel.classList.add('is-checking');
-    textEl.innerHTML = '';
 
     checkRealtimeFixEnglish(sentence, MODEL_NAME_DEFAULT)
         .then(async (result) => {
@@ -831,20 +835,29 @@ function callAPIcheckRealtimeFixEnglish(sentenceOverride) {
                                     showApply: false
                                 });
                             } else {
+                                // showSideboardCorrectionResult({
+                                //     state: 'suggestion',
+                                //     html: markCorrectionWords(sentence, raw, true),
+                                //     showApply: true,
+                                //     correctedPlain: raw
+                                // });
+                            }
+                        } else if (raw) {
+                            currentFixedSentence = raw
+                            if (raw === 'ok' || normalizeToken(raw) === normalizeToken(sentence)) {
+                                showSideboardCorrectionResult({
+                                    state: 'ok',
+                                    html: '<p>Looks good — no changes needed.</p>',
+                                    showApply: false
+                                });
+                            } else {
                                 showSideboardCorrectionResult({
                                     state: 'suggestion',
                                     html: markCorrectionWords(sentence, raw, true),
-                                    showApply: true,
+                                    showApply: false,
                                     correctedPlain: raw
                                 });
                             }
-                        } else if (raw) {
-                            showSideboardCorrectionResult({
-                                state: 'suggestion',
-                                html: markCorrectionWords(sentence, raw, false),
-                                showApply: false,
-                                correctedPlain: raw
-                            });
                         }
                         return accumulated;
                     },

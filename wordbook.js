@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
             row.appendChild(timeCell);
 
             const wordCell = document.createElement('td');
-            wordCell.innerHTML = `<p class="openTranslate">${entry.text}</p>`;
+            wordCell.innerHTML = `<p class="openTranslate synonym-word" data-word="${entry.text}">${entry.text}</p>`;
        
             row.appendChild(wordCell);
 
@@ -359,6 +359,51 @@ document.getElementById('cancel-save').addEventListener('click', cancelSaveToWor
 document.getElementById('editAndSaveWord-save').addEventListener('click', saveToSavedWord);
 document.getElementById('word-save').addEventListener('input', fillExistedWordToInput);
 document.getElementById('error-message-save').addEventListener('click', fillExistedWordToInput);
+
+
+document.addEventListener('click', function(event) {
+    let target = event.target;
+    if (target && target.tagName === 'P' && target.classList.contains('synonym-word') && !target.getAttribute('translated')) {
+        getAndFillSynonymWords(target.textContent.trim(), target);
+    }
+});
+
+const LIMIT_CHARACTOR_SYNONYM_WORDS = 150;
+function getAndFillSynonymWords(word, target) {
+            getSynonumWords(word, MODEL_NAME_DEFAULT)
+                .then(result => result.stream({
+                    onToken: (token, accumulated, meta) => {
+                        const limitedText = limitCharactor(accumulated);
+                        const dataword = word + ', ' + limitedText;
+                        target.innerHTML = word + '<p class="openTranslate" translated="true" data-word="' + dataword + '">' + limitedText + '</p>';
+                        target.setAttribute('translated', 'true');
+                    },
+                    onThinking: (token, accumulated) => console.debug('[thinking]', token)
+                }))
+                .catch(err => {
+                    synonymDiv.innerHTML = "<span style='color:red'>Could not fetch synonyms.</span>";
+                    console.error('getAndFillSynonymWords error:', err);
+                });
+}
+
+
+    // If the text needs to be cut off due to the character limit, do not leave the last word incomplete.
+    // Instead, only include fully completed words or phrases (separated by commas).
+    // E.g. input: "minimize, restrict, limit, cut down, deplete, diminish", limit = 45
+    // "minimize, restrict, limit, cut down, deplete, dimi" => "minimize, restrict, limit, cut down, deplete"
+
+function limitCharactor(text, limit = LIMIT_CHARACTOR_SYNONYM_WORDS) {
+    if (text.length <= limit) return text;
+    let cutoff = text.slice(0, limit);
+
+    // If the last character is a comma or space, just trim
+    cutoff = cutoff.replace(/[\s,]+$/, '');
+
+    // Otherwise, remove the last partial word/phrase
+    let lastComma = cutoff.lastIndexOf(',');
+    if (lastComma === -1) return '';
+    return cutoff.slice(0, lastComma).trim();
+}
 
 function cancelSaveToWordBook() {
     collapseSaveContainer();

@@ -25,25 +25,6 @@
             <div class="sideboard-compose-main">
                 <label class="sideboard-compose-label" for="__sideboardChatInput">Your message</label>
 
-                <div class="sideboard-input-shell">
-                    <textarea
-                        id="__sideboardChatInput"
-                        class="sideboard-chat-input"
-                        rows="1"
-                        placeholder="Ask about the image…"
-                        aria-describedby="correction-version"
-                    ></textarea>
-                    <div
-                        id="__sideboardGrammarStatus"
-                        class="sideboard-grammar-status"
-                        hidden
-                        aria-live="polite"
-                    >
-                        <span class="sideboard-grammar-spinner" aria-hidden="true"></span>
-                        <span class="sideboard-grammar-status-text">Checking grammar…</span>
-                    </div>
-                </div>
-
                 <div
                     id="correction-version"
                     class="sideboard-correction"
@@ -52,6 +33,16 @@
                     aria-label="Grammar suggestion"
                 >
                     <div class="sideboard-correction-header">
+                        <div
+                        id="__sideboardGrammarStatus"
+                        class="sideboard-grammar-status"
+                        hidden
+                        aria-live="polite"
+                    >
+                        <span class="sideboard-grammar-spinner" aria-hidden="true"></span>
+                        <span class="sideboard-grammar-status-text">Checking grammar…</span>
+                    </div>
+                    
                         <span class="sideboard-correction-badge">Grammar</span>
                         <button
                             type="button"
@@ -62,8 +53,23 @@
                             Use suggestion
                         </button>
                     </div>
-                    <div class="sideboard-correction-text"></div>
+                    <div class="sideboard-correction-text" style="max-height: 200px; overflow-y: auto;"></div>
+              
+                    
                 </div>
+
+                <div class="sideboard-input-shell">
+                    <textarea
+                        id="__sideboardChatInput"
+                        class="sideboard-chat-input"
+                        rows="1"
+                        placeholder="Ask about the image…"
+                        aria-describedby="correction-version"
+                    ></textarea>
+                    
+                </div>
+
+                
             </div>
 
             <button

@@ -82,7 +82,9 @@ document.addEventListener('click', function(event) {
     // Check if a <p> element with class "openTranslate" was clicked
     let target = event.target;
     if (target && target.tagName === 'P' && target.classList.contains('openTranslate')) {
-        openGoogleTranslate(target.textContent.trim());
+        // If the clicked element has the "data-word" attribute, use that. Otherwise, use text content.
+        let textToTranslate = target.getAttribute('data-word') || target.textContent.trim();
+        openGoogleTranslate(textToTranslate);
     }
 });
 
@@ -168,6 +170,10 @@ function convertForSearch(word) {
 
     // Return the original word if no patterns matched
     return word;
+}
+function markdownToHtml(markdown, isOpenGoogleTranslateEnable = false, limitcharactor = 50) {
+    if (typeof markdown !== 'string') return '';
+    return markdown.substring(0, limitcharactor);
 }
 
 
