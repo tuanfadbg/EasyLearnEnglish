@@ -375,7 +375,7 @@ function getAndFillSynonymWords(word, target) {
                     onToken: (token, accumulated, meta) => {
                         const limitedText = limitCharactor(accumulated);
                         const dataword = word + ', ' + limitedText;
-                        target.innerHTML = word + '<p class="openTranslate" translated="true" data-word="' + dataword + '">' + limitedText + '</p>';
+                        target.innerHTML = word + '<p class="openTranslate" translated="true" translate-linebyline="true" data-word="' + dataword + '">' + limitedText + '</p>';
                         target.setAttribute('translated', 'true');
                     },
                     onThinking: (token, accumulated) => console.debug('[thinking]', token)

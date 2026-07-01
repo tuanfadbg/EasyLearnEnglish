@@ -84,7 +84,11 @@ document.addEventListener('click', function(event) {
     if (target && target.tagName === 'P' && target.classList.contains('openTranslate')) {
         // If the clicked element has the "data-word" attribute, use that. Otherwise, use text content.
         let textToTranslate = target.getAttribute('data-word') || target.textContent.trim();
-        openGoogleTranslate(textToTranslate);
+        if (target.getAttribute('translate-linebyline') === 'true') {
+            textToTranslate = textToTranslate.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        console.log('[utils] textToTranslate', textToTranslate);
+        openGoogleTranslate(textToTranslate, target);
     }
 });
 
