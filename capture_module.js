@@ -467,7 +467,7 @@ function setSideboardChatBusy(busy) {
 async function runSideboardChat(userContent, base64Image, { resetConversation = false } = {}) {
     const metaEl = document.getElementById(SIDEBOARD_ID + 'Meta');
     const trimmed = (userContent ?? '').trim();
-    if (!trimmed || !base64Image) return;
+    // if (!trimmed || !base64Image) return;
 
     if (resetConversation) {
         sideboardConversation = [];
@@ -480,7 +480,7 @@ async function runSideboardChat(userContent, base64Image, { resetConversation = 
     assistantBubble.dataset.streaming = 'true';
 
     let messages;
-    if (sideboardConversation.length === 0) {
+    if (sideboardConversation.length === 0 && base64Image) {
         messages = buildDescribeImageFromBase64(base64Image, trimmed);
     } else {
         messages = [...sideboardConversation, { role: 'user', content: trimmed }];
@@ -532,11 +532,11 @@ async function sendSideboardChatMessage() {
     const input = document.getElementById('__sideboardChatInput');
     const text = input?.value?.trim() ?? '';
     if (!text || sideboardStreamInFlight) return;
-    if (!lastSideboardBase64) {
-        appendSideboardChatMessage('assistant', 'Capture an image first, then ask a question.');
-        if (input) input.value = '';
-        return;
-    }
+    // if (!lastSideboardBase64) {
+    //     appendSideboardChatMessage('assistant', 'Capture an image first, then ask a question.');
+    //     if (input) input.value = '';
+    //     return;
+    // }
     if (input) input.value = '';
     cancelSideboardGrammarCheck();
     hideSideboardCorrection();
@@ -573,6 +573,7 @@ async function callDescribeImage(base64Image, content) {
         return Promise.reject(err);
     }
 }
+
 let callTime = 0;
 let reduceFactor = 1;
 const SIDEBOARD_ID = '__describeImageSideboard';
@@ -896,6 +897,10 @@ function callAPIcheckRealtimeFixEnglish(sentenceOverride) {
                 scheduleSideboardGrammarCheck();
             }
         });
+}
+
+function ensureSideboardWithoutImage() {
+    ensureSideboard();
 }
 
 async function ensureSideboard() {

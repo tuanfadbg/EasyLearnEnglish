@@ -87,6 +87,28 @@
             background-color: #27ae60;
         }
 
+        /* Added CSS for Open Sideboard button */
+        #sideboardBtn {
+            background-color: #ffb347;
+            color: #333;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            box-shadow: 0 1px 4px rgba(255, 179, 71, 0.12);
+            letter-spacing: 0.5px;
+        }
+
+        #sideboardBtn:hover {
+            background-color: #ffa726;
+            color: #222;
+        }
+
         ul {
             list-style-type: none;
             padding: 0;
@@ -138,18 +160,21 @@
 
 <body>
     <div class="container">
-        <label for="word">Word:</label>
-        <input type="text" id="word" placeholder="Enter word">
-        <div id="error-message" style="color: red;"></div>
-        <label for="meaning">Meaning:</label>
-        <input type="text" id="meaning" placeholder="Enter meaning">
+        <div hidden>        
+            <label for="word">Word:</label>
+            <input type="text" id="word" placeholder="Enter word">
+            <div id="error-message" style="color: red;"></div>
+            <label for="meaning">Meaning:</label>
+            <input type="text" id="meaning" placeholder="Enter meaning">
 
-        <label for="note">Note:</label>
-        <textarea id="note" placeholder="Enter note" rows="3"></textarea>
+            <label for="note">Note:</label>
+            <textarea id="note" placeholder="Enter note" rows="3"></textarea>
 
-        <button id="save">Save</button>
+            <button id="save">Save</button>
+        </div>
+        
         <button id="captureArea" title="Drag on the page to select an area, then confirm to capture">Capture Area</button>
-
+        <button id="sideboardBtn">Open Sideboard</button>
         <ul id="savedWords"></ul>
 
         <a href="#" id="viewSavedWords">Saved_words</a> <a href="#" id="saveToTranslation">Save_to_translation</a>

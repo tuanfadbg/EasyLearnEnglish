@@ -393,7 +393,10 @@ function getAndFillSynonymWords(word, target) {
     // "minimize, restrict, limit, cut down, deplete, dimi" => "minimize, restrict, limit, cut down, deplete"
 
 function limitCharactor(text, limit = LIMIT_CHARACTOR_SYNONYM_WORDS) {
-    if (text.length <= limit) return text;
+    if (text.length <= limit) {
+        // Ensure space after each comma
+        return text.replace(/,\s*/g, ', ');
+    }
     let cutoff = text.slice(0, limit);
 
     // If the last character is a comma or space, just trim
@@ -402,7 +405,10 @@ function limitCharactor(text, limit = LIMIT_CHARACTOR_SYNONYM_WORDS) {
     // Otherwise, remove the last partial word/phrase
     let lastComma = cutoff.lastIndexOf(',');
     if (lastComma === -1) return '';
-    return cutoff.slice(0, lastComma).trim();
+    let result = cutoff.slice(0, lastComma).trim();
+
+    // Ensure space after each comma
+    return result.replace(/,\s*/g, ', ');
 }
 
 function cancelSaveToWordBook() {

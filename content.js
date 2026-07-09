@@ -6,6 +6,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Starts a drag-to-select overlay on the current page.
     startCaptureSelection();
     sendResponse({ status: 'started' });
+  } else if (request.type === 'OPEN_SIDEBOARD') {
+    ensureSideboardWithoutImage();
+    sendResponse({ status: 'opened' });
   } else if (request.action === "findElement") {
     findTextAndAddToWordbook(request);
   } else if (request.type == 'getTranslationValue') {

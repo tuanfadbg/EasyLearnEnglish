@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const noteInput = document.getElementById('note');
     const saveButton = document.getElementById('save');
     const captureAreaButton = document.getElementById('captureArea');
+    const sideboardBtn = document.getElementById('sideboardBtn');
     const savedWordsList = document.getElementById('savedWords');
     const viewSavedWordsLink = document.getElementById('viewSavedWords');
     const wordbookLink = document.getElementById('wordbook');
@@ -56,6 +57,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         window.close();
                     }
                 );
+            });
+        });
+    }
+    if (sideboardBtn) {
+        sideboardBtn.addEventListener('click', function () {
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, { type: 'OPEN_SIDEBOARD' });
             });
         });
     }

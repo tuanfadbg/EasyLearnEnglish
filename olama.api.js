@@ -160,25 +160,77 @@ async function createOllamaChatStream({ modelName, messages, startTime, think = 
     const requestId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     console.log('[ollama] fetch start', { requestId, modelName, think, t: Date.now() });
 
-    const response = await fetch(`${OLLAMA_HOST}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // Most Ollama-compatible APIs expect `model`, not `modelName`
-        body: JSON.stringify({ model: modelName, messages, stream: true, think })
-    });
+    const controller = new AbortController();
+    let timeoutId;
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    if (!response.body) throw new Error('No response body (stream unavailable)');
+    try {
+        const response = await fetch(`${OLLAMA_HOST}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: modelName, messages, stream: true, think }),
+            signal: controller.signal
+        });
 
-    const processingTime = Math.round(performance.now() - startTime);
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder('utf-8');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.body) throw new Error('No response body (stream unavailable)');
+
+        const processingTime = Math.round(performance.now() - startTime);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        // Auto-abort after 15 seconds
+        timeoutId = setTimeout(() => {
+            console.warn(`[ollama] Auto-aborting request ${requestId} after 3s`);
+            controller.abort();
+        }, 15000);
+
         return {
             modelName,
             processingTime,
-            stream: ({ onToken, onThinking } = {}) =>
-                consumeOllamaStreamQwenModel({ reader, decoder, onToken, onThinking, requestId })
-        };    
+            stream: ({ onToken, onThinking } = {}) => {
+                // Wrap the stream logic to clear the timeout when finished
+                return consumeOllamaStreamQwenModel({
+                    reader, decoder, onToken, onThinking, requestId
+                }).finally(() => {
+                    clearTimeout(timeoutId);
+                });
+            },
+            stop: () => {
+                clearTimeout(timeoutId);
+                controller.abort();
+            }
+        };
+    } catch (error) {
+        if (timeoutId) clearTimeout(timeoutId);
+        throw error;
+    }
+}
+
+/**
+ * Call this function with the original modelName/requestId
+ * to send a stop command to Ollama.
+ * 
+ * For Ollama's /api/stop endpoint.
+ * See: https://github.com/jmorganca/ollama/blob/main/docs/api.md#post-apistop
+ * 
+ * Example usage:
+ *   await stopOllamaChat({ modelName });
+ */
+async function stopOllamaChat({ modelName }) {
+    try {
+        const response = await fetch(`${OLLAMA_HOST}/api/stop`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: modelName })
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to stop Ollama chat: HTTP ${response.status}`);
+        }
+        return await response.json();
+    } catch (err) {
+        console.error('Failed to stop Ollama chat:', err);
+        throw err;
+    }
 }
 
 async function consumeOllamaStreamGemmaModel({ reader, decoder, onToken }) {
