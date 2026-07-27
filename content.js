@@ -231,6 +231,7 @@ const transcriptDivElement = document.createElement('div');
 transcriptDivElement.id = 'tuanfadbg-transcript';
 const switchAutoScrollButton = createSwitchButton('autoscrollTranscriptButton', 'Auto Scroll', false);
 const switchHideCCButton = createSwitchButton('hideCCButton', 'Hide CC', true);
+const clearCCButton = createButton('clearCC', 'Clear CC');
 const switchButtonDiv = createSwitchButtonDiv();
 
 handelHideCCButton();
@@ -665,6 +666,14 @@ function observeSubtitlesChanges() {
 let passage = [];
 let lastText = '';
 
+function resetPassage() {
+  passage = [];
+  let text = getCurrentEjoyEnglishText();
+  console.log('addCurrentTextToPassage: ' + text);
+  let timeInSeconds = getCurrentTime();
+  processPassage(text, timeInSeconds);
+}
+
 function processPassage(text, timeInSeconds) {
   if (text !== lastText) {
     preHighlight = lastText;
@@ -679,8 +688,6 @@ function processPassage(text, timeInSeconds) {
   }
 
   let surroundingItems = getSurroundingItems(text);
-  // console.log('Before Item:', surroundingItems.before ? surroundingItems.before.text : 'None');
-  // console.log('After Item:', surroundingItems.after ? surroundingItems.after.text : 'None');
 
   displaySurroundingItems(surroundingItems);
 
@@ -775,6 +782,24 @@ function scrollToHighlightedText() {
   highlightedElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
+function createButton(id, labelText) {
+  // Create a button element
+  const button = document.createElement('button');
+  button.id = id;
+  button.textContent = labelText || id;
+  button.style.fontSize = '2rem';
+  button.style.marginLeft = '0px';
+  button.style.display = 'inline-block';
+  button.style.color = 'white';
+  button.style.background = '#444';
+  button.style.border = 'none';
+  button.style.borderRadius = '5px';
+  button.style.padding = '6px 16px';
+  button.style.cursor = 'pointer';
+
+  return button;
+}
+
 // Function to create and configure the switch button
 function createSwitchButton(id, labelText, checked) {
   // Create a container for the switch and label
@@ -833,8 +858,18 @@ function createSwitchButtonDiv() {
   switchButtonDiv.style.justifyContent = 'center';
   switchButtonDiv.style.gap = '20px'; 
 
+  switchAutoScrollButton.style.padding = '6px';
+  switchHideCCButton.style.padding = '6px';
+  clearCCButton.style.padding = '6px';
+
   switchButtonDiv.appendChild(switchAutoScrollButton);
   switchButtonDiv.appendChild(switchHideCCButton);
+  switchButtonDiv.appendChild(clearCCButton);
+
+  clearCCButton.addEventListener('click', () => {
+    console.log('clearCC button clicked');
+    resetPassage();
+  });
 
   return switchButtonDiv;
 }
