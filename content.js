@@ -677,7 +677,7 @@ function resetPassage() {
 function processPassage(text, timeInSeconds) {
   if (text !== lastText) {
     preHighlight = lastText;
-    let duplicateIndex = passage.findIndex(p => p.text === text && Math.abs(p.time - timeInSeconds) < 5);
+    let duplicateIndex = passage.findIndex(p => p.text === text && Math.abs(p.time - timeInSeconds) < 10);
     if (duplicateIndex !== -1) { // duplicate
       // passage.splice(duplicateIndex, 1); 
     } else {
@@ -691,7 +691,7 @@ function processPassage(text, timeInSeconds) {
 
   displaySurroundingItems(surroundingItems);
 
-  let formattedPassage = formatPassage(passage, text, preHighlight);
+  let formattedPassage = formatPassage(passage, text, preHighlight, timeInSeconds);
   transcriptDivElement.innerHTML = formattedPassage;
   if (document.getElementById('autoscrollTranscriptButton').checked) {
     scrollToHighlightedText();
@@ -699,9 +699,9 @@ function processPassage(text, timeInSeconds) {
   handelHideCCButton()
 }
 
-function formatPassage(passage, text, preHighlight) {
+function formatPassage(passage, text, preHighlight, timeInSeconds) {
   return passage.map(p => {
-    if (p.text === text) {
+    if (p.text === text && Math.abs(p.time - timeInSeconds) < 10) {
       return `<span class="highlight">${p.text}</span>`;
     } else if (p.text === preHighlight) {
       return `<span class="pre-highlight">${p.text}</span>`;
